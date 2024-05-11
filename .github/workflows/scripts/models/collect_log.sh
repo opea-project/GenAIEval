@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eo pipefail
 source /GenAIEval/.github/workflows/script/change_color.sh
-
+WORKSPACE="/GenAIEval"
 # get parameters
 PATTERN='[-a-zA-Z0-9_]*='
 PERF_STABLE_CHECK=true
@@ -24,11 +24,8 @@ $BOLD_YELLOW && echo "-------- Collect logs --------" && $RESET
 echo "working in"
 pwd
 if [[ ! -f ${output_file} ]]; then
-    echo "${framework},${mode},${model},batch,cores per instance,Troughput,${precision}," >> ${WORKSPACE}/summary.log
+    echo "${device};${model};${task};;${logfile}" >> ${WORKSPACE}/summary.log
 else
-    throughput=$(grep -A 2 "best," ${output_file} | tail -1 | awk -F "," '{print $1","$3","$4}')
-    log_file=$(grep -A 2 "best," ${output_file} | tail -1 | awk -F "=" '{print $NF}' | awk '{print $1}' | sed 's|\"||g')
-    logfile=${log_file##*/}
-    logfile=${logs_prefix_url}${logfile}
-    echo "${framework},${mode},${model},${throughput},${precision},${logfile}" >> ${WORKSPACE}/summary.log
+    acc=$(grep -Po "Accuracy .* is:\\s+(\\d+(\\.\\d+)?)" ${acc_log_name} | head -n 1 | sed 's/.*://;s/[^0-9.]//g')
+    echo "${device};${model};${task};${acc};${logfile}" >> ${WORKSPACE}/summary.log
 fi

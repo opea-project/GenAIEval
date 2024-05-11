@@ -94,6 +94,8 @@ jobs:
         if: ${{ !cancelled() }}
         with:
           name: ${{ matrix.device }}-${{ matrix.modelName }}
-          path: ${{ github.workspace }}/${{ matrix.device }}/${{ matrix.modelName }}
+          path: |
+            ${{ github.workspace }}/${{ matrix.device }}/${{ matrix.modelName }}
+            ${{ github.workspace }}/.summary.log
           if-no-files-found: ignore # 'warn' or 'ignore' are also available, defaults to `warn`
           retention-days: 60 # 1 <= retention-days <= 90
