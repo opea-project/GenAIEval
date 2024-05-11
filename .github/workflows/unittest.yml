@@ -80,7 +80,7 @@ jobs:
         - name: Run UT
           run: |
             docker exec ${{ env.CONTAINER_NAME }} \
-            bash -c "bash /GenAIEval/.github/workflows/scripts/unittest.sh --test_name=${{ matrix.test_name }}"
+            bash -c "bash /GenAIEval/.github/workflows/scripts/unittest/unittest.sh --test_name=${{ matrix.test_name }}"
 
         - name: Collect log
           if: ${{ !cancelled() }}
@@ -96,7 +96,7 @@ jobs:
             name: "UnitTest${{ matrix.test_name }}"
             path: ${{ github.workspace }}/log_dir
 
-  Genreate-OptimizeUT-Report:
+  Genreate-UT-Report:
         runs-on: ubuntu-latest
         needs: [Unit-Test]
         steps:
@@ -123,4 +123,3 @@ jobs:
               name: Unit Test
               path: ${{ github.workspace }}/log_dir
               retention-days: 5
-
