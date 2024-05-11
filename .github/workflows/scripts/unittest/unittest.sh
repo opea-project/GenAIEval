@@ -15,8 +15,8 @@
 # limitations under the License.
 
 #!/bin/bash
-source /GenAIEval/.github/workflows/script/change_color.sh
-export COVERAGE_RCFILE="/GenAIEval/.github/workflows/script/unittest/coveragerc"
+source /GenAIEval/.github/workflows/scripts/change_color.sh
+export COVERAGE_RCFILE="/GenAIEval/.github/workflows/scripts/unittest/coveragerc"
 LOG_DIR=/log_dir
 mkdir -p ${LOG_DIR}
 # get parameters

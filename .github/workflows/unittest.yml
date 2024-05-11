@@ -45,8 +45,8 @@ jobs:
           include:
             - test_branch: ${{ github.ref }}
               test_name: "PR-test"
-            - test_branch: "main"
-              test_name: "baseline"
+            #- test_branch: "main"
+            #  test_name: "baseline"
     runs-on: aise-cluster
     name: unit-test-${{ matrix.test_name }}
     steps:
@@ -113,7 +113,7 @@ jobs:
 
           - name: Calculate coverage
             run: |
-              cd ${{ github.workspace }}/.github/workflows/script/unittest
+              cd ${{ github.workspace }}/.github/workflows/scripts/unittest
               /usr/bin/bash calc_coverage.sh ${{ github.workspace }}/log_dir
 
           - name: Publish pipeline artifact
