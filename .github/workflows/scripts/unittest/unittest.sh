@@ -15,9 +15,9 @@
 # limitations under the License.
 
 #!/bin/bash
-source /GenAIEval/.github/workflows/scripts/change_color.sh
+source /GenAIEval/.github/workflows/scripts/change_color
 export COVERAGE_RCFILE="/GenAIEval/.github/workflows/scripts/unittest/coveragerc"
-LOG_DIR=/log_dir
+LOG_DIR=/GenAIEval/log_dir
 mkdir -p ${LOG_DIR}
 # get parameters
 PATTERN='[-a-zA-Z0-9_]*='
