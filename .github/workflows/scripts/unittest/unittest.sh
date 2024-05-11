@@ -37,7 +37,7 @@ function pytest() {
     mkdir -p ${coverage_log_dir}
     ut_log_name="${LOG_DIR}/unit_test_$1.log"
     export GLOG_minloglevel=2
-    
+
     genaieval_path=$(python -c 'import GenAIEval; import os; print(os.path.dirname(GenAIEval.__file__))')
     find . -name "test*.py" | sed 's,\.\/,coverage run --source='"${genaieval_path}"' --append ,g' | sed 's/$/ --verbose/' >run.sh
     coverage erase
@@ -74,11 +74,11 @@ function pytest() {
     if [ $(grep -c "==ERROR:" ${ut_log_name}) != 0 ]; then
        $BOLD_RED && echo "ERROR found in UT, please check the output..." && $RESET
         exit 1
-    fi 
+    fi
     if [ $(grep -c "Segmentation fault" ${ut_log_name}) != 0 ]; then
        $BOLD_RED && echo "Segmentation Fault found in UT, please check the output..." && $RESET
         exit 1
-    fi  
+    fi
     if [ $(grep -c "ImportError:" ${ut_log_name}) != 0 ]; then
        $BOLD_RED && echo "ImportError found in UT, please check the output..." && $RESET
         exit 1
@@ -100,7 +100,7 @@ function main() {
     if [[ $test_name == "PR-test" ]]; then
         pytest "pr"
     elif [[ $test_name == "baseline" ]]; then
-        pytest "base"  
+        pytest "base"
     fi
 }
 
