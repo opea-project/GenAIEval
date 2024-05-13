@@ -25,9 +25,8 @@ permissions: write-all
 env:
   OUT_SCRIPT_PATH: ${{ github.workspace }}/.github/workflows/scripts/models
   SCRIPT_PATH: /GenAIEval/.github/workflows/scripts
-  REPO_NAME: "GenAIEval"
+  DOCKER_NAME: "genaieval"
   DOCKER_TAG: "latest"
-  DOCKER_FILE_NAME: "common.dockerfile"
   CONTAINER_NAME: "modelTest"
 
 
@@ -54,7 +53,7 @@ jobs:
     # We need this because GitHub needs to clone the branch to pipeline
       - name: Docker Build
         run: |
-          docker build -f ${{ github.workspace }}/.github/workflows/docker/${{ env.DOCKER_FILE_NAME }} -t ${{ env.REPO_NAME }}:${{ env.DOCKER_TAG }} .
+          docker build -f ${{ github.workspace }}/.github/workflows/docker/common.dockerfile -t ${{ env.DOCKER_NAME }}:${{ env.DOCKER_TAG }} .
 
       - name: Docker Run
         run: |
