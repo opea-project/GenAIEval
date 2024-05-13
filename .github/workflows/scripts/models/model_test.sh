@@ -75,7 +75,7 @@ function run_benchmark() {
         --model_args pretrained=${model} \
         --tasks ${datasets} \
         --device ${device} \
-        --batch_size 8
+        --batch_size 112
         2>&1 | tee ${overall_log}
 
     status=$?

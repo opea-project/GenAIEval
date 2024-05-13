@@ -36,8 +36,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - modelName: "EleutherAI/gpt-j-6B"
-            datasets: "hellaswag"
+          - modelName: "facebook/opt-125m"
+            datasets: "piqa"
             device: "cpu"
             tasks: "text-generation"
       fail-fast: true
