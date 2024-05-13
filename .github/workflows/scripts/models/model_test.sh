@@ -14,19 +14,21 @@
 # limitations under the License.
 
 set -eo pipefail
-source /GenAIEval/.github/workflows/script/change_color.sh
+source /GenAIEval/.github/workflows/scripts/change_color
 
 # get parameters
 PATTERN='[-a-zA-Z0-9_]*='
 PERF_STABLE_CHECK=true
 for i in "$@"; do
     case $i in
+        --datasets*)
+            datasets=`echo $i | sed "s/${PATTERN}//"`;;
         --device=*)
             device=`echo $i | sed "s/${PATTERN}//"`;;
         --model=*)
             model=`echo $i | sed "s/${PATTERN}//"`;;
-        --task=*)
-            task=`echo $i | sed "s/${PATTERN}//"`;;
+        --tasks=*)
+            tasks=`echo $i | sed "s/${PATTERN}//"`;;
         *)
             echo "Parameter $i not recognized."; exit 1;;
     esac
@@ -34,17 +36,23 @@ done
 
 log_dir="/GenAIEval/${device}/${model}"
 mkdir -p ${log_dir}
-
+working_dir=""
 $BOLD_YELLOW && echo "-------- evaluation start --------" && $RESET
 
 main() {
-    #prepare
+    case ${tasks} in
+        "text-generation")
+            working_dir="/GenAIEval/evaluation/lm_evaluation_harness";;
+        "code-generation")
+            working_dir="/GenAIEval/evaluation/bigcode_evaluation_harness";;
+        *)
+            echo "Not suppotted task"; exit 1;;
+    esac
     run_benchmark
 }
 
 function prepare() {
     ## prepare env
-    working_dir="/GenAIEval"
     cd ${working_dir}
     echo "Working in ${working_dir}"
     echo -e "\nInstalling model requirements..."
@@ -59,11 +67,11 @@ function prepare() {
 function run_benchmark() {
     cd ${working_dir}
     pip install --upgrade-strategy eager optimum[habana]
-    overall_log="${log_dir}/${device}-${model}-${task}.log"
+    overall_log="${log_dir}/${device}-${model}-${tasks}-${datasets}.log"
     python main.py \
         --model hf \
         --model_args pretrained=${model} \
-        --tasks ${task} \
+        --tasks ${datasets} \
         --device ${device} \
         --batch_size 8
         2>&1 | tee ${overall_log}

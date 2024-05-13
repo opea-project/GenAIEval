@@ -37,8 +37,9 @@ jobs:
       matrix:
         include:
           - modelName: "EleutherAI/gpt-j-6B"
-            task: "hellaswag"
+            datasets: "hellaswag"
             device: "cpu"
+            tasks: "text-generation"
       fail-fast: true
 
     steps:
@@ -63,7 +64,7 @@ jobs:
           fi
           docker run -dit --disable-content-trust --privileged --name=${{ env.CONTAINER_NAME }} -v /dev/shm:/dev/shm \
           -v ${{ github.workspace }}:/GenAIEval \
-          ${{ env.REPO_NAME }}:${{ env.DOCKER_TAG }}
+          ${{ env.DOCKER_NAME }}:${{ env.DOCKER_TAG }}
 
       - name: Binary build
         run: |
@@ -92,7 +93,7 @@ jobs:
         run: |
             docker exec ${{ env.CONTAINER_NAME }} \
             bash -c "cd /GenAIEval/.github/workflows/scripts/models \
-            && bash model_test.sh --model=${{ matrix.modelName }} --device=${{ matrix.device }} --tasks=${{ matrix.task }}"
+            && bash model_test.sh --model=${{ matrix.modelName }} --device=${{ matrix.device }} --datasets=${{ matrix.datasets }} --tasks=${{ matrix.tasks }}"
 
       - name: Collect Log
         run: |
@@ -100,7 +101,8 @@ jobs:
             bash -c "cd /GenAIEval/.github/workflows/scripts/models \
             && bash -x collect_log.sh --model=${{ matrix.modelName }} \
              --device=${{ matrix.device }} \
-             --task=${{ matrix.task }}
+             --datasets=${{ matrix.datasets }} \
+             --tasks=${{ matrix.tasks }}
 
       - name: Publish pipeline artifact
         uses: actions/upload-artifact@v4
