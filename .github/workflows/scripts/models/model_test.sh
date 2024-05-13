@@ -42,9 +42,9 @@ $BOLD_YELLOW && echo "-------- evaluation start --------" && $RESET
 main() {
     case ${tasks} in
         "text-generation")
-            working_dir="/GenAIEval/evaluation/lm_evaluation_harness";;
+            working_dir="/GenAIEval/GenAIEval/evaluation/lm_evaluation_harness/examples";;
         "code-generation")
-            working_dir="/GenAIEval/evaluation/bigcode_evaluation_harness";;
+            working_dir="/GenAIEval/GenAIEval/evaluation/bigcode_evaluation_harness/examples";;
         *)
             echo "Not suppotted task"; exit 1;;
     esac
@@ -62,11 +62,13 @@ function prepare() {
     else
         echo "Not found requirements.txt file."
     fi
+    if [[ ${device} == "hpu" ]]; then
+        pip install --upgrade-strategy eager optimum[habana]
+    fi
 }
 
 function run_benchmark() {
     cd ${working_dir}
-    pip install --upgrade-strategy eager optimum[habana]
     overall_log="${log_dir}/${device}-${model}-${tasks}-${datasets}.log"
     python main.py \
         --model hf \

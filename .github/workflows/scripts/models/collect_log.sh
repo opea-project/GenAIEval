@@ -21,6 +21,8 @@ PATTERN='[-a-zA-Z0-9_]*='
 PERF_STABLE_CHECK=true
 for i in "$@"; do
     case $i in
+        --datasets*)
+            datasets=`echo $i | sed "s/${PATTERN}//"`;;
         --device=*)
             device=`echo $i | sed "s/${PATTERN}//"`;;
         --model=*)
@@ -32,14 +34,14 @@ for i in "$@"; do
     esac
 done
 
-output_file="/GenAIEval/${device}/${model}/${device}-${model}-${tasks}.log"
+log_file="/GenAIEval/${device}/${model}/${device}-${model}-${tasks}-${datasets}.log"
 $BOLD_YELLOW && echo "-------- Collect logs --------" && $RESET
 
 echo "working in"
 pwd
-if [[ ! -f ${output_file} ]]; then
-    echo "${device};${model};${tasks};;${logfile}" >> ${WORKSPACE}/summary.log
+if [[ ! -f ${log_file} ]]; then
+    echo "${device};${model};${tasks};${datasets};;${logfile}" >> ${WORKSPACE}/summary.log
 else
-    acc=$(grep -Po "Accuracy .* is:\\s+(\\d+(\\.\\d+)?)" ${acc_log_name} | head -n 1 | sed 's/.*://;s/[^0-9.]//g')
-    echo "${device};${model};${tasks};${acc};${logfile}" >> ${WORKSPACE}/summary.log
+    acc=$(grep -Po "Accuracy .* is:\\s+(\\d+(\\.\\d+)?)" ${log_file} | head -n 1 | sed 's/.*://;s/[^0-9.]//g')
+    echo "${device};${model};${tasks};${datasets};${acc};${logfile}" >> ${WORKSPACE}/summary.log
 fi
