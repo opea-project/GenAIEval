@@ -27,6 +27,7 @@ env:
   SCRIPT_PATH: /GenAIEval/.github/workflows/scripts
   DOCKER_NAME: "genaieval"
   DOCKER_TAG: "latest"
+  DOCKER_FILE_NAME: "common.dockerfile"
   CONTAINER_NAME: "modelTest"
 
 
