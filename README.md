@@ -63,7 +63,7 @@ python main.py \
     --tasks "humaneval" \
     --n_samples 100 \
     --batch_size 10 \
-    --allow_code_execution \
+    --allow_code_execution
 ```
 #### function call usage
 ```python
