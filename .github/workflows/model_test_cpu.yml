@@ -15,6 +15,13 @@
 name: Model Test on CPU
 
 on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, ready_for_review, synchronize] # added `ready_for_review` since draft is skipped
+    paths:
+      - .github/workflows/model_test_cpu.yml
+      - GenAIEval/**
+      - setup.py
   workflow_dispatch:
 
 # If there is a new commit, the previous jobs will be canceled
@@ -45,7 +52,7 @@ jobs:
     steps:
       - name: Clean Up Working Directory
         run: sudo rm -rf ${{github.workspace}}/*
-      
+
       - name: Load environment variables
         run:
           cat ~/actions-runner4/.env >> $GITHUB_ENV
@@ -80,7 +87,7 @@ jobs:
         run: |
             docker exec ${{ env.CONTAINER_NAME }} \
             bash -c "cd /GenAIEval/.github/workflows/scripts/models \
-            && bash model_test.sh --model=${{ matrix.modelName }} --device=${{ matrix.device }} --datasets=${{ matrix.datasets }} --tasks=${{ matrix.tasks }}"
+            && bash -x model_test.sh --model=${{ matrix.modelName }} --device=${{ matrix.device }} --datasets=${{ matrix.datasets }} --tasks=${{ matrix.tasks }}"
 
       - name: Collect Log
         run: |
@@ -101,7 +108,7 @@ jobs:
             ${{ github.workspace }}/summary.log
           if-no-files-found: ignore # 'warn' or 'ignore' are also available, defaults to `warn`
           retention-days: 60 # 1 <= retention-days <= 90
-  
+
   Genreate-Report:
     runs-on: ubuntu-latest
     needs: [Evaluation-Workflow]
@@ -143,7 +150,7 @@ jobs:
           echo "------ Generating final report.html ------"
           cd ${{ env.OUT_SCRIPT_PATH }}
           mkdir -p generated
-          /usr/bin/bash generate_report.sh
+          /usr/bin/bash -x generate_report.sh
         env:
           RUN_DISPLAY_URL: https://https://github.com/opea-project/GenAIEval/actions/runs/${{ github.run_id }}
           BUILD_NUMBER: ${{ github.run_id }}

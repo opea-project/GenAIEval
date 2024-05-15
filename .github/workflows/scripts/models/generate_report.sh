@@ -1,4 +1,18 @@
 #!/bin/bash
+# Copyright (c) 2024 Intel Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 set -x
 WORKSPACE=generated
 last_log_path=FinalReport
@@ -18,7 +32,7 @@ function main {
 }
 
 function preprocessing {
-    for file_path in ./*
+    for file_path in log/*
     do
         if [[ -d ${file_path} ]] && [[ -f ${file_path}/summary.log ]]; then
             cat ${file_path}/summary.log >> ${summaryLog}
@@ -64,19 +78,19 @@ function generate_results {
         </tr>
 eof
 
-    devices=$(cat ${summaryLog} | cut -d',' -f1 | awk '!a[$0]++')
+    devices=$(cat ${summaryLog} | cut -d';' -f1 | awk '!a[$0]++')
     for device in ${devices[@]}; do
-        models=$(cat ${summaryLog} | grep "${device}," | cut -d',' -f2 | awk '!a[$0]++')
+        models=$(cat ${summaryLog} | grep "${device};" | cut -d';' -f2 | awk '!a[$0]++')
         for model in ${models[@]}; do
-            tasks=$(cat ${summaryLog} | grep "${device},${model}," | cut -d',' -f3 | awk '!a[$0]++')
+            tasks=$(cat ${summaryLog} | grep "${device};${model};" | cut -d';' -f3 | awk '!a[$0]++')
             for task in ${tasks[@]}; do
-                datasets=$(cat ${summaryLog} | grep "${device},${model},${task}," | cut -d',' -f4 | awk '!a[$0]++')
+                datasets=$(cat ${summaryLog} | grep "${device};${model};${task};" | cut -d';' -f4 | awk '!a[$0]++')
                 for dataset in ${datasets[@]}; do
-                    benchmark_pattern="${device},${model},${task},${dataset},"
-                    acc=$(cat ${summaryLog} | grep "${benchmark_pattern}" | cut -d',' -f5 | awk '!a[$0]++')
+                    benchmark_pattern="${device};${model};${task};${dataset};"
+                    acc=$(cat ${summaryLog} | grep "${benchmark_pattern}" | cut -d';' -f5 | awk '!a[$0]++')
                     acc_last=nan
                     if [ $(cat ${summaryLogLast} | grep -c "${benchmark_pattern}") != 0 ]; then
-                        acc_last=$(cat ${summaryLogLast} | grep "${benchmark_pattern}" | cut -d',' -f5 | awk '!a[$0]++')
+                        acc_last=$(cat ${summaryLogLast} | grep "${benchmark_pattern}" | cut -d';' -f5 | awk '!a[$0]++')
                     fi
                     generate_core
                 done
@@ -129,7 +143,7 @@ function generate_core {
             show_benchmark(acc)
             // Last
             printf("</tr>\n<tr><td>Last</td>")
-            show_benchmark(acc_l)          
+            show_benchmark(acc_l)
             // current vs last
             printf("</tr>\n<tr><td>New/Last</td>");
             compare_new_last(acc,acc_l)

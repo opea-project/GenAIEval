@@ -87,7 +87,7 @@ function run_benchmark() {
         --tasks ${datasets} \
         --device ${device} \
         --batch_size 112  2>&1 | tee ${overall_log}
-    
+
     echo "print log content:"
     cat ${overall_log}
     status=$?
