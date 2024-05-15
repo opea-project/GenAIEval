@@ -50,6 +50,11 @@ main() {
     else
         pretrained="${model}"
     fi
+    if [[ ${device} == "cpu" ]]; then
+        model_sourze="hf"
+    elif [[ ${device} == "hpu" ]]; then
+        model_sourze="gaudi-hf"
+    fi
     log_dir="/log/${device}/${model}"
     mkdir -p ${log_dir}
     $BOLD_YELLOW && echo "-------- evaluation start --------" && $RESET
@@ -77,7 +82,7 @@ function run_benchmark() {
     cd ${working_dir}
     overall_log="${log_dir}/${device}-${tasks}-${model}-${datasets}.log"
     python main.py \
-        --model hf \
+        --model ${model_sourze} \
         --model_args pretrained=${pretrained} \
         --tasks ${datasets} \
         --device ${device} \
