@@ -39,7 +39,7 @@ python main.py \
 ```
 #### function call usage
 ```python
-from GenAIEval.evaluation.lm_evaluation_harness import evaluate, LMEvalParser
+from GenAIEval.evaluation.lm_evaluation_harness import LMEvalParser, evaluate
 
 args = LMevalParser(
     model="hf",
@@ -67,7 +67,7 @@ python main.py \
 ```
 #### function call usage
 ```python
-from GenAIEval.evaluation.bigcode_evaluation_harness import evaluate, BigcodeEvalParser
+from GenAIEval.evaluation.bigcode_evaluation_harness import BigcodeEvalParser, evaluate
 
 args = BigcodeEvalParser(
     user_model=user_model,
