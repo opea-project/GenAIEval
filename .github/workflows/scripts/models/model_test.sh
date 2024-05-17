@@ -73,9 +73,6 @@ function prepare() {
     else
         echo "Not found requirements.txt file."
     fi
-    if [[ ${device} == "hpu" ]]; then
-        pip install --upgrade-strategy eager optimum[habana]
-    fi
 }
 
 function run_benchmark() {

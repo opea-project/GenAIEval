@@ -61,7 +61,7 @@ jobs:
     # We need this because GitHub needs to clone the branch to pipeline
       - name: Docker Build
         run: |
-          docker build -f ${{ github.workspace }}/.github/workflows/docker/common.dockerfile --build-arg http_proxy="${{ env.HTTP_PROXY_IMAGE_BUILD }}" --build-arg https_proxy="${{ env.HTTPS_PROXY_IMAGE_BUILD }}" -t ${{ env.DOCKER_NAME }}:${{ env.DOCKER_TAG }} .
+          docker build --target hpu --build-arg REPO_PATH="." -f ${{ github.workspace }}/Docker/hpu.dockerfile -t ${{ env.DOCKER_NAME }}:${{ env.DOCKER_TAG }} .
 
       - name: Docker Run
         run: |
@@ -69,15 +69,7 @@ jobs:
             docker stop ${{ env.CONTAINER_NAME }}
             docker rm -vf ${{ env.CONTAINER_NAME }} || true
           fi
-          docker run -dit --disable-content-trust --privileged --name=${{ env.CONTAINER_NAME }} -v /dev/shm:/dev/shm \
-          -v ${{ github.workspace }}:/GenAIEval \
-          -e http_proxy="${{ env.HTTP_PROXY_IMAGE_BUILD }}" -e https_proxy="${{ env.HTTPS_PROXY_IMAGE_BUILD }}" \
-          ${{ env.DOCKER_NAME }}:${{ env.DOCKER_TAG }}
-
-      - name: Binary build
-        run: |
-            docker exec ${{ env.CONTAINER_NAME }} \
-            bash -c "cd /GenAIEval && pip install -r requirements.txt && python setup.py install"
+          docker run -tid --runtime=habana --name=${{ env.CONTAINER_NAME }} -v ${{ github.workspace }}:/GenAIEval -v /dev/shm:/dev/shm ${{ env.DOCKER_NAME }}:${{ env.DOCKER_TAG }}
 
       - name: Evaluation
         run: |

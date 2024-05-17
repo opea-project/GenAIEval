@@ -74,6 +74,7 @@ function generate_results {
           <th>Tasks</th>
           <th>Model</th>
           <th>Datasets</th>
+          <th>VS</th>
           <th>Accuracy</th>
         </tr>
 eof
