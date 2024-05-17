@@ -108,13 +108,9 @@ function generate_core {
     echo | awk -v acc=${acc} -v acc_l=${acc_last} '
         function show_benchmark(a) {
             if(a ~/[1-9]/) {
-                printf("<td></td>\n",a);
+                printf("<td>%.2f</td>\n",a);
             }else {
-                if(a == "") {
-                    printf("<td></td>\n",a);
-                }else{
-                    printf("<td></td>\n");
-                }
+                printf("<td></td>\n");
             }
         }
         function compare_new_last(a,b){
