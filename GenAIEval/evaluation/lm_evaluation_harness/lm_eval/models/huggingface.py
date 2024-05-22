@@ -15,32 +15,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import copy
+import json
 import os
 from datetime import timedelta
 from pathlib import Path
 from typing import List, Literal, Optional, Tuple, Union
 
+import requests as requests_obj
 import torch
 import torch.nn.functional as F
 import transformers
 from accelerate import Accelerator, DistributedType, InitProcessGroupKwargs, find_executable_batch_size
 from lm_eval import utils
 from lm_eval.api.instance import Instance
-from lm_eval.api.model import TemplateLM
+from lm_eval.api.model import CacheHook, TemplateLM
+from lm_eval.api.registry import register_model
 from lm_eval.models.utils import Collator, clear_torch_cache, get_dtype, pad_and_concat, stop_sequences_criteria
 from packaging import version
 from peft import PeftModel
 from peft import __version__ as PEFT_VERSION
+from requests.exceptions import RequestException
 from tqdm import tqdm
 from transformers.models.auto.modeling_auto import (
     MODEL_FOR_CAUSAL_LM_MAPPING_NAMES,
     MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES,
 )
-from lm_eval.api.registry import register_model
-from lm_eval.api.model import CacheHook
-import requests as requests_obj
-from requests.exceptions import RequestException
-import json
 
 eval_logger = utils.eval_logger
 
@@ -1240,18 +1239,19 @@ class GenAI_HFLM(HFLM):
         use_fast_tokenizer: Optional[bool] = True,
         add_bos_token: Optional[bool] = False,
         prefix_token_id: Optional[int] = None,
-        **kwargs):
+        **kwargs,
+    ):
         self.base_url = base_url
         assert self.base_url, "must pass `base_url` to use GenaAI service!"
         self._rank = 0
         self._world_size = 1
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-                tokenizer,
-                revision=revision,
-                trust_remote_code=trust_remote_code,
-                use_fast=use_fast_tokenizer,
-                )
+            tokenizer,
+            revision=revision,
+            trust_remote_code=trust_remote_code,
+            use_fast=use_fast_tokenizer,
+        )
 
         self.logits_cache = logits_cache
         # select (or create) a pad token to use
@@ -1280,7 +1280,7 @@ class GenAI_HFLM(HFLM):
 
         # TODO: override this for Gemma
         self.add_bos_token = add_bos_token
-        if  "GemmaTokenizer" in self.tokenizer.__class__.__name__:
+        if "GemmaTokenizer" in self.tokenizer.__class__.__name__:
             self.add_bos_token = True
             eval_logger.info(
                 f"Model type is '{self.config.model_type}', a BOS token will be used as Gemma underperforms without it."
@@ -1290,9 +1290,7 @@ class GenAI_HFLM(HFLM):
         self._max_length = max_length
         self.custom_prefix_token_id = prefix_token_id
         if prefix_token_id is not None:
-            eval_logger.info(
-                f"Loglikelihood prefix token id used in evaluation: {self.prefix_token_id}"
-            )
+            eval_logger.info(f"Loglikelihood prefix token id used in evaluation: {self.prefix_token_id}")
         self.cache_hook = CacheHook(None)
         self.headers = {"Content-Type": "application/json"}
 
@@ -1317,7 +1315,7 @@ class GenAI_HFLM(HFLM):
         res = []
 
         def _collate(req: Tuple[Tuple[str, str], List[int], List[int]]):
-            """Defines the key for the sorted method"""
+            """Defines the key for the sorted method."""
             # the negative sign on len(toks) sorts descending - this has a few advantages:
             # - time estimates will always be over not underestimates, which is more useful for planning
             # - to know the size of a batch when going through the list, you know the first one is always the batch
@@ -1329,7 +1327,7 @@ class GenAI_HFLM(HFLM):
             return -len(toks), tuple(toks)
 
         def _lookup_one_token_cont(req: Tuple[Tuple[str, str], List[int], List[int]]):
-            """Defines the key to group and lookup one-token continuations"""
+            """Defines the key to group and lookup one-token continuations."""
             # Use with group_by="contexts" (optional)"
             # allows for the creation of a lookup, so we can reuse logits in case of one-token continuations.
             # speeds up some multiple-choice tasks proportionally to the number of choices.
@@ -1346,18 +1344,10 @@ class GenAI_HFLM(HFLM):
         # automatic (variable) batch size detection for vectorization
         # pull longest context sample from request
         n_reordered_requests = len(re_ord)
-        batch_size = (
-            self.batch_size
-            if self.batch_size != "auto"
-            else override_bs
-            if override_bs is not None
-            else 0
-        )
+        batch_size = self.batch_size if self.batch_size != "auto" else override_bs if override_bs is not None else 0
         batch_fn = (
             self._batch_scheduler
-            if self.batch_size == "auto"
-            and n_reordered_requests > 0
-            and not override_bs
+            if self.batch_size == "auto" and n_reordered_requests > 0 and not override_bs
             else None
         )
 
@@ -1421,17 +1411,9 @@ class GenAI_HFLM(HFLM):
 
                     conts.append(cont)
 
-                    padding_len_cont = (
-                        max(padding_len_cont, contlen)
-                        if padding_len_cont is not None
-                        else contlen
-                    )
+                    padding_len_cont = max(padding_len_cont, contlen) if padding_len_cont is not None else contlen
 
-                padding_len_inp = (
-                    max(padding_len_inp, inplen)
-                    if padding_len_inp is not None
-                    else inplen
-                )
+                padding_len_inp = max(padding_len_inp, inplen) if padding_len_inp is not None else inplen
 
                 inps.append(inp)  # [1, inp_length]
                 cont_toks_list.append(continuation_enc)
@@ -1440,41 +1422,33 @@ class GenAI_HFLM(HFLM):
             # create encoder attn mask and batched conts, if seq2seq
             call_kwargs = {}
             if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-                batched_inps = pad_and_concat(
-                    padding_len_inp, inps, padding_side="right"
-                )  # [batch, padding_len_inp]
+                batched_inps = pad_and_concat(padding_len_inp, inps, padding_side="right")  # [batch, padding_len_inp]
             elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
                 # TODO: left-pad encoder inps and mask?
-                batched_inps = pad_and_concat(
-                    padding_len_inp, inps
-                )  # [batch, padding_len_inp]
-                batched_conts = pad_and_concat(
-                    padding_len_cont, conts
-                )  # [batch, padding_len_cont]
-                batched_encoder_mask = pad_and_concat(
-                    padding_len_inp, encoder_attns
-                )  # [batch, padding_len_inp]
+                batched_inps = pad_and_concat(padding_len_inp, inps)  # [batch, padding_len_inp]
+                batched_conts = pad_and_concat(padding_len_cont, conts)  # [batch, padding_len_cont]
+                batched_encoder_mask = pad_and_concat(padding_len_inp, encoder_attns)  # [batch, padding_len_inp]
                 call_kwargs = {
                     "attn_mask": batched_encoder_mask,
                     "labels": batched_conts,
                 }
 
             data = {
-                    "batched_inputs": batched_inps.tolist(),
-                }
+                "batched_inputs": batched_inps.tolist(),
+            }
             try:
                 response = requests_obj.post(
-                        f"{self.base_url}/v1/completions",
-                        headers=self.headers,
-                        data=json.dumps(data),
-                        )
+                    f"{self.base_url}/v1/completions",
+                    headers=self.headers,
+                    data=json.dumps(data),
+                )
                 response.raise_for_status()
                 response = response.json()
             except RequestException as e:
                 logger.error(f"RequestException: {e}")
 
             for (request_str, ctx_tokens, _), greedy_tokens, logprobs, inplen, cont_toks in zip(
-                chunk, response["greedy_tokens"], response["logprobs"],inplens, cont_toks_list
+                chunk, response["greedy_tokens"], response["logprobs"], inplens, cont_toks_list
             ):
                 # Slice to original seq length
                 contlen = len(cont_toks)
@@ -1487,13 +1461,12 @@ class GenAI_HFLM(HFLM):
                     if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM
                     else None
                 )
-                cont_toks = torch.tensor(
-                        cont_toks, dtype=torch.long
-                ).unsqueeze(0)  # [1, seq]
+                cont_toks = torch.tensor(cont_toks, dtype=torch.long).unsqueeze(0)  # [1, seq]
                 greedy_tokens = torch.tensor(
-                        self._select_cont_toks(greedy_tokens, contlen=contlen, inplen=ctx_len),
-                        dtype=torch.long
-                ).unsqueeze(0)  # [1, seq]
+                    self._select_cont_toks(greedy_tokens, contlen=contlen, inplen=ctx_len), dtype=torch.long
+                ).unsqueeze(
+                    0
+                )  # [1, seq]
                 max_equal = (greedy_tokens == cont_toks).all()
                 cont_logprobs = self._select_cont_toks(logprobs, contlen=contlen, inplen=ctx_len)
 
@@ -1523,9 +1496,7 @@ class GenAI_HFLM(HFLM):
         raise NotImplementedError()
 
     def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
-        raise NotImplementedError(
-            "loglikelihood_rolling not yet supported for GenAI service"
-        )
+        raise NotImplementedError("loglikelihood_rolling not yet supported for GenAI service")
 
     def generate_until(self, requests, disable_tqdm: bool = False) -> List[str]:
         raise NotImplementedError("Not supported yet.")
