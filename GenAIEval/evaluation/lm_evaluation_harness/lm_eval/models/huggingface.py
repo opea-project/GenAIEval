@@ -1471,7 +1471,7 @@ class GenAI_HFLM(HFLM):
                 response.raise_for_status()
                 response = response.json()
             except RequestException as e:
-                logger.error(f"RequestException: {e}")
+                eval_logger.error(f"RequestException: {e}")
 
             for (request_str, ctx_tokens, _), greedy_tokens, logprobs, inplen, cont_toks in zip(
                 chunk, response["greedy_tokens"], response["logprobs"],inplens, cont_toks_list
