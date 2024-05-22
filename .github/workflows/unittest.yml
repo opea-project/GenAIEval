@@ -62,7 +62,7 @@ jobs:
 
         - name: Docker Build
           run: |
-            docker build -f ${{ github.workspace }}/.github/workflows/docker/common.dockerfile -t ${{ env.DOCKER_NAME }}:${{ env.DOCKER_TAG }} .
+            docker build --build-arg http_proxy="${{ env.HTTP_PROXY_IMAGE_BUILD }}" --build-arg https_proxy="${{ env.HTTPS_PROXY_IMAGE_BUILD }}" -f ${{ github.workspace }}/.github/workflows/docker/common.dockerfile -t ${{ env.DOCKER_NAME }}:${{ env.DOCKER_TAG }} .
 
         - name: Docker Run
           run: |
@@ -71,6 +71,7 @@ jobs:
               docker rm -vf ${{ env.CONTAINER_NAME }} || true
             fi
             docker run -dit --memory="4g" --memory-reservation="1g" --disable-content-trust --privileged --name=${{ env.CONTAINER_NAME }} --shm-size="1g" \
+            -e http_proxy="${{ env.HTTP_PROXY_CONTAINER_RUN }}" -e https_proxy="${{ env.HTTPS_PROXY_CONTAINER_RUN }}" \
             -v ${{ github.workspace }}:/GenAIEval ${{ env.DOCKER_NAME }}:${{ env.DOCKER_TAG }}
 
         - name: Install Dependencies
