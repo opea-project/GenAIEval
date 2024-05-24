@@ -22,6 +22,7 @@ def extract_qText(json_data):
 
 def send_request(url, json_data):
     global response_times
+    print(f"Sending request to {url} with data {json_data}")
     start_time = time.time()
     headers = {'Content-Type': 'application/json'}
     response = requests.post(url, data=json_data, headers=headers)
