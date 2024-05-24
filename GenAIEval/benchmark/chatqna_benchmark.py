@@ -36,15 +36,6 @@ def send_request(url, json_data):
     print(f"Question: {json_data} Response: {response.status_code} - {response.text}")
 
 
-def calculate_p50(latencies):
-    latencies.sort()
-    length = len(latencies)
-    if length % 2 == 0:  # Even number of observations
-        return (latencies[length // 2] + latencies[length // 2 - 1]) / 2
-    else:  # Odd number of observations
-        return latencies[length // 2]
-
-
 def main(url, json_data, concurrency):
     global response_times
     with concurrent.futures.ThreadPoolExecutor(max_workers=concurrency) as executor:
@@ -68,7 +59,7 @@ def main(url, json_data, concurrency):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Concurrent client to send POST requests")
     parser.add_argument(
-        "--backend_url", type=str, default="http://localhost:12345", help="Service URL to send requests to"
+        "--backend_url", type=str, default="http://localhost:8888/v1/chatqna", help="Service URL to send requests to"
     )
     parser.add_argument(
         "--json_data",
