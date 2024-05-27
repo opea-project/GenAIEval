@@ -81,7 +81,7 @@ jobs:
       - name: Binary build
         run: |
             docker exec ${{ env.CONTAINER_NAME }} \
-            bash -c "cd /GenAIEval && pip install -e ."
+            bash -c "cd /GenAIEval && pip install -r requirements.txt && python setup.py install"
 
       - name: Evaluation
         run: |
