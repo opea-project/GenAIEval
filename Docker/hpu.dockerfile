@@ -15,6 +15,7 @@ SHELL ["/bin/bash", "--login", "-c"]
 RUN mkdir -p /GenAIEval
 COPY ${REPO_PATH} /GenAIEval
 RUN if [ "$REPO_PATH" == "" ]; then rm -rf /GenAIEval/* && rm -rf /GenAIEval/.* ; git clone --single-branch --branch=${BRANCH} ${REPO} /GenAIEval ; fi
+RUN pip install --upgrade pip setuptools
 
 # Build From Source
 RUN cd /GenAIEval && \
