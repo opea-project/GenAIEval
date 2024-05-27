@@ -32,6 +32,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --fix-missing \
     vim \
     wget
 
+RUN pip install --upgrade pip setuptools
 RUN ln -sf $(which python3) /usr/bin/python
 RUN python -m pip install --no-cache-dir pytest
 
