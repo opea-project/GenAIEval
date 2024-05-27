@@ -19,6 +19,7 @@ RUN pip install --upgrade pip setuptools
 
 # Build From Source
 RUN cd /GenAIEval && \
+    pip install -r requirements.txt && \
     python setup.py install && \
     pip install --upgrade-strategy eager optimum[habana] && \
     pip list
