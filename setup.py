@@ -18,8 +18,11 @@ import subprocess
 
 from setuptools import find_packages, setup
 
-result = subprocess.Popen("pip install -r requirements.txt", shell=True)
-result.wait()
+
+def parse_requirements(filename):
+    with open(filename, "r") as file:
+        return [line.strip() for line in file if line.strip() and not line.startswith("#")]
+
 
 setup(
     name="GenAIEval",
@@ -31,5 +34,6 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/opea-project/GenAIEval",
     packages=find_packages(),
+    install_requires=parse_requirements("requirements.txt"),
     python_requires=">=3.10",
 )
