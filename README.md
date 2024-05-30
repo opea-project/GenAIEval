@@ -52,16 +52,16 @@ args = LMevalParser(
 results = evaluate(args)
 ```
 
-#### use remote service usage
+#### remote service usage
 
 1. setup a seperate server with [GenAIComps](https://github.com/opea-project/GenAIComps/tree/main/comps/llms/lm-eval)
 
 ```
 # build cpu docker
-docker build -f Dockerfile.cpu -t comps:lm-eval .
+docker build -f Dockerfile.cpu -t opea/lm-eval:latest .
 
 # start the server
-docker run -p 9006:9006 --ipc=host  -e MODEL="hf" -e MODEL_ARGS="pretrained=Intel/neural-chat-7b-v3-3" -e DEVICE="cpu" comps:lm-eval
+docker run -p 9006:9006 --ipc=host  -e MODEL="hf" -e MODEL_ARGS="pretrained=Intel/neural-chat-7b-v3-3" -e DEVICE="cpu" opea/lm-eval:latest
 ```
 
 2. evaluate the model
