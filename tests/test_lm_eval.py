@@ -17,7 +17,7 @@
 
 import unittest
 
-from GenAIEval.evaluation.lm_evaluation_harness import LMEvalParser, evaluate
+from eval.evaluation.lm_evaluation_harness import LMEvalParser, evaluate
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 

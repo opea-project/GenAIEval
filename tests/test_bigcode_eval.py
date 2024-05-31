@@ -17,7 +17,7 @@
 
 import unittest
 
-from GenAIEval.evaluation.bigcode_evaluation_harness import BigcodeEvalParser, evaluate
+from eval.evaluation.bigcode_evaluation_harness import BigcodeEvalParser, evaluate
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
