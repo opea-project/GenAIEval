@@ -16,7 +16,7 @@ def parse_requirements(filename):
 
 
 setup(
-    name="opea_eval",
+    name="opea-eval",
     version="0.6",
     author="Intel AISE AIPC Team",
     author_email="haihao.shen@intel.com, feng.tian@intel.com, chang1.wang@intel.com, kaokao.lv@intel.com",
