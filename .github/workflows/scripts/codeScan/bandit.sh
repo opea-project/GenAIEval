@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 source /GenAIEval/.github/workflows/scripts/change_color
 log_dir=/GenAIEval/.github/workflows/scripts/codeScan
 python -m bandit -r -lll -iii /GenAIEval >${log_dir}/bandit.log

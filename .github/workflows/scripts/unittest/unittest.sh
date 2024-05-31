@@ -1,6 +1,9 @@
 #!/bin/bash
 
 
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 source /GenAIEval/.github/workflows/scripts/change_color
 export COVERAGE_RCFILE="/GenAIEval/.github/workflows/scripts/unittest/coveragerc"
 LOG_DIR=/GenAIEval/log_dir

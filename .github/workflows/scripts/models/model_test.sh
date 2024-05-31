@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 set -o pipefail
 set -x
 source /GenAIEval/.github/workflows/scripts/change_color

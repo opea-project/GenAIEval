@@ -1,4 +1,7 @@
 
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 output_file=$1
 coverage_pr_log=$2
 coverage_base_log=$3
