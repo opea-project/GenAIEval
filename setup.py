@@ -9,7 +9,6 @@ import subprocess
 
 from setuptools import find_packages, setup
 
-
 setup(
     name="opea-eval",
     version="0.6",
