@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from eval.evaluation.lm_evaluation_harness import evaluate, setup_parser
+from evals.evaluation.lm_evaluation_harness import evaluate, setup_parser
 
 
 def main():
