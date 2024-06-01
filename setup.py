@@ -3,10 +3,6 @@
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-#
-
-import subprocess
-
 from setuptools import find_packages, setup
 
 setup(
