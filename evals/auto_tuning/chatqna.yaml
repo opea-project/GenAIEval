@@ -1,0 +1,42 @@
+
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+opea_micro_services:
+  redis-vector-db:
+    image: redis/redis-stack:7.2.0-v9
+    type: cpu
+  tei-reranking-service:
+    image: opea/tei-gaudi:latest
+    model-id: "BAAI/bge-reranker-base"
+    endpoint: /v1/tei-reranking
+    type: cpu
+  tei-embedding-service:
+    image: opea/tei-gaudi:latest
+    model-id: "BAAI/bge-base-en-v1.5"
+    endpoint: /v1/tei-embedding
+    type: cpu
+  embedding:
+    image: opea/embedding-tei:latest
+    endpoint: /v1/embeddings
+    type: cpu
+  retrieval:
+    image: opea/retriever-redis:latest
+    endpoint: /v1/retrieval
+    type: cpu
+  reranking:
+    image: opea/reranking-tei:latest
+    endpoint: /v1/reranking
+    type: cpu
+  tgi_service:
+    image: ghcr.io/huggingface/tgi-gaudi:1.2.1
+    endpoint: /v1/tgi
+    type: cpu
+  llm:
+    image: opea/llm-tgi:latest
+    endpoint: /v1/chat/completions
+    type: cpu    
+  opea_mega_service:
+    image: opea/chatqna:latest
+    endpoint: /v1/chatqna
+    type: cpu
