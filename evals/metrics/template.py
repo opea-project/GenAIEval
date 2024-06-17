@@ -1,3 +1,7 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+
 class SummarizationTemplate:
     @staticmethod
     def generate_summary(document):
@@ -6,7 +10,7 @@ class SummarizationTemplate:
 {document}
 
 """
-    
+
     @staticmethod
     def generate_relevance(document, summary):
         return f"""You will be given one summary written for an article. Your task is to rate the summary on one metric.
