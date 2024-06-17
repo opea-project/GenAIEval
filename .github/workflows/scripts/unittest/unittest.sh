@@ -28,7 +28,7 @@ function pytest() {
     export GLOG_minloglevel=2
 
     genaieval_path=$(python -c 'import GenAIEval; import os; print(os.path.dirname(GenAIEval.__file__))')
-    find . -name "test*.py" | sed 's,\.\/,coverage run --source='"${genaieval_path}"' --append ,g' | sed 's/$/ --verbose/' >run.sh
+    find . -name "test*.py" | sed "s,\.\/,coverage run --source=\"${genaieval_path}\" --append ,g" | sed 's/$/ --verbose/' >run.sh
     coverage erase
 
     # run UT

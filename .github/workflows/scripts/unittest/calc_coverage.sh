@@ -3,7 +3,7 @@
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-source ../../change_color
+source ../change_color
 LOG_DIR=$1
 coverage_compare="${LOG_DIR}/coverage_compare.html"
 coverage_log_pr="${LOG_DIR}/UnitTestPR-test/coverage_pr"
