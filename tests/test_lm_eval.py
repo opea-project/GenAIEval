@@ -25,6 +25,7 @@ class TestLMEval(unittest.TestCase):
             device="cpu",
             batch_size=1,
             limit=5,
+            trust_remote_code=True,
         )
         results = evaluate(args)
         self.assertEqual(results["results"]["piqa"]["acc,none"], 0.6)
