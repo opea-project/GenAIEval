@@ -41,6 +41,7 @@ def cli_evaluate(args) -> None:
     eval_logger.setLevel(getattr(logging, f"{args.verbosity}"))
     eval_logger.info(f"Verbosity set to {args.verbosity}")
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
+    os.environ["HF_DATASETS_TRUST_REMOTE_CODE"] = "true"
 
     if args.predict_only:
         args.log_samples = True
