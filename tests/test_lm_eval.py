@@ -18,10 +18,17 @@ class TestLMEval(unittest.TestCase):
         user_model = AutoModelForCausalLM.from_pretrained(model_name_or_path)
         tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
         args = LMEvalParser(
-            model="hf", user_model=user_model, tokenizer=tokenizer, tasks="piqa", device="cpu", batch_size=1, limit=5
+            model="hf",
+            user_model=user_model,
+            tokenizer=tokenizer,
+            tasks="lambada_openai",
+            device="cpu",
+            batch_size=1,
+            limit=5,
+            trust_remote_code=True,
         )
         results = evaluate(args)
-        self.assertEqual(results["results"]["piqa"]["acc,none"], 0.6)
+        self.assertEqual(results["results"]["lambada_openai"]["acc,none"], 0.6)
 
 
 if __name__ == "__main__":
