@@ -26,7 +26,7 @@ LLM_JUDGE_METRICS = {
 
 
 class SummarizationMetric:
-    """The summarization metric not only uses your LLMs (application) to generate summaries for evalution,
+    """The summarization metric not only uses your LLMs (application) to generate summaries for evaluation,
     but also uses LLMs to judge whether your LLM (application) is generating Relevance,
     Coherence, Consistency, Fluency summaries."""
 
