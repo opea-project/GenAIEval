@@ -27,7 +27,7 @@ function pytest() {
     ut_log_name="${LOG_DIR}/unit_test_$1.log"
     export GLOG_minloglevel=2
 
-    genaieval_path=$(python -c 'import evals; import os; print(os.path.dirname(evals.__file__))')
+    genaieval_path=$(python3 -c 'import evals; import os; print(os.path.dirname(evals.__file__))')
     find . -name "test*.py" | sed "s,\.\/,coverage run --source=\"${genaieval_path}\" --append ,g" | sed 's/$/ --verbose/' >run.sh
     coverage erase
 
@@ -37,6 +37,11 @@ function pytest() {
     $BOLD_YELLOW && echo "------UT start-------" && $RESET
     bash run.sh 2>&1 | tee -a ${ut_log_name}
     $BOLD_YELLOW && echo "------UT end -------" && $RESET
+    which pip
+    which pip3
+    which python
+    which python3
+    python3 -c 'import evals; import os; print(os.path.dirname(evals.__file__))'
 
     # run coverage report
     coverage report -m --rcfile=${COVERAGE_RCFILE} | tee ${coverage_log_dir}/coverage.log
