@@ -37,11 +37,6 @@ function pytest() {
     $BOLD_YELLOW && echo "------UT start-------" && $RESET
     bash run.sh 2>&1 | tee -a ${ut_log_name}
     $BOLD_YELLOW && echo "------UT end -------" && $RESET
-    which pip
-    which pip3
-    which python
-    which python3
-    python3 -c 'import evals; import os; print(os.path.dirname(evals.__file__))'
 
     # run coverage report
     coverage report -m --rcfile=${COVERAGE_RCFILE} | tee ${coverage_log_dir}/coverage.log
