@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 echo -e "\n Install GenAIEval ... "
 cd /GenAIEval
 python -m pip install --no-cache-dir -r requirements.txt
