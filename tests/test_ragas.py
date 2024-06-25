@@ -5,10 +5,11 @@
 
 #
 import unittest
+
 from evals.metrics.ragas import RagasMetric
 
 
-@unittest.skip("need assign host id") 
+@unittest.skip("need assign host id")
 class TestRagasMetric(unittest.TestCase):
     # Replace this with the actual output from your LLM application
     actual_output = "We offer a 30-day full refund at no extra cost."
@@ -24,11 +25,12 @@ class TestRagasMetric(unittest.TestCase):
         "input": "What if these shoes don't fit?",
         "actual_output": actual_output,
         "expected_output": expected_output,
-        "retrieval_context": retrieval_context
+        "retrieval_context": retrieval_context,
     }
 
     metric.measure(test_case)
     print(metric.score)
+
 
 if __name__ == "__main__":
     unittest.main()

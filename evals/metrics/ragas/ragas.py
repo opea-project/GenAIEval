@@ -5,22 +5,24 @@
 
 #
 
-from typing import Optional, Union, Dict
+from typing import Dict, Optional, Union
+
+from langchain_community.llms import HuggingFaceEndpoint
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseLanguageModel
-from langchain_community.llms import HuggingFaceEndpoint
+
 
 def format_ragas_metric_name(name: str):
     return f"{name} (ragas)"
 
+
 class RAGASContextualPrecisionMetric:
-    """This metric checks the contextual precision using Ragas"""
+    """This metric checks the contextual precision using Ragas."""
 
     def __init__(
         self,
         threshold: float = 0.3,
         model: Optional[Union[str, BaseLanguageModel]] = "gpt-3.5-turbo",
-
     ):
         self.threshold = threshold
         self.model = model
@@ -31,9 +33,7 @@ class RAGASContextualPrecisionMetric:
             from ragas.metrics import context_precision
 
         except ModuleNotFoundError:
-            raise ModuleNotFoundError(
-                "Please install ragas to use this metric. `pip install ragas`."
-            )
+            raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
 
         try:
             from datasets import Dataset
@@ -57,9 +57,7 @@ class RAGASContextualPrecisionMetric:
         dataset = Dataset.from_dict(data)
 
         # Evaluate the dataset using Ragas
-        scores = evaluate(
-            dataset, metrics=[context_precision], llm=chat_model
-        )
+        scores = evaluate(dataset, metrics=[context_precision], llm=chat_model)
 
         # Ragas only does dataset-level comparisons
         context_precision_score = scores["context_precision"]
@@ -77,18 +75,17 @@ class RAGASContextualPrecisionMetric:
     def __name__(self):
         return format_ragas_metric_name("Contextual Precision")
 
-class RAGASContextualRelevancyMetric():
-    """This metric checks the contextual relevancy using Ragas"""
+
+class RAGASContextualRelevancyMetric:
+    """This metric checks the contextual relevancy using Ragas."""
 
     def __init__(
         self,
         threshold: float = 0.3,
         model: Optional[Union[str, BaseLanguageModel]] = "gpt-3.5-turbo",
-
     ):
         self.threshold = threshold
         self.model = model
-
 
     async def a_measure(self, test_case: Dict):
         return self.measure(test_case)
@@ -100,9 +97,7 @@ class RAGASContextualRelevancyMetric():
             from ragas.metrics import context_relevancy
 
         except ModuleNotFoundError:
-            raise ModuleNotFoundError(
-                "Please install ragas to use this metric. `pip install ragas`."
-            )
+            raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
 
         try:
             from datasets import Dataset
@@ -126,9 +121,7 @@ class RAGASContextualRelevancyMetric():
         dataset = Dataset.from_dict(data)
 
         # Evaluate the dataset using Ragas
-        scores = evaluate(
-            dataset, metrics=[context_relevancy], llm=chat_model
-        )
+        scores = evaluate(dataset, metrics=[context_relevancy], llm=chat_model)
 
         # Ragas only does dataset-level comparisons
         context_relevancy_score = scores["context_relevancy"]
@@ -144,8 +137,8 @@ class RAGASContextualRelevancyMetric():
         return format_ragas_metric_name("Contextual Relevancy")
 
 
-class RAGASAnswerRelevancyMetric():
-    """This metric checks the answer relevancy using Ragas"""
+class RAGASAnswerRelevancyMetric:
+    """This metric checks the answer relevancy using Ragas."""
 
     def __init__(
         self,
@@ -168,9 +161,7 @@ class RAGASAnswerRelevancyMetric():
             from ragas.metrics import answer_relevancy
 
         except ModuleNotFoundError:
-            raise ModuleNotFoundError(
-                "Please install ragas to use this metric. `pip install ragas`."
-            )
+            raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
 
         try:
             from datasets import Dataset
@@ -212,7 +203,7 @@ class RAGASAnswerRelevancyMetric():
         return format_ragas_metric_name("Answer Relevancy")
 
 
-class RAGASFaithfulnessMetric():
+class RAGASFaithfulnessMetric:
     def __init__(
         self,
         threshold: float = 0.3,
@@ -221,7 +212,6 @@ class RAGASFaithfulnessMetric():
 
         self.threshold = threshold
         self.model = model
-
 
     async def a_measure(self, test_case: Dict):
         return self.measure(test_case)
@@ -233,9 +223,7 @@ class RAGASFaithfulnessMetric():
             from ragas.metrics import faithfulness
 
         except ModuleNotFoundError:
-            raise ModuleNotFoundError(
-                "Please install ragas to use this metric. `pip install ragas`."
-            )
+            raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
 
         try:
             from datasets import Dataset
@@ -272,8 +260,8 @@ class RAGASFaithfulnessMetric():
         return format_ragas_metric_name("Faithfulness")
 
 
-class RAGASContextualRecallMetric():
-    """This metric checks the context recall using Ragas"""
+class RAGASContextualRecallMetric:
+    """This metric checks the context recall using Ragas."""
 
     def __init__(
         self,
@@ -298,9 +286,7 @@ class RAGASContextualRecallMetric():
             from ragas.metrics import context_recall
 
         except ModuleNotFoundError:
-            raise ModuleNotFoundError(
-                "Please install ragas to use this metric. `pip install ragas`."
-            )
+            raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
 
         try:
             from datasets import Dataset
@@ -337,8 +323,8 @@ class RAGASContextualRecallMetric():
         return format_ragas_metric_name("Contextual Recall")
 
 
-class RagasMetric():
-    """This metric checks if the output is more than 3 letters"""
+class RagasMetric:
+    """This metric checks if the output is more than 3 letters."""
 
     def __init__(
         self,
@@ -359,9 +345,7 @@ class RagasMetric():
         try:
             from ragas import evaluate
         except ModuleNotFoundError:
-            raise ModuleNotFoundError(
-                "Please install ragas to use this metric. `pip install ragas`."
-            )
+            raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
 
         try:
             # How do i make sure this isn't just huggingface dataset
@@ -376,9 +360,7 @@ class RagasMetric():
             RAGASContextualPrecisionMetric(model=self.model, _track=False),
             RAGASContextualRecallMetric(model=self.model, _track=False),
             RAGASFaithfulnessMetric(model=self.model, _track=False),
-            RAGASAnswerRelevancyMetric(
-                model=self.model, embeddings=self.embeddings, _track=False
-            ),
+            RAGASAnswerRelevancyMetric(model=self.model, embeddings=self.embeddings, _track=False),
         ]
 
         for metric in metrics:
