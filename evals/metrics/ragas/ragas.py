@@ -7,6 +7,7 @@
 
 from typing import Dict, Optional, Union
 
+from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseLanguageModel
 from langchain_huggingface import HuggingFaceEndpoint
@@ -58,7 +59,6 @@ class RAGASContextualPrecisionMetric:
 
         # Evaluate the dataset using Ragas
         scores = evaluate(dataset, metrics=[context_precision], llm=chat_model)
-
         # Ragas only does dataset-level comparisons
         context_precision_score = scores["context_precision"]
         self.success = context_precision_score >= self.threshold
@@ -246,7 +246,11 @@ class RAGASFaithfulnessMetric:
         }
         dataset = Dataset.from_dict(data)
 
-        scores = evaluate(dataset, metrics=[faithfulness], llm=chat_model)
+        scores = evaluate(
+            dataset,
+            metrics=[faithfulness],
+            llm=chat_model,
+        )
         faithfulness_score = scores["faithfulness"]
         self.success = faithfulness_score >= self.threshold
         self.score = faithfulness_score
@@ -304,7 +308,11 @@ class RAGASContextualRecallMetric:
         }
         dataset = Dataset.from_dict(data)
 
-        scores = evaluate(dataset, [context_recall], llm=chat_model)
+        scores = evaluate(
+            dataset,
+            [context_recall],
+            llm=chat_model,
+        )
         context_recall_score = scores["context_recall"]
         self.success = context_recall_score >= self.threshold
         self.score = context_recall_score

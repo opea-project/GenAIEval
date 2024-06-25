@@ -6,10 +6,10 @@
 #
 import unittest
 
-from evals.metrics.ragas.ragas import RagasMetric
+from evals.metrics.ragas import RagasMetric
 
 
-@unittest.skip("need assign host id")
+@unittest.skip("need assign localhost id")
 class TestRagasMetric(unittest.TestCase):
     # Replace this with the actual output from your LLM application
     actual_output = "We offer a 30-day full refund at no extra cost."
@@ -20,7 +20,7 @@ class TestRagasMetric(unittest.TestCase):
     # Replace this with the actual retrieved context from your RAG pipeline
     retrieval_context = ["All customers are eligible for a 30 day full refund at no extra cost."]
 
-    metric = RagasMetric(threshold=0.5, model="http://localhost:8010/")
+    metric = RagasMetric(threshold=0.5, model="http://10.45.76.150:8008")
     test_case = {
         "input": "What if these shoes don't fit?",
         "actual_output": actual_output,
