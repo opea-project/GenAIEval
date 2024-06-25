@@ -20,6 +20,7 @@ class TestRagasMetric(unittest.TestCase):
     # Replace this with the actual retrieved context from your RAG pipeline
     retrieval_context = ["All customers are eligible for a 30 day full refund at no extra cost."]
     from langchain_community.embeddings import HuggingFaceBgeEmbeddings
+
     embeddings = HuggingFaceBgeEmbeddings(model_name="BAAI/bge-base-en-v1.5")
     metric = RagasMetric(threshold=0.5, model="http://localhost:8008", embeddings=embeddings)
     test_case = {
