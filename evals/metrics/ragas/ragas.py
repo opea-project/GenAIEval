@@ -7,9 +7,9 @@
 
 from typing import Dict, Optional, Union
 
-from langchain_community.llms import HuggingFaceEndpoint
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseLanguageModel
+from langchain_huggingface import HuggingFaceEndpoint
 
 
 def format_ragas_metric_name(name: str):
@@ -146,7 +146,7 @@ class RAGASAnswerRelevancyMetric:
         model: Optional[Union[str, BaseLanguageModel]] = "gpt-3.5-turbo",
         embeddings: Optional[Embeddings] = None,
     ):
-        super.__init__()
+
         self.threshold = threshold
         self.model = model
         self.embeddings = embeddings

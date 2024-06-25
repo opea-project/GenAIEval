@@ -6,7 +6,7 @@
 #
 import unittest
 
-from evals.metrics.ragas import RagasMetric
+from evals.metrics.ragas.ragas import RagasMetric
 
 
 @unittest.skip("need assign host id")
@@ -20,7 +20,7 @@ class TestRagasMetric(unittest.TestCase):
     # Replace this with the actual retrieved context from your RAG pipeline
     retrieval_context = ["All customers are eligible for a 30 day full refund at no extra cost."]
 
-    metric = RagasMetric(threshold=0.5, model="http://localhost:8080")
+    metric = RagasMetric(threshold=0.5, model="http://localhost:8010/")
     test_case = {
         "input": "What if these shoes don't fit?",
         "actual_output": actual_output,
