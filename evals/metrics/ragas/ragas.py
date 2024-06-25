@@ -245,12 +245,12 @@ class RAGASFaithfulnessMetric:
             "answer": [test_case["actual_output"]],
         }
         dataset = Dataset.from_dict(data)
-        with capture_metric_type(self.__name__, _track=self._track):
-            scores = evaluate(dataset, metrics=[faithfulness], llm=chat_model)
-            faithfulness_score = scores["faithfulness"]
-            self.success = faithfulness_score >= self.threshold
-            self.score = faithfulness_score
-            return self.score
+
+        scores = evaluate(dataset, metrics=[faithfulness], llm=chat_model)
+        faithfulness_score = scores["faithfulness"]
+        self.success = faithfulness_score >= self.threshold
+        self.score = faithfulness_score
+        return self.score
 
     def is_successful(self):
         return self.success
@@ -267,14 +267,9 @@ class RAGASContextualRecallMetric:
         self,
         threshold: float = 0.3,
         model: Optional[Union[str, BaseLanguageModel]] = "gpt-3.5-turbo",
-        _track: bool = True,
     ):
-        super.__init__()
         self.threshold = threshold
         self.model = model
-        self._track = _track
-        if isinstance(model, str):
-            self.evaluation_model = model
 
     async def a_measure(self, test_case: Dict):
         return self.measure(test_case)
@@ -357,10 +352,10 @@ class RagasMetric:
         # Convert the Dict to a format compatible with Dataset
         score_breakdown = {}
         metrics = [
-            RAGASContextualPrecisionMetric(model=self.model, _track=False),
-            RAGASContextualRecallMetric(model=self.model, _track=False),
-            RAGASFaithfulnessMetric(model=self.model, _track=False),
-            RAGASAnswerRelevancyMetric(model=self.model, embeddings=self.embeddings, _track=False),
+            RAGASContextualPrecisionMetric(model=self.model),
+            RAGASContextualRecallMetric(model=self.model),
+            RAGASFaithfulnessMetric(model=self.model),
+            RAGASAnswerRelevancyMetric(model=self.model, embeddings=self.embeddings),
         ]
 
         for metric in metrics:
