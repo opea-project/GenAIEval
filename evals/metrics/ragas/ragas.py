@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 #
-
+import os
 from typing import Dict, Optional, Union
 
 from langchain_community.llms import HuggingFaceEndpoint
@@ -22,7 +22,7 @@ class RagasMetric:
     def __init__(
         self,
         threshold: float = 0.3,
-        model: Optional[Union[str, BaseLanguageModel]] = "gpt-3.5-turbo",
+        model: Optional[Union[str, BaseLanguageModel]] = None,
         embeddings: Optional[Embeddings] = None,
         metrics: Optional[list[str]] = None,
     ):
@@ -56,6 +56,10 @@ class RagasMetric:
         }
 
         # Set LLM model
+        openai_key = os.getenv("OPENAI_API_KEY", None)
+        if openai_key is not None:
+            print("OPENAI_API_KEY is provided, ragas initializes the model by OpenAI .")
+            self.model = None
         if isinstance(self.model, str):
             chat_model = HuggingFaceEndpoint(
                 endpoint_url=self.model,
