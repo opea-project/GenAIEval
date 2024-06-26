@@ -58,7 +58,7 @@ class RagasMetric:
         # Set LLM model
         openai_key = os.getenv("OPENAI_API_KEY", None)
         if openai_key is not None:
-            print("OPENAI_API_KEY is provided, ragas initializes the model by OpenAI .")
+            print("OPENAI_API_KEY is provided, ragas initializes the model by OpenAI.")
             self.model = None
         if isinstance(self.model, str):
             chat_model = HuggingFaceEndpoint(
@@ -74,7 +74,14 @@ class RagasMetric:
             # check supported list
             for metric in self.metrics:
                 if metric not in self.validated_list:
-                    raise ValueError("metric should be in supported list {}.".format(self.validated_metrics))
+                    raise ValueError(
+                        "metric should be in supported list {}. ".format(self.validated_list)
+                        + "ClientResponseError raised with LangchainLLM "
+                        + "when context_precision, context_recall ran. "
+                        + "Here are the related issues described in ragas "
+                        "https://github.com/explodinggradients/ragas/issues/934, "
+                        + "https://github.com/explodinggradients/ragas/issues/664."
+                    )
                 else:
                     if metric == "answer_relevancy" and self.embeddings is None:
                         raise ValueError("answer_relevancy metric need provide embeddings model.")
