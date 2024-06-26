@@ -21,6 +21,7 @@ import os
 from comps.dataprep.utils import document_loader
 from sentence_transformers import SentenceTransformer
 from transformers import GenerationConfig
+from langchain_community.llms import HuggingFaceEndpoint
 
 from .gen_answer_dataset import answer_generate
 from .gen_hard_negative import mine_hard_negatives
@@ -87,7 +88,7 @@ if __name__ == "__main__":
         print("Did not find the llm endpoint service, load model from huggingface hub as instead.")
 
     try:
-        if os.path.exists(output) == False:
+        if not os.path.exists(output):
             os.mkdir(output)
         else:
             if os.path.exists(os.path.join(output, "raw.jsonl")):

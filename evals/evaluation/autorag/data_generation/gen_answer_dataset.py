@@ -38,11 +38,11 @@ def answer_generate(llm, base_dir, file_json_path, generation_config):
     documents = load_documents(base_dir)
 
     try:
-        if isinstance(input, str):
+        if isinstance(llm, str):
             use_endpoint = False
-            tokenizer = AutoTokenizer.from_pretrained(model_id)
-            llm = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto", torch_dtype=torch.float16)
-            model.eval()
+            tokenizer = AutoTokenizer.from_pretrained(llm)
+            llm = AutoModelForCausalLM.from_pretrained(llm, device_map="auto", torch_dtype=torch.float16)
+            llm.eval()
         else:
             use_endpoint = True
             llm = llm
@@ -51,10 +51,10 @@ def answer_generate(llm, base_dir, file_json_path, generation_config):
 
     for question, context in enumerate(documents):
         if context and question:
-            input = TRUTHGENERATE_PROMPT.format(question=question, context=context)
+            prompt = TRUTHGENERATE_PROMPT.format(question=question, context=context)
             if not use_endpoint:
                 with torch.no_grad():
-                    model_input = tokenizer(input, return_tensors="pt")
+                    model_input = tokenizer(prompt, return_tensors="pt")
                     res = llm.generate(**model_input, generation_config=generation_config)[0]
                     res = tokenizer.decode(res, skip_special_tokens=True)
             else:
@@ -66,7 +66,7 @@ def answer_generate(llm, base_dir, file_json_path, generation_config):
 
             result_str = res.replace("#", " ").replace(r"\t", " ").replace("\n", " ").replace("\n\n", " ").strip()
 
-            if result_str and result_str.isspace() == False:
+            if result_str and not result_str.isspace():
                 data = {
                     "question": question,
                     "context": [context],
