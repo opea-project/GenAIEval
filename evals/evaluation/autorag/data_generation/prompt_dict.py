@@ -1,5 +1,5 @@
-
-
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
 
 QUERYGENERATE_PROMPT = """
 Task: You are asked to act as a human annotator. Your role is to generate 2 specific, open-ended questions based on the provided context.

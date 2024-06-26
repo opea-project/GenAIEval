@@ -113,8 +113,8 @@ def rag_evaluate(
         )
 
         langchain_embedding = LangchainEmbeddingsWrapper(langchain_embeddings)
-        ### Note: due to the code error in RAGAS repo, do not recommend other model except chatgpt to 
-        # evaluate context_recall and context_precision. 
+        ### Note: due to the code error in RAGAS repo, do not recommend other model except chatgpt to
+        # evaluate context_recall and context_precision.
         # Please refer https://github.com/explodinggradients/ragas/issues/664.
         score = evaluate(
             dataset,  # pylint: disable=E1123
