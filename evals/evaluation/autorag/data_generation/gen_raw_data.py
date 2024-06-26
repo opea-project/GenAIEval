@@ -15,21 +15,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os, re
-import torch
-from modelscope import AutoModelForCausalLM, AutoTokenizer  # pylint: disable=E0401
-import jsonlines
-from typing import List
 import logging
-from .prompt_dict import QUERYGENERATE_PROMPT
-from transformers import GenerationConfig
+import os
+import re
+from typing import List
+
+import jsonlines
+import torch
 from comps.dataprep.utils import document_loader
+from modelscope import AutoModelForCausalLM, AutoTokenizer  # pylint: disable=E0401
+from transformers import GenerationConfig
+
+from .prompt_dict import QUERYGENERATE_PROMPT
 
 logging.basicConfig(
-    format="%(asctime)s %(name)s:%(levelname)s:%(message)s",
-    datefmt="%d-%M-%Y %H:%M:%S",
-    level=logging.INFO
+    format="%(asctime)s %(name)s:%(levelname)s:%(message)s", datefmt="%d-%M-%Y %H:%M:%S", level=logging.INFO
 )
+
 
 def document_filter(data_collection):
     documents = []
@@ -39,27 +41,28 @@ def document_filter(data_collection):
         documents.append(sample)
     return documents
 
+
 def raw_data_generation(llm, input_path, file_json_path, generation_config):
     data_collections = []
-    
+
     if isinstance(input_path, str):
-       if os.path.isfile(input_path):
-           data_collection = document_loader(input_path)
-           data_collections.append(data_collection)
-       elif os.path.isdir(input_path):
-           for dirpath, dirnames, filenames in os.walk(input_path):
-               for filename in filenames:
-                   data_collection = document_loader(os.path.join(dirpath, filename))
-                   data_collections.append(data_collection)
+        if os.path.isfile(input_path):
+            data_collection = document_loader(input_path)
+            data_collections.append(data_collection)
+        elif os.path.isdir(input_path):
+            for dirpath, dirnames, filenames in os.walk(input_path):
+                for filename in filenames:
+                    data_collection = document_loader(os.path.join(dirpath, filename))
+                    data_collections.append(data_collection)
     else:
         print("Please check your upload file and try again!")
     documents = document_filter(data_collection)
-    
+
     try:
         if isinstance(input, str):
             use_endpoint = False
             tokenizer = AutoTokenizer.from_pretrained(model_id)
-            llm = AutoModelForCausalLM.from_pretrained(model_id, device_map='auto', torch_dtype=torch.float16)
+            llm = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto", torch_dtype=torch.float16)
             model.eval()
         else:
             use_endpoint = True
@@ -71,37 +74,39 @@ def raw_data_generation(llm, input_path, file_json_path, generation_config):
         if context:
             prompt = QUERYGENERATE_PROMPT.format(context=context)
             result = []
-    
+
             for j in range(5):
                 if not use_endpoint:
                     with torch.no_grad():
                         model_input = tokenizer(input, return_tensors="pt")
                         res = llm.generate(**model_input, generation_config=generation_config)[0]
-                        res=tokenizer.decode(res, skip_special_tokens=True)
+                        res = tokenizer.decode(res, skip_special_tokens=True)
                 else:
                     res = llm.invoke(prompt)
-    
-                res = res[res.find('Generated questions:') :]
-                res = re.sub('Generated questions:', '', res)
-                res = re.sub('---', '', res)
+
+                res = res[res.find("Generated questions:") :]
+                res = re.sub("Generated questions:", "", res)
+                res = re.sub("---", "", res)
                 res = res.split("?")[0:2]
-                
+
                 for content in res:
-                    content = content.replace('1.', "").replace('2.', "")
-                    content = content.replace('Evaluation:', "")
-                    content = content.replace('#', " ").replace(r'\t', " ").replace('\n', ' ').replace('\n\n', ' ').strip()
-                    content = content + '?'
+                    content = content.replace("1.", "").replace("2.", "")
+                    content = content.replace("Evaluation:", "")
+                    content = (
+                        content.replace("#", " ").replace(r"\t", " ").replace("\n", " ").replace("\n\n", " ").strip()
+                    )
+                    content = content + "?"
                 result.append(content)
-    
-            result_str=''
+
+            result_str = ""
             result_set = list(set(result))
             for k in range(len(result_set)):
-                result_str = result_str + str(k) + '. '+ result_set[k]
-            
-            if result_str and result_str.isspace()==False:
+                result_str = result_str + str(k) + ". " + result_set[k]
+
+            if result_str and result_str.isspace() == False:
                 data = {
-                         "query": result_str,
-                         "pos": [context],
-                   }
-                with jsonlines.open(file_json_path,"a") as file_json:
-                      file_json.write(data)
+                    "query": result_str,
+                    "pos": [context],
+                }
+                with jsonlines.open(file_json_path, "a") as file_json:
+                    file_json.write(data)

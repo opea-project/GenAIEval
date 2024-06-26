@@ -15,11 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+import re
+
+import jsonlines
 import torch
 from modelscope import AutoModelForCausalLM, AutoTokenizer  # pylint: disable=E0401
-import jsonlines
-import re
-import logging
+
 from .prompt_dict import TRUTHGENERATE_PROMPT
 
 
@@ -34,12 +36,12 @@ def load_documents(document_file_jsonl_path):
 
 def answer_generate(llm, base_dir, file_json_path, generation_config):
     documents = load_documents(base_dir)
-    
+
     try:
         if isinstance(input, str):
-            use_endpoint=False
+            use_endpoint = False
             tokenizer = AutoTokenizer.from_pretrained(model_id)
-            llm = AutoModelForCausalLM.from_pretrained(model_id, device_map='auto', torch_dtype=torch.float16)
+            llm = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto", torch_dtype=torch.float16)
             model.eval()
         else:
             use_endpoint = True
@@ -58,11 +60,11 @@ def answer_generate(llm, base_dir, file_json_path, generation_config):
             else:
                 res = llm.invoke(prompt)
 
-            res = res[res.find('Generated ground_truth:'):]
-            res = re.sub('Generated ground_truth:', '', res)
-            res = re.sub('---', '', res)
+            res = res[res.find("Generated ground_truth:") :]
+            res = re.sub("Generated ground_truth:", "", res)
+            res = re.sub("---", "", res)
 
-            result_str = res.replace('#', " ").replace(r'\t', " ").replace('\n', ' ').replace('\n\n', ' ').strip()
+            result_str = res.replace("#", " ").replace(r"\t", " ").replace("\n", " ").replace("\n\n", " ").strip()
 
             if result_str and result_str.isspace() == False:
                 data = {

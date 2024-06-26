@@ -51,4 +51,3 @@ Desired format:
 ---
 Generated ground_truth:
 """
-

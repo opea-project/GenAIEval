@@ -15,23 +15,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .llm_generate_raw_data import raw_data_generation
-from .gen_hard_negative import mine_hard_negatives
-from .utils import similarity_check
-from .gen_answer_dataset import answer_generate
 import argparse
 import os
-from transformers import GenerationConfig
-from sentence_transformers import SentenceTransformer
+
 from comps.dataprep.utils import document_loader
+from sentence_transformers import SentenceTransformer
+from transformers import GenerationConfig
 
+from .gen_answer_dataset import answer_generate
+from .gen_hard_negative import mine_hard_negatives
+from .llm_generate_raw_data import raw_data_generation
+from .utils import similarity_check
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--llm", type=str)
     parser.add_argument("--embedding_model", type=str)
     parser.add_argument("--input", type=str)
-    parser.add_argument("--output", type=str, default='./data')
+    parser.add_argument("--output", type=str, default="./data")
 
     parser.add_argument("--temperature", type=float, default=0.8)
     parser.add_argument("--top_p", type=float, default=0.9)
@@ -43,7 +44,7 @@ if __name__ == '__main__':
     parser.add_argument("--num_return_sequences", type=int, default=2)
     parser.add_argument("--use_cache", type=bool, default=True)
 
-    parser.add_argument("--range_for_sampling", type=str, default='2-10')
+    parser.add_argument("--range_for_sampling", type=str, default="2-10")
     parser.add_argument("--negative_number", type=int, default=5)
     parser.add_argument("--use_gpu_for_searching", type=bool, default=False)
 
@@ -56,19 +57,19 @@ if __name__ == '__main__':
     output = args.output
 
     generation_config = GenerationConfig(
-        temperature = args.temperature,
-        top_p = args.top_p,
-        top_k = args.top_k,
-        repetition_penalty = args.repetition_penalty,
-        max_new_tokens = args.max_new_tokens,
-        do_sample = args.do_sample,
-        num_beams = args.num_beams,
-        num_return_sequences = args.num_return_sequences,
-        use_cache = args.use_cache,
+        temperature=args.temperature,
+        top_p=args.top_p,
+        top_k=args.top_k,
+        repetition_penalty=args.repetition_penalty,
+        max_new_tokens=args.max_new_tokens,
+        do_sample=args.do_sample,
+        num_beams=args.num_beams,
+        num_return_sequences=args.num_return_sequences,
+        use_cache=args.use_cache,
     )
-    
+
     embedding_model = SentenceTransformer(args.embedding_model)
-    
+
     try:
         llm_endpoint = os.getenv("TGI_LLM_ENDPOINT", "http://localhost:8080")
         llm = HuggingFaceEndpoint(
@@ -89,19 +90,19 @@ if __name__ == '__main__':
         if os.path.exists(output) == False:
             os.mkdir(output)
         else:
-            if os.path.exists(os.path.join(output, 'raw.jsonl')):
-                os.remove(os.path.join(output, 'raw.jsonl'))
-            if os.path.exists(os.path.join(output, 'minedHN.jsonl')):
-                os.remove(os.path.join(output, 'minedHN.jsonl'))
-            if os.path.exists(os.path.join(output, 'minedHN_split.jsonl')):
-                os.remove(os.path.join(output, 'minedHN_split.jsonl'))
+            if os.path.exists(os.path.join(output, "raw.jsonl")):
+                os.remove(os.path.join(output, "raw.jsonl"))
+            if os.path.exists(os.path.join(output, "minedHN.jsonl")):
+                os.remove(os.path.join(output, "minedHN.jsonl"))
+            if os.path.exists(os.path.join(output, "minedHN_split.jsonl")):
+                os.remove(os.path.join(output, "minedHN_split.jsonl"))
     except:
         pass
 
-    output_path = os.path.join(output, 'raw_query.jsonl')
+    output_path = os.path.join(output, "raw_query.jsonl")
     raw_data_generation(llm, input_path, output_path, generation_config)
 
-    output_hn_path = os.path.join(output, 'query_doc.jsonl')
+    output_hn_path = os.path.join(output, "query_doc.jsonl")
     mine_hard_negatives(
         embedding_model,
         output_path,
@@ -115,4 +116,3 @@ if __name__ == '__main__':
 
     output_answer_path = os.path.join(output, "answer.jsonl")
     answer_generate(llm, input, output, generation_config)
-    
