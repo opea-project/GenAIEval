@@ -59,11 +59,11 @@ def raw_data_generation(llm, input_path, file_json_path, generation_config):
     documents = document_filter(data_collection)
 
     try:
-        if isinstance(input, str):
+        if isinstance(llm, str):
             use_endpoint = False
-            tokenizer = AutoTokenizer.from_pretrained(model_id)
-            llm = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto", torch_dtype=torch.float16)
-            model.eval()
+            tokenizer = AutoTokenizer.from_pretrained(llm)
+            llm = AutoModelForCausalLM.from_pretrained(llm, device_map="auto", torch_dtype=torch.float16)
+            llm.eval()
         else:
             use_endpoint = True
             llm = llm
@@ -103,7 +103,7 @@ def raw_data_generation(llm, input_path, file_json_path, generation_config):
             for k in range(len(result_set)):
                 result_str = result_str + str(k) + ". " + result_set[k]
 
-            if result_str and result_str.isspace() == False:
+            if result_str and not result_str.isspace():
                 data = {
                     "query": result_str,
                     "pos": [context],
