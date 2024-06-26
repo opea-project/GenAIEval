@@ -31,6 +31,7 @@ class RAGASContextualPrecisionMetric:
         try:
             from ragas import evaluate
             from ragas.metrics import context_precision
+            from ragas.llms import LangchainLLMWrapper
 
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
@@ -48,6 +49,7 @@ class RAGASContextualPrecisionMetric:
             )
         else:
             chat_model = self.model
+        chat_model = LangchainLLMWrapper(chat_model)
         # Create a dataset from the test case
         data = {
             "contexts": [test_case["retrieval_context"]],
@@ -94,6 +96,7 @@ class RAGASContextualRelevancyMetric:
         try:
             from ragas import evaluate
             from ragas.metrics import context_relevancy
+            from ragas.llms import LangchainLLMWrapper
 
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
@@ -111,7 +114,7 @@ class RAGASContextualRelevancyMetric:
             )
         else:
             chat_model = self.model
-
+        chat_model = LangchainLLMWrapper(chat_model)
         # Create a dataset from the test case
         data = {
             "contexts": [test_case["retrieval_context"]],
@@ -158,6 +161,7 @@ class RAGASAnswerRelevancyMetric:
         try:
             from ragas import evaluate
             from ragas.metrics import answer_relevancy
+            from ragas.llms import LangchainLLMWrapper
 
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
@@ -175,7 +179,7 @@ class RAGASAnswerRelevancyMetric:
             )
         else:
             chat_model = self.model
-
+        chat_model = LangchainLLMWrapper(chat_model)
         data = {
             "question": [test_case["input"]],
             "answer": [test_case["actual_output"]],
@@ -220,6 +224,7 @@ class RAGASFaithfulnessMetric:
         try:
             from ragas import evaluate
             from ragas.metrics import faithfulness
+            from ragas.llms import LangchainLLMWrapper
 
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
@@ -237,7 +242,7 @@ class RAGASFaithfulnessMetric:
             )
         else:
             chat_model = self.model
-
+        chat_model = LangchainLLMWrapper(chat_model)
         data = {
             "contexts": [test_case["retrieval_context"]],
             "question": [test_case["input"]],
@@ -282,6 +287,7 @@ class RAGASContextualRecallMetric:
         try:
             from ragas import evaluate
             from ragas.metrics import context_recall
+            from ragas.llms import LangchainLLMWrapper
 
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
@@ -299,7 +305,7 @@ class RAGASContextualRecallMetric:
             )
         else:
             chat_model = self.model
-
+        chat_model = LangchainLLMWrapper(chat_model)
         data = {
             "question": [test_case["input"]],
             "ground_truth": [test_case["expected_output"]],
