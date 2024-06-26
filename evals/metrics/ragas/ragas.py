@@ -30,8 +30,8 @@ class RAGASContextualPrecisionMetric:
     def measure(self, test_case: Dict):
         try:
             from ragas import evaluate
-            from ragas.metrics import context_precision
             from ragas.llms import LangchainLLMWrapper
+            from ragas.metrics import context_precision
 
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
@@ -95,8 +95,8 @@ class RAGASContextualRelevancyMetric:
         # sends to server
         try:
             from ragas import evaluate
-            from ragas.metrics import context_relevancy
             from ragas.llms import LangchainLLMWrapper
+            from ragas.metrics import context_relevancy
 
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
@@ -160,8 +160,8 @@ class RAGASAnswerRelevancyMetric:
         # sends to server
         try:
             from ragas import evaluate
-            from ragas.metrics import answer_relevancy
             from ragas.llms import LangchainLLMWrapper
+            from ragas.metrics import answer_relevancy
 
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
@@ -223,8 +223,8 @@ class RAGASFaithfulnessMetric:
         # sends to server
         try:
             from ragas import evaluate
-            from ragas.metrics import faithfulness
             from ragas.llms import LangchainLLMWrapper
+            from ragas.metrics import faithfulness
 
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
@@ -286,8 +286,8 @@ class RAGASContextualRecallMetric:
         # sends to server
         try:
             from ragas import evaluate
-            from ragas.metrics import context_recall
             from ragas.llms import LangchainLLMWrapper
+            from ragas.metrics import context_recall
 
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
