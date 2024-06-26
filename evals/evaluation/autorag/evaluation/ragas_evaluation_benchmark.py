@@ -106,19 +106,21 @@ def rag_evaluate(
         except:
             print("Please check the selected llm!")
 
-    langchain_embeddings = HuggingFaceBgeEmbeddings(
-        model_name=embedding_model,
-        encode_kwargs={"normalize_embeddings": True},
-        query_instruction="Represent this sentence for searching relevant passages:",
-    )
-
-    langchain_embedding = LangchainEmbeddingsWrapper(langchain_embeddings)
-    score = evaluate(
-        dataset,  # pylint: disable=E1123
-        metrics=[answer_relevancy, faithfulness, context_recall, context_precision],
-        llm=langchain_llm,  # pylint: disable=E1123
-        embeddings=langchain_embedding,
-    )  # pylint: disable=E1123
+        langchain_embeddings = HuggingFaceBgeEmbeddings(
+            model_name=embedding_model,
+            encode_kwargs={"normalize_embeddings": True},
+            query_instruction="Represent this sentence for searching relevant passages:",
+        )
+    
+        langchain_embedding = LangchainEmbeddingsWrapper(langchain_embeddings)
+        ### Note: due to the code error in RAGAS repo, do not recommend other model to evaluate context_recall and 
+        ### context_precision. Please refer https://github.com/explodinggradients/ragas/issues/664.
+        score = evaluate(
+            dataset,  # pylint: disable=E1123
+            metrics=[answer_relevancy, faithfulness],
+            llm=langchain_llm,  # pylint: disable=E1123
+            embeddings=langchain_embedding,
+        )  # pylint: disable=E1123
 
     df = score.to_pandas()
     answer_relevancy_average = df["answer_relevancy"][:].mean()
