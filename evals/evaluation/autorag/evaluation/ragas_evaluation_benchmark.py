@@ -130,7 +130,7 @@ def rag_evaluate(
     print("The score for context_recall is {}".format(context_recall))
     print("The score for context_precision is {}".format(context_precision))
     print(
-        """The current group of parms is:
+        """The current group of parameters is:
             search_type: %s, k: %d, fetch_k: %d, score_threshold: %f, top_n: %d, temperature: %f, \
             top_k: %d, top_p: %d, repetition_penalty: %f.
           """
