@@ -91,6 +91,23 @@ def rag_evaluate(
     if use_openai_key:
         os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
         score = evaluate(dataset, metrics=[answer_relevancy, faithfulness, context_recall, context_precision])
+        df = score.to_pandas()
+        answer_relevancy_average = df["answer_relevancy"][:].mean()
+        faithfulness_average = df["faithfulness"][:].mean()
+        context_recall_average = df["context_recall"][:].mean()
+        context_precision_average = df["context_precision"][:].mean()
+        print("The score for answer_relevancy is {}".format(answer_relevancy_average))
+        print("The score for faithfulness is {}".format(faithfulness))
+        print("The score for context_recall is {}".format(context_recall))
+        print("The score for context_precision is {}".format(context_precision))
+        print(
+            """The current group of parameters is:
+                search_type: %s, k: %d, fetch_k: %d, score_threshold: %f, top_n: %d, temperature: %f, \
+                top_k: %d, top_p: %d, repetition_penalty: %f.
+              """
+            % (search_type, k, fetch_k, score_threshold, top_n, temperature, top_k, top_p, repetition_penalty)
+        )
+        return answer_relevancy_average, faithfulness_average, context_recall_average, context_precision_average
     else:
         try:
             if isinstance(llm, str):
@@ -123,23 +140,19 @@ def rag_evaluate(
             embeddings=langchain_embedding,
         )  # pylint: disable=E1123
 
-    df = score.to_pandas()
-    answer_relevancy_average = df["answer_relevancy"][:].mean()
-    faithfulness_average = df["faithfulness"][:].mean()
-    context_recall_average = df["context_recall"][:].mean()
-    context_precision_average = df["context_precision"][:].mean()
-    print("The score for answer_relevancy is {}".format(answer_relevancy_average))
-    print("The score for faithfulness is {}".format(faithfulness))
-    print("The score for context_recall is {}".format(context_recall))
-    print("The score for context_precision is {}".format(context_precision))
-    print(
-        """The current group of parameters is:
-            search_type: %s, k: %d, fetch_k: %d, score_threshold: %f, top_n: %d, temperature: %f, \
-            top_k: %d, top_p: %d, repetition_penalty: %f.
-          """
-        % (search_type, k, fetch_k, score_threshold, top_n, temperature, top_k, top_p, repetition_penalty)
-    )
-    return answer_relevancy_average, faithfulness_average, context_recall_average, context_precision_average
+        df = score.to_pandas()
+        answer_relevancy_average = df["answer_relevancy"][:].mean()
+        faithfulness_average = df["faithfulness"][:].mean()
+        print("The score for answer_relevancy is {}".format(answer_relevancy_average))
+        print("The score for faithfulness is {}".format(faithfulness))
+        print(
+            """The current group of parameters is:
+                search_type: %s, k: %d, fetch_k: %d, score_threshold: %f, top_n: %d, temperature: %f, \
+                top_k: %d, top_p: %d, repetition_penalty: %f.
+              """
+            % (search_type, k, fetch_k, score_threshold, top_n, temperature, top_k, top_p, repetition_penalty)
+        )
+        return answer_relevancy_average, faithfulness_average
 
 
 if __name__ == "__main__":
@@ -180,21 +193,39 @@ if __name__ == "__main__":
         )
     except:
         print("Did not find the llm endpoint service, load model from huggingface hub as instead.")
-
-    answer_relevancy_average, faithfulness_average, context_recall_average, context_precision_average = rag_evaluate(
-        backend_url=args.backend_url,
-        llm=llm,
-        ground_truth_file=args.ground_truth_file,
-        use_openai_key=args.use_openai_key,
-        embedding_model="BAAI/bge-large-en-v1.5",
-        search_type=args.search_type,
-        k=args.k,
-        fetch_k=args.fetch_k,
-        score_threshold=args.score_threshold,
-        reranker_model=args.reranker_model,
-        top_n=args.top_n,
-        temperature=args.temperature,
-        top_k=args.top_k,
-        top_p=args.top_p,
-        repetition_penalty=args.repetition_penalty,
-    )
+    if use_openai_key:
+        answer_relevancy_average, faithfulness_average, context_recall_average, context_precision_average = rag_evaluate(
+            backend_url=args.backend_url,
+            llm=llm,
+            ground_truth_file=args.ground_truth_file,
+            use_openai_key=args.use_openai_key,
+            embedding_model="BAAI/bge-large-en-v1.5",
+            search_type=args.search_type,
+            k=args.k,
+            fetch_k=args.fetch_k,
+            score_threshold=args.score_threshold,
+            reranker_model=args.reranker_model,
+            top_n=args.top_n,
+            temperature=args.temperature,
+            top_k=args.top_k,
+            top_p=args.top_p,
+            repetition_penalty=args.repetition_penalty,
+        )
+    else:
+        answer_relevancy_average, faithfulness_average = rag_evaluate(
+            backend_url=args.backend_url,
+            llm=llm,
+            ground_truth_file=args.ground_truth_file,
+            use_openai_key=args.use_openai_key,
+            embedding_model="BAAI/bge-large-en-v1.5",
+            search_type=args.search_type,
+            k=args.k,
+            fetch_k=args.fetch_k,
+            score_threshold=args.score_threshold,
+            reranker_model=args.reranker_model,
+            top_n=args.top_n,
+            temperature=args.temperature,
+            top_k=args.top_k,
+            top_p=args.top_p,
+            repetition_penalty=args.repetition_penalty,
+        )
