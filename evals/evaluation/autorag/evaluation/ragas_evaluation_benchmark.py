@@ -111,9 +111,9 @@ def rag_evaluate(
             encode_kwargs={"normalize_embeddings": True},
             query_instruction="Represent this sentence for searching relevant passages:",
         )
-    
+
         langchain_embedding = LangchainEmbeddingsWrapper(langchain_embeddings)
-        ### Note: due to the code error in RAGAS repo, do not recommend other model to evaluate context_recall and 
+        ### Note: due to the code error in RAGAS repo, do not recommend other model to evaluate context_recall and
         ### context_precision. Please refer https://github.com/explodinggradients/ragas/issues/664.
         score = evaluate(
             dataset,  # pylint: disable=E1123
