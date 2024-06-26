@@ -36,7 +36,7 @@ logging.basicConfig(
 def document_filter(data_collection):
     documents = []
     for sample in data_collection:
-        if len(data) < 5:
+        if len(sample) < 5:
             continue
         documents.append(sample)
     return documents
