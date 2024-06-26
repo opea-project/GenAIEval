@@ -19,9 +19,9 @@ import argparse
 import os
 
 from comps.dataprep.utils import document_loader
+from langchain_community.llms import HuggingFaceEndpoint
 from sentence_transformers import SentenceTransformer
 from transformers import GenerationConfig
-from langchain_community.llms import HuggingFaceEndpoint
 
 from .gen_answer_dataset import answer_generate
 from .gen_hard_negative import mine_hard_negatives

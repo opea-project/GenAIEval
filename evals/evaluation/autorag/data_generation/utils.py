@@ -17,9 +17,11 @@
 import argparse
 import json
 import random
+
+import jsonlines
 import numpy
 import requests
-import jsonlines
+
 
 def similarity_score(queries, passages, model):
     queries = [queries]

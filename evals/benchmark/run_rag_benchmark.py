@@ -15,8 +15,9 @@
 import argparse
 import os
 import subprocess
-import yaml
+
 import jsonlines
+import yaml
 
 
 def read_yaml_file(file_path):
