@@ -193,7 +193,7 @@ if __name__ == "__main__":
         )
     except:
         print("Did not find the llm endpoint service, load model from huggingface hub as instead.")
-    if use_openai_key:
+    if args.use_openai_key:
         answer_relevancy_average, faithfulness_average, context_recall_average, context_precision_average = (
             rag_evaluate(
                 backend_url=args.backend_url,
