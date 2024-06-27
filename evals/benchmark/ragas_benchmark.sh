@@ -77,7 +77,7 @@ function run_benchmark {
     python -u ../evaluation/autorag/evaluation/ragas_evaluation_benchmark.py \
         --ground_truth_file ${ground_truth_file} \
         --input_path ${input_path} \
-        ${use_openai_key} \
+        --use_openai_key ${use_openai_key} \
         --search_type ${search_type} \
         --k ${k} \
         --fetch_k ${fetch_k} \

@@ -31,7 +31,7 @@ def load_set(file_jsonl_path, item):
 
 
 def rag_evaluate(
-    url,
+    backend_url,
     llm,
     ground_truth_file,
     use_openai_key,
@@ -64,8 +64,8 @@ def rag_evaluate(
         json_data = json.dumps(post_json_data)
 
         headers = {"Content-Type": "application/json"}
-        response = requests.post(url, data=json_data, headers=headers)
-        rag_answer = response.text
+        response = requests.post(backend_url, data=json_data, headers=headers)
+        rag_answer = json.loads(response.text)['choices'][0]["message"]["content"]
 
         data = {
             "question": question,
@@ -78,6 +78,7 @@ def rag_evaluate(
     ground_truth_list = load_set(ground_truth_file, "ground_truth")
     question_list = load_set(result_answer_path, "question")
     answer_list = load_set(result_answer_path, "answer")
+    
 
     data_samples = {
         "question": question_list,
@@ -161,7 +162,7 @@ if __name__ == "__main__":
         "--backend_url", type=str, default="http://localhost:8888/v1/chatqna", help="Service URL address."
     )
     parser.add_argument("--ground_truth_file", type=str)
-    parser.add_argument("--use_openai_key", default=False, action="store_true")
+    parser.add_argument("--use_openai_key", type=bool, default=False)
 
     parser.add_argument("--retrieval_type", type=str, default="default")
     parser.add_argument("--search_type", type=str, default="similarity")
@@ -231,3 +232,5 @@ if __name__ == "__main__":
             top_p=args.top_p,
             repetition_penalty=args.repetition_penalty,
         )
+    if os.path.exists("result_answer.jsonl"):
+        os.remove("result_answer.jsonl")
