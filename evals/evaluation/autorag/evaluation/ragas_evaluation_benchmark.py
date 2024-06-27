@@ -65,7 +65,7 @@ def rag_evaluate(
 
         headers = {"Content-Type": "application/json"}
         response = requests.post(backend_url, data=json_data, headers=headers)
-        rag_answer = json.loads(response.text)['choices'][0]["message"]["content"]
+        rag_answer = json.loads(response.text)["choices"][0]["message"]["content"]
 
         data = {
             "question": question,
@@ -78,7 +78,6 @@ def rag_evaluate(
     ground_truth_list = load_set(ground_truth_file, "ground_truth")
     question_list = load_set(result_answer_path, "question")
     answer_list = load_set(result_answer_path, "answer")
-    
 
     data_samples = {
         "question": question_list,
