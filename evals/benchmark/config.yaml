@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 ground_truth_file: ./ground_truth.jsonl
-use_openai_key: false
+use_openai_key: False
 search_type: [similarity, mmr]
 k: [1]
 fetch_k: [5]
