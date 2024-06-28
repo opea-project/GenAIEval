@@ -5,16 +5,14 @@
 
 import unittest
 
-import transformers
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from evals.evaluation.bigcode_evaluation_harness import BigcodeEvalParser, evaluate
 
 
-@unittest.skipIf(transformers.__version__ > "4.41.2", "accuracy changed depends on transformers version.")
 class TestLMEval(unittest.TestCase):
     def test_lm_eval(self):
-        model_name_or_path = "codeparrot/codeparrot-small"
+        model_name_or_path = "bigcode/tiny_starcoder_py"
         user_model = AutoModelForCausalLM.from_pretrained(model_name_or_path)
         tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, truncation_side="left", padding_side="right")
         args = BigcodeEvalParser(
