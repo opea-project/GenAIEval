@@ -17,7 +17,7 @@ For evaluating multiple groups of parameters, please use [this script](https://g
 python -u run_rag_benchmark.py --config config.yaml
 ```
 
-The group paramters should predefined in a `config.yaml`. It will pass available parameters to the RAG system.
+The group parameters should predefined in a `config.yaml`. It will pass available parameters to the RAG system.
 
 ## Notes
 Due to some dependences issues, we can use OpenAI-series models to evaluate the RAG system from the four perspectives, answer_relevancy, faithfulness, context_recall, context_precision. If you want to use your local model to evaluate the RAG system, it can only support the evaluation for answer_relevancy and faithfulness.
