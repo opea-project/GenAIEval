@@ -69,4 +69,3 @@ The results will be stored in a CSV file with the following columns:
 ## Logging
 
 The script logs detailed information about each request and any errors encountered. The logs can be useful for diagnosing issues and understanding the behavior of the server under load.
-
