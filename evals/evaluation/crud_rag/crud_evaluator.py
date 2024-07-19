@@ -99,11 +99,12 @@ class CRUD_Evaluator:
             )
         json_data = {}
         json_data["messages"] = query
+        json_data["stream"] = False
         json_data["temperature"] = arguments.temperature
         json_data["max_new_tokens"] = arguments.max_new_tokens
         json_data = json.dumps(json_data)
         response = requests.post(service_url, data=json_data, headers=headers)
-        return response
+        return response.json()["choices"][0]["message"]["content"]
 
     def evaluate(self, arguments, sort=True, show_progress_bar=False, contain_original_data=False):
         """Run a complete evaluation.
@@ -121,7 +122,7 @@ class CRUD_Evaluator:
             dict: Output dictionary contains fields such as: overall, results, etc.
         """
         if os.path.exists(self.output_path):  # Resume evaluation
-            results = self.read_output(self.output_path).get('results', [])
+            results = self.read_output().get('results', [])
             results = self.remove_invalid(results)
             saved_ids = [result['id'] for result in results]
         else:
@@ -132,9 +133,9 @@ class CRUD_Evaluator:
             if data['ID'] in saved_ids:
                 continue  # Skip results that have already been evaluated and are valid
             try:
-                generated_text = self.send_request(data, self.task, arguments)
+                generated_text = self.send_request(data, arguments)
                 data["generated_text"] = generated_text
-                result = {'id': data['ID'], **self.scoring(data, self.task)}
+                result = {'id': data['ID'], **self.scoring(data)}
                 if contain_original_data:
                     result['original_data'] = data
                 results.append(result)
@@ -151,6 +152,6 @@ class CRUD_Evaluator:
             overall = dict()
 
         output = {'overall': overall, 'results': results}
-        self.save_output(self.output_path, output)
+        self.save_output(output)
         print(f"Output saved to {self.output_path}!")
         return output
