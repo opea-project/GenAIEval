@@ -28,10 +28,15 @@ class CRUD_Evaluator:
             files.append(documents_path)
         elif os.path.isdir(documents_path):
             for root, dirs, files_ in os.walk(documents_path):
-                files += files_
+                files += [os.path.join(root, f) for f in files_]
         for file in files:
-            headers = {"Content-Type": "multipart/form-data"}
-            requests.post(database_endpoint, files=file, headers=headers)
+            file_obj = open(file, mode='rb')
+            response = requests.post(database_endpoint, files={'files':file_obj})
+            if response.status_code == 200:
+                print(f"Successfully ingested {file}.")
+            else:
+                print(f"Failed to ingest {file}.")
+            file_obj.close()
 
     def scoring(self, data: dict) -> dict:
         generated_text = data["generated_text"]

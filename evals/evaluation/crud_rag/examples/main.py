@@ -26,7 +26,7 @@ def args_parser():
 
     # Retriever related options
     parser.add_argument('--tasks', default=['question_answering'], nargs="+", help="Task to perform")
-    parser.add_argument('--ingest_docs', action='store', default=True, type=bool, help="Whether to ingest documents to vector database")
+    parser.add_argument('--ingest_docs', action='store_true', help="Whether to ingest documents to vector database")
     parser.add_argument('--database_endpoint', type=str, default="http://localhost:6007/v1/dataprep", help="Service URL address.")
     parser.add_argument('--show_progress_bar', action='store', default=True, type=bool, help="Whether to show a progress bar")
     parser.add_argument('--contain_original_data', action='store_true', help="Whether to contain original data")
@@ -48,7 +48,7 @@ def main():
         elif task == "summarization":
             dataset = all_datasets["event_summary"]
         output_save_path = os.path.join(args.output_dir, f"{task}.json")
-        evaluator = CRUD_Evaluator(dataset, output_save_path, task, args.docs_path, args.ingest_docs)
+        evaluator = CRUD_Evaluator(dataset, output_save_path, task)
         if args.ingest_docs:
             CRUD_Evaluator.ingest_docs(args.docs_path, args.database_endpoint)
         results = evaluator.evaluate(args, show_progress_bar=args.show_progress_bar,
