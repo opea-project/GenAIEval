@@ -6,7 +6,12 @@ from .metrics import bleu_score, rougeL_score, LLM_score
 from tqdm import tqdm
 
 class CRUD_Evaluator:
-    def __init__(self, dataset: list[dict], output_path: str, task: str) -> None:
+    def __init__(
+        self,
+        dataset: list[dict],
+        output_path: str,
+        task: str,
+    ) -> None:
         """Args:
             dataset (list[dict]): The dataset for evaluation.
             output_path (str): The path to save results.
@@ -15,6 +20,18 @@ class CRUD_Evaluator:
         self.task = task
         self.output_path = output_path
         self.dataset = dataset
+
+    @staticmethod
+    def ingest_docs(documents_path, database_endpoint):
+        files = []
+        if os.path.isfile(documents_path):
+            files.append(documents_path)
+        elif os.path.isdir(documents_path):
+            for root, dirs, files_ in os.walk(documents_path):
+                files += files_
+        for file in files:
+            headers = {"Content-Type": "multipart/form-data"}
+            requests.post(database_endpoint, files=file, headers=headers)
 
     def scoring(self, data: dict) -> dict:
         generated_text = data["generated_text"]
