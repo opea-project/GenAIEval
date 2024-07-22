@@ -28,6 +28,9 @@ def args_parser():
     parser.add_argument('--tasks', default=['question_answering'], nargs="+", help="Task to perform")
     parser.add_argument('--ingest_docs', action='store_true', help="Whether to ingest documents to vector database")
     parser.add_argument('--database_endpoint', type=str, default="http://localhost:6007/v1/dataprep", help="Service URL address.")
+    parser.add_argument('--embedding_endpoint', type=str, default="http://localhost:6000/v1/embeddings", help="Service URL address.")
+    parser.add_argument('--retrieval_endpoint', type=str, default="http://localhost:7000/v1/retrieval", help="Service URL address.")
+    parser.add_argument('--llm_endpoint', type=str, default="http://localhost:9009/generate", help="Service URL address.")
     parser.add_argument('--show_progress_bar', action='store', default=True, type=bool, help="Whether to show a progress bar")
     parser.add_argument('--contain_original_data', action='store_true', help="Whether to contain original data")
 
