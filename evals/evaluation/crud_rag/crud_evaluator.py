@@ -29,10 +29,10 @@ class CRUD_Evaluator:
         elif os.path.isdir(documents_path):
             for root, dirs, files_ in os.walk(documents_path):
                 files += [os.path.join(root, f) for f in files_]
-        for file in files:
+        for file in tqdm(files):
             file_obj = open(file, mode='rb')
             response = requests.post(database_endpoint, files={'files':file_obj})
-            if response.status_code == 200:
+            if response.ok:
                 print(f"Successfully ingested {file}.")
             else:
                 print(f"Failed to ingest {file}.")
@@ -127,28 +127,40 @@ class CRUD_Evaluator:
         service_url = arguments.service_url
         headers = {"Content-Type": "application/json"}
         json_data = {}
-        query, _ = self.get_query_from_data(data)
+        query, _ = self.get_query_doc_from_data(data)
         json_data["messages"] = query
         json_data["stream"] = False
         json_data["temperature"] = arguments.temperature
         json_data["max_new_tokens"] = arguments.max_new_tokens
         json_data = json.dumps(json_data)
         response = requests.post(service_url, data=json_data, headers=headers)
-        return response.json()["choices"][0]["message"]["content"]
+        if response.ok:
+            return response.json()["choices"][0]["message"]["content"]
+        else:
+            print(f"Request for pipeline failed due to {response.text}.")
+            return ""
 
     def get_retrieved_documents(self, data, arguments):
-        query, _ = self.get_query_from_data(data)
+        query, _ = self.get_query_doc_from_data(data)
         data = {"text": query}
         headers = {"Content-Type": "application/json"}
-        resp = requests.post(arguments.embedding_endpoint, data=json.dumps(data), headers=headers)
-        embedding = resp.json()["embedding"]
+        response = requests.post(arguments.embedding_endpoint, data=json.dumps(data), headers=headers)
+        if response.ok:
+            embedding = response.json()["embedding"]
+        else:
+            print(f"Request for embedding failed due to {response.text}.")
+            return []
         data = {"text": query, "embedding": embedding, "search_typ": "similarity", "k": 4, "fetch_k": 20, "lambda_mult": 0.5}
-        resp = requests.post(arguments.retrieval_endpoint, data=json.dumps(data), headers=headers)
-        retrieved_documents = resp.json()["retrieved_docs"]
-        return [doc["text"] for doc in retrieved_documents]
+        response = requests.post(arguments.retrieval_endpoint, data=json.dumps(data), headers=headers)
+        if response.ok:
+            retrieved_documents = response.json()["retrieved_docs"]
+            return [doc["text"] for doc in retrieved_documents]
+        else:
+            print(f"Request for retrieval failed due to {response.text}.")
+            return []
 
     def scoring_retrieval(self, data, retrieved_documents):
-        _, ground_truth_documents = self.get_query_from_data(data)
+        _, ground_truth_documents = self.get_query_doc_from_data(data)
 
     def evaluate(self, arguments, sort=True, show_progress_bar=False, contain_original_data=False):
         """Run a complete evaluation.
