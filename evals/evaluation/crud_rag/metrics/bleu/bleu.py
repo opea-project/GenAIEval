@@ -11,15 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" BLEU metric. """
+"""BLEU metric."""
 
 import datasets
-
 import evaluate
 
 from .nmt_bleu import compute_bleu
 from .tokenizer_13a import Tokenizer13a
-
 
 _CITATION = """\
 @INPROCEEDINGS{Papineni02bleu:a,

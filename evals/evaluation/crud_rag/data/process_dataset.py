@@ -1,3 +1,6 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 import os
 
 path = os.path.join(os.path.dirname(__file__), "80000_docs")

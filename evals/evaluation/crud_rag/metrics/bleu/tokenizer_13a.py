@@ -21,15 +21,15 @@ class BaseTokenizer:
     """A base dummy tokenizer to derive from."""
 
     def signature(self):
-        """
-        Returns a signature for the tokenizer.
+        """Returns a signature for the tokenizer.
+
         :return: signature string
         """
         return "none"
 
     def __call__(self, line):
-        """
-        Tokenizes an input line with the tokenizer.
+        """Tokenizes an input line with the tokenizer.
+
         :param line: a segment to tokenize
         :return: the tokenized line
         """
@@ -58,10 +58,11 @@ class TokenizerRegexp(BaseTokenizer):
     @lru_cache(maxsize=2**16)
     def __call__(self, line):
         """Common post-processing tokenizer for `13a` and `zh` tokenizers.
+
         :param line: a segment to tokenize
         :return: the tokenized line
         """
-        for (_re, repl) in self._re:
+        for _re, repl in self._re:
             line = _re.sub(repl, line)
 
         # no leading or trailing spaces, single space within words

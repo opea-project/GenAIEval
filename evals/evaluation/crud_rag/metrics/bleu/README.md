@@ -68,7 +68,14 @@ The default tokenizer is based on whitespace and regexes. It can be replaced by 
 
 Output Example:
 ```python
-{'bleu': 1.0, 'precisions': [1.0, 1.0, 1.0, 1.0], 'brevity_penalty': 1.0, 'length_ratio': 1.1666666666666667, 'translation_length': 7, 'reference_length': 6}
+{
+    "bleu": 1.0,
+    "precisions": [1.0, 1.0, 1.0, 1.0],
+    "brevity_penalty": 1.0,
+    "length_ratio": 1.1666666666666667,
+    "translation_length": 7,
+    "reference_length": 6,
+}
 ```
 
 BLEU's output is always a number between 0 and 1. This value indicates how similar the candidate text is to the reference texts, with values closer to 1 representing more similar texts. Few human translations will attain a score of 1, since this would indicate that the candidate is identical to one of the reference translations. For this reason, it is not necessary to attain a score of 1. Because there are more opportunities to match, adding additional reference translations will increase the BLEU score.
