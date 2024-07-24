@@ -11,7 +11,6 @@ import requests
 from .template import CorrelationTemplate
 
 
-@catch_all_exceptions
 def LLM_score(continuation: str, reference: str, llm_endpoint: str) -> float:
     if llm_endpoint:
         query = CorrelationTemplate.generate_query(continuation, reference)
