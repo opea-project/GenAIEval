@@ -37,7 +37,7 @@ The script can be executed with various command-line arguments to customize the 
 ### Example Commands
 
 ```bash
-python stress_benchmark.py -f data_zh.txt -s localhost:8888 -c 50 -d 30m -t chatqna
+python stress_benchmark.py -f data.txt -s localhost:8888 -c 50 -d 30m -t chatqna
 ```
 
 ### Running the Test
