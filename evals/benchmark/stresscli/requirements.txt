@@ -1,9 +1,9 @@
 click
-pytest
-kubernetes
-pyyaml
 deepdiff
-numpy
 flask
-requests
+kubernetes
 locust
+numpy
+pytest
+pyyaml
+requests

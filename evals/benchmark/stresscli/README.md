@@ -130,4 +130,3 @@ Options:
   --validate_topology  Validate topology in workload specification
   --help               Show this message and exit.
 ```
-

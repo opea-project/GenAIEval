@@ -1,10 +1,14 @@
-import tokenresponse as token
-import os
-import json
-import random
-import logging
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
 
-cwd=os.path.dirname(__file__)
+import json
+import logging
+import os
+import random
+
+import tokenresponse as token
+
+cwd = os.path.dirname(__file__)
 filename = f"{cwd}/../dataset/chatqna.json"
 qlist = []
 try:
@@ -14,17 +18,21 @@ except:
     logging.error(f"Question File open failed: {filename}")
     exit()
 
+
 def getUrl():
     return "/v1/chatqna"
 
+
 def getReqData():
-    qid = random.randint(1,189)
+    qid = random.randint(1, 189)
     logging.debug(f"Selected question: {qlist[qid]['qText']}")
 
-    return {"messages":qlist[qid]['qText'], "max_tokens":128}
+    return {"messages": qlist[qid]["qText"], "max_tokens": 128}
+
 
 def respStatics(environment, resp):
     return token.respStatics(environment, resp)
 
-def staticsOutput(environment,reqlist):
+
+def staticsOutput(environment, reqlist):
     token.staticsOutput(environment, reqlist)

@@ -20,13 +20,13 @@ headless = true
 host = http://10.233.23.72:8888
 #Conncurrency numbers
 users = 16
-#Advice same with users, means no request shape required, and spawn to max at begginning
+#Advice same with users, means no request shape required, and spawn to max at beginning
 spawn-rate = 16
 #Set to a longer time, since max-request parameter will stop the benchmark
 run-time = 100m
-#After this number of request issued, benchmark will stoped
+#After this number of request issued, benchmark will stopped
 max-request = 16
-#Only log summay info
+#Only log summary info
 only-summary = true
 ```
 

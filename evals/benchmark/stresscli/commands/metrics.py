@@ -1,11 +1,15 @@
-import os
-import requests
-import time
-from kubernetes import client, config
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 import logging
+import os
+import time
+
+import requests
+from kubernetes import client, config
 
 # Setup logs
-log_level = os.getenv('LOG_LEVEL', 'ERROR').upper()
+log_level = os.getenv("LOG_LEVEL", "ERROR").upper()
 logging.basicConfig(level=getattr(logging, log_level))
 
 # Load Kubernetes config
@@ -13,6 +17,7 @@ config.load_kube_config()
 
 # Create Kubernetes Client
 v1 = client.CoreV1Api()
+
 
 class MetricsCollector:
     def __init__(self):
@@ -66,15 +71,15 @@ class MetricsCollector:
             logging.error(f"Error collecting metrics from {service_url}: {e}")
             return None
 
-    def start_collecting_data(self, namespace, services, output_dir='/data', restart_pods_flag=True):
+    def start_collecting_data(self, namespace, services, output_dir="/data", restart_pods_flag=True):
         timestamp = int(time.time())
         metrics_path = "/metrics"
 
         for service_name in services:
             service_labels = self.get_service_selector(namespace, service_name)
-            
+
             pod_infos = self.get_pod_names_and_ips(namespace, service_labels)
-            
+
             for pod_name, pod_ip in pod_infos:
                 pod_info = self.v1.read_namespaced_pod(name=pod_name, namespace=namespace)
                 pod_port = self.get_pod_port(pod_info)
@@ -82,7 +87,7 @@ class MetricsCollector:
                 if metrics:
                     pod_output_path = os.path.join(output_dir, f"{service_name}_{pod_name}_{timestamp}.txt")
                     logging.debug(f"Writing metrics to {pod_output_path}")
-                    with open(pod_output_path, 'w') as f:
+                    with open(pod_output_path, "w") as f:
                         f.write(metrics)
                 else:
                     logging.error(f"No metrics collected for pod {pod_name}")
@@ -91,16 +96,20 @@ class MetricsCollector:
             if restart_pods_flag:
                 self.restart_pods(namespace, service_labels)
                 logging.info(f"Pods for service {service_name} have been restarted.")
-        
+
         # Wait for Service Pods Running after restart
         if restart_pods_flag:
             for service_name in services:
                 service_labels = self.get_service_selector(namespace, service_name)
                 if not self.wait_for_pods(namespace, service_labels):
                     logging.error(f"Pods for service {service_name} did not become ready in time.")
-                    return {"status": "error", "message": f"Pods for service {service_name} did not become ready in time."}
-        
+                    return {
+                        "status": "error",
+                        "message": f"Pods for service {service_name} did not become ready in time.",
+                    }
+
         return {"status": "success"}
+
 
 if __name__ == "__main__":
     collector = MetricsCollector()
@@ -108,6 +117,6 @@ if __name__ == "__main__":
         namespace="chatqna",
         services=["chatqna-tgi", "chatqna-tei", "chatqna-teirerank"],
         output_dir="/path/to/data",
-        restart_pods_flag=False
+        restart_pods_flag=False,
     )
     print(result)
