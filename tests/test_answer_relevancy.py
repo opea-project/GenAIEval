@@ -15,7 +15,7 @@ class TestAnswerRelevancyMetric(unittest.TestCase):
         # Replace this with the actual output from your LLM application
         actual_output = "We offer a 30-day full refund at no extra cost."
 
-        metric = BiasMetric(threshold=0.5, model="http://localhost:8008/generate")
+        metric = AnswerRelevancyMetric(threshold=0.5, model="http://localhost:8008/generate")
         test_case = {
             "input": "What if these shoes don't fit?",
             "actual_output": actual_output,

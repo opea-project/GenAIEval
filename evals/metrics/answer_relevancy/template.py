@@ -4,7 +4,7 @@
 
 class AnswerRelevancyTemplate:
     @staticmethod
-    def generate_score_zh(continuation: str, reference: str):
+    def generate_score_zh(input: str, actual_output: str):
         return f"""请你评估以下两个句子的相关性,并给出相关性评分,评分从最低的1到最高的5。
 请按以下评估步骤进行评估:
 1. 仔细阅读给定的两个句子。

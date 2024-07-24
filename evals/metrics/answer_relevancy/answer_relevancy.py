@@ -47,4 +47,4 @@ class AnswerRelevancyMetric:
         except Exception as e:
             print(str(e))
 
-    return 0.0
+        return 0.0
