@@ -12,9 +12,10 @@ pip install -r requirements.txt
 We use the evaluation dataset from [CRUD-RAG](https://github.com/IAAR-Shanghai/CRUD_RAG) repo, use the below command to prepare the dataset.
 ```bash
 git clone https://github.com/IAAR-Shanghai/CRUD_RAG
+mkdir data/
 cp CRUD_RAG/data/crud_split/split_merged.json data/
 cp -r CRUD_RAG/data/80000_docs/ data/
-python data/process_dataset.py
+python examples/process_crud_dataset.py
 ```
 
 ### Launch Service of RAG System

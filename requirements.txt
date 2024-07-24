@@ -3,3 +3,5 @@ langchain_community
 langchain_huggingface
 lm-eval==0.4.3
 ragas
+evaluate
+rouge_score

@@ -8,7 +8,7 @@ import argparse
 import json
 import os
 
-from evals.evaluation.crud_rag import Evaluator
+from evals.evaluation.rag_eval import Evaluator
 
 
 class CRUD_Evaluator(Evaluator):
