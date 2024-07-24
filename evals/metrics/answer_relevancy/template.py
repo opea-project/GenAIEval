@@ -16,4 +16,3 @@ class AnswerRelevancyTemplate:
 {actual_output}
 请按要求给出你的评分:
 """
-

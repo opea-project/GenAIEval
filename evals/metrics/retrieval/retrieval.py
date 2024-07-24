@@ -31,21 +31,21 @@ class RetrievalBaseMetric:
                     # Compute precision at this rank for this query
                     count = 0
                     for gold_item in golden_docs:
-                        if gold_item in retrieved_item and not gold_item in find_gold:
-                            count =  count + 1
+                        if gold_item in retrieved_item and gold_item not in find_gold:
+                            count = count + 1
                             find_gold.append(gold_item)
                     precision_at_rank = count / rank
                     average_precision_sum += precision_at_rank
 
         # Calculate metrics for this query
-        hits_at_10 =  int(hits_at_10_flag)
+        hits_at_10 = int(hits_at_10_flag)
         hits_at_4 = int(hits_at_4_flag)
         map_at_10 = average_precision_sum / min(len(golden_docs), 10)
         mrr = 1 / first_relevant_rank if first_relevant_rank else 0
 
         return {
-            'Hits@10': hits_at_10,
-            'Hits@4': hits_at_4,
-            'MAP@10': map_at_10,
-            'MRR@10': mrr,
+            "Hits@10": hits_at_10,
+            "Hits@4": hits_at_4,
+            "MAP@10": map_at_10,
+            "MRR@10": mrr,
         }

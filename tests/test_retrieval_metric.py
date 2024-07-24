@@ -16,9 +16,11 @@ class TestRetrievalMetric(unittest.TestCase):
         golden_context = "You are eligible for a 30 day full refund at no extra cost."
 
         # Replace this with the actual retrieved context from your RAG pipeline
-        retrieval_context = ["All customers are eligible for a 30 day full refund at no extra cost.",
-                "You are eligible for a 30 day full refund at no extra cost.",
-                "We offer a 30-day full refund at no extra cost."]
+        retrieval_context = [
+            "All customers are eligible for a 30 day full refund at no extra cost.",
+            "You are eligible for a 30 day full refund at no extra cost.",
+            "We offer a 30-day full refund at no extra cost.",
+        ]
 
         metric = RetrievalBaseMetric()
         test_case = {

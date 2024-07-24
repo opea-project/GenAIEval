@@ -10,7 +10,8 @@ from typing import Dict, Optional, Union
 import requests
 from requests.exceptions import RequestException
 
-from .template import AnswerRelevancyTemplate 
+from .template import AnswerRelevancyTemplate
+
 
 class AnswerRelevancyMetric:
     def __init__(
@@ -45,4 +46,5 @@ class AnswerRelevancyMetric:
             return score
         except Exception as e:
             print(str(e))
+
     return 0.0

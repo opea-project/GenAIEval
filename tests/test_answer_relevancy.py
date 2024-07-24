@@ -5,7 +5,7 @@
 
 import unittest
 
-from evals.metrics.answer_relevancy import AnswerRelevancyMetric 
+from evals.metrics.answer_relevancy import AnswerRelevancyMetric
 
 
 class TestAnswerRelevancyMetric(unittest.TestCase):
