@@ -5,6 +5,6 @@
 
 #
 
-from .crud_evaluator import CRUD_Evaluator
+from .evaluator import Evaluator
 
-__all__ = [CRUD_Evaluator]
+__all__ = [Evaluator]

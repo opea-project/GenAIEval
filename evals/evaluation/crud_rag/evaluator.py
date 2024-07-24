@@ -11,7 +11,7 @@ from tqdm import tqdm
 from .metrics import LLM_score, bleu_score, rougeL_score
 
 
-class CRUD_Evaluator:
+class Evaluator:
     def __init__(
         self,
         dataset: list[dict],
@@ -28,7 +28,11 @@ class CRUD_Evaluator:
         self.dataset = dataset
 
     @staticmethod
-    def ingest_docs(documents_path, database_endpoint):
+    def ingest_docs(documents_path: str, database_endpoint: str):
+        """Args:
+        documents_path (str): The path to documents.
+        database_endpoint (str): URL of database.
+        """
         files = []
         if os.path.isfile(documents_path):
             files.append(documents_path)
@@ -44,21 +48,18 @@ class CRUD_Evaluator:
                 print(f"Failed to ingest {file}.")
             file_obj.close()
 
+    def get_ground_truth_text(self, data: dict):
+        raise NotImplementedError("Depends on the specific dataset.")
+
+    def get_query(self, data: dict):
+        raise NotImplementedError("Depends on the specific dataset.")
+
+    def get_document(self, data: dict):
+        raise NotImplementedError("Depends on the specific dataset.")
+
     def scoring(self, data: dict, llm_endpoint: str = None) -> dict:
         generated_text = data["generated_text"]
-        if self.task == "summarization":
-            ground_truth_text = data["summary"]
-        elif self.task == "question_answering":
-            ground_truth_text = data["answers"]
-        elif self.task == "continuation":
-            ground_truth_text = data["continuing"]
-        elif self.task == "hallucinated_modified":
-            ground_truth_text = data["hallucinatedMod"]
-        else:
-            raise NotImplementedError(
-                f"Unknown task {self.task}, only support "
-                "summarization, question_answering, continuation and hallucinated_modified."
-            )
+        ground_truth_text = self.get_ground_truth_text(data)
         data["ground_truth_text"] = ground_truth_text
 
         bleu_avg, bleu1, bleu2, bleu3, bleu4 = bleu_score(generated_text, ground_truth_text)
@@ -116,31 +117,11 @@ class CRUD_Evaluator:
         """Remove invalid results from the list and return the cleaned results."""
         return [result for result in results if result["valid"]]
 
-    def get_query_doc_from_data(self, data):
-        if self.task == "summarization":
-            query = data["text"]
-            document = data["text"]
-        elif self.task == "question_answering":
-            query = data["questions"]
-            document = data["news1"]
-        elif self.task == "continuation":
-            query = data["beginning"]
-            document = data["beginning"]
-        elif self.task == "hallucinated_modified":
-            query = data["newsBeginning"]
-            document = data["newsBeginning"]
-        else:
-            raise NotImplementedError(
-                f"Unknown task {self.task}, only support "
-                "summarization, question_answering, continuation and hallucinated_modified."
-            )
-        return query, document
-
     def send_request(self, data, arguments):
         service_url = arguments.service_url
         headers = {"Content-Type": "application/json"}
         json_data = {}
-        query, _ = self.get_query_doc_from_data(data)
+        query = self.get_query(data)
         json_data["messages"] = query
         json_data["stream"] = False
         json_data["temperature"] = arguments.temperature
@@ -154,7 +135,7 @@ class CRUD_Evaluator:
             return ""
 
     def get_retrieved_documents(self, data, arguments):
-        query, _ = self.get_query_doc_from_data(data)
+        query = self.get_query(data)
         data = {"text": query}
         headers = {"Content-Type": "application/json"}
         response = requests.post(arguments.embedding_endpoint, data=json.dumps(data), headers=headers)
@@ -180,15 +161,12 @@ class CRUD_Evaluator:
             return []
 
     def scoring_retrieval(self, data, retrieved_documents):
-        _, ground_truth_documents = self.get_query_doc_from_data(data)
+        ground_truth_documents = self.get_document(data)
 
     def evaluate(self, arguments, sort=True, show_progress_bar=False, contain_original_data=False):
         """Run a complete evaluation.
 
         Args:
-            dataset (list[dict]): The dataset for evaluation.
-            output_path (str): The path to save results.
-            task (str): Task to evaluate.
             arguments: Arguments.
             sort (bool): Whether to sort the results by id.
             show_progress_bar (bool): Whether to display a progress bar.

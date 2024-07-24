@@ -8,7 +8,57 @@ import argparse
 import json
 import os
 
-from evals.evaluation.crud_rag import CRUD_Evaluator
+from evals.evaluation.crud_rag import Evaluator
+
+
+class CRUD_Evaluator(Evaluator):
+    def get_ground_truth_text(self, data: dict):
+        if self.task == "summarization":
+            ground_truth_text = data["summary"]
+        elif self.task == "question_answering":
+            ground_truth_text = data["answers"]
+        elif self.task == "continuation":
+            ground_truth_text = data["continuing"]
+        elif self.task == "hallucinated_modified":
+            ground_truth_text = data["hallucinatedMod"]
+        else:
+            raise NotImplementedError(
+                f"Unknown task {self.task}, only support "
+                "summarization, question_answering, continuation and hallucinated_modified."
+            )
+        return ground_truth_text
+
+    def get_query(self, data: dict):
+        if self.task == "summarization":
+            query = data["text"]
+        elif self.task == "question_answering":
+            query = data["questions"]
+        elif self.task == "continuation":
+            query = data["beginning"]
+        elif self.task == "hallucinated_modified":
+            query = data["newsBeginning"]
+        else:
+            raise NotImplementedError(
+                f"Unknown task {self.task}, only support "
+                "summarization, question_answering, continuation and hallucinated_modified."
+            )
+        return query
+
+    def get_document(self, data: dict):
+        if self.task == "summarization":
+            document = data["text"]
+        elif self.task == "question_answering":
+            document = data["news1"]
+        elif self.task == "continuation":
+            document = data["beginning"]
+        elif self.task == "hallucinated_modified":
+            document = data["newsBeginning"]
+        else:
+            raise NotImplementedError(
+                f"Unknown task {self.task}, only support "
+                "summarization, question_answering, continuation and hallucinated_modified."
+            )
+        return document
 
 
 def args_parser():
@@ -64,6 +114,11 @@ def main():
             dataset = all_datasets["questanswer_1doc"]
         elif task == "summarization":
             dataset = all_datasets["event_summary"]
+        else:
+            raise NotImplementedError(
+                f"Unknown task {task}, only support "
+                "summarization, question_answering, continuation and hallucinated_modified."
+            )
         output_save_path = os.path.join(args.output_dir, f"{task}.json")
         evaluator = CRUD_Evaluator(dataset, output_save_path, task)
         if args.ingest_docs:
