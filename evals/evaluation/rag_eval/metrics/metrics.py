@@ -5,6 +5,7 @@
 
 
 import json
+
 import requests
 
 from .template import CorrelationTemplate

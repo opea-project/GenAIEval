@@ -1,11 +1,11 @@
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-import evaluate
 import json
 import os
 from typing import Any, List, Optional, Tuple, Union
 
+import evaluate
 from pydantic import BaseModel
 
 

@@ -8,8 +8,9 @@ import os
 import requests
 from tqdm import tqdm
 
-from .metrics import LLM_score
 from evals.metrics import bleu_score, rougeL_score
+
+from .metrics import LLM_score
 
 
 class Evaluator:
