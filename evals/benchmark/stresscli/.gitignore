@@ -1,0 +1,7 @@
+__pycache__/
+*testspec.yaml
+*exceptions.csv
+*failures.csv
+*stats_history.csv
+*stats.csv
+*env/
