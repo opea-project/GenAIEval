@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""ROGUE metric from Google Research github repo."""
+"""ROUGE metric from Google Research github repo."""
 
-# The dependencies in https://github.com/google-research/google-research/blob/master/rogue/requirements.txt
+# The dependencies in https://github.com/google-research/google-research/blob/master/rouge/requirements.txt
 import absl  # Here to have a nice missing dependency error message early on
 import datasets
 import evaluate
@@ -24,7 +24,7 @@ from rouge_score import rouge_scorer, scoring
 
 _CITATION = """\
 @inproceedings{lin-2004-rouge,
-    title = "{ROGUE}: A Package for Automatic Evaluation of Summaries",
+    title = "{ROUGE}: A Package for Automatic Evaluation of Summaries",
     author = "Lin, Chin-Yew",
     booktitle = "Text Summarization Branches Out",
     month = jul,
@@ -37,26 +37,26 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-ROGUE, or Recall-Oriented Understudy for Gisting Evaluation, is a set of metrics and a software package used for
+ROUGE, or Recall-Oriented Understudy for Gisting Evaluation, is a set of metrics and a software package used for
 evaluating automatic summarization and machine translation software in natural language processing.
 The metrics compare an automatically produced summary or translation against a reference or a set of references (human-produced) summary or translation.
 
-Note that ROGUE is case insensitive, meaning that upper case letters are treated the same way as lower case letters.
+Note that ROUGE is case insensitive, meaning that upper case letters are treated the same way as lower case letters.
 
-This metrics is a wrapper around Google Research reimplementation of ROGUE:
-https://github.com/google-research/google-research/tree/master/rogue
+This metrics is a wrapper around Google Research reimplementation of ROUGE:
+https://github.com/google-research/google-research/tree/master/rouge
 """
 
 _KWARGS_DESCRIPTION = """
-Calculates average rogue scores for a list of hypotheses and references
+Calculates average rouge scores for a list of hypotheses and references
 Args:
     predictions: list of predictions to score. Each prediction
         should be a string with tokens separated by spaces.
     references: list of reference for each prediction. Each
         reference should be a string with tokens separated by spaces.
-    rouge_types: A list of rogue types to calculate.
+    rouge_types: A list of rouge types to calculate.
         Valid names:
-        `"rogue{n}"` (e.g. `"rouge1"`, `"rouge2"`) where: {n} is the n-gram based scoring,
+        `"rouge{n}"` (e.g. `"rouge1"`, `"rouge2"`) where: {n} is the n-gram based scoring,
         `"rougeL"`: Longest common subsequence based scoring.
         `"rougeLsum"`: rougeLsum splits text using `"\n"`.
         See details in https://github.com/huggingface/datasets/issues/617
@@ -69,10 +69,10 @@ Returns:
     rougeLsum: rouge_lsum (f1)
 Examples:
 
-    >>> rogue = evaluate.load('rogue')
+    >>> rouge = evaluate.load('rouge')
     >>> predictions = ["hello there", "general kenobi"]
     >>> references = ["hello there", "general kenobi"]
-    >>> results = rogue.compute(predictions=predictions, references=references)
+    >>> results = rouge.compute(predictions=predictions, references=references)
     >>> print(results)
     {'rouge1': 1.0, 'rouge2': 1.0, 'rougeL': 1.0, 'rougeLsum': 1.0}
 """
@@ -89,7 +89,7 @@ class Tokenizer:
 
 
 @evaluate.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
-class Rogue(evaluate.Metric):
+class Rouge(evaluate.Metric):
     def _info(self):
         return evaluate.MetricInfo(
             description=_DESCRIPTION,
@@ -109,10 +109,10 @@ class Rogue(evaluate.Metric):
                     }
                 ),
             ],
-            codebase_urls=["https://github.com/google-research/google-research/tree/master/rogue"],
+            codebase_urls=["https://github.com/google-research/google-research/tree/master/rouge"],
             reference_urls=[
                 "https://en.wikipedia.org/wiki/ROUGE_(metric)",
-                "https://github.com/google-research/google-research/tree/master/rogue",
+                "https://github.com/google-research/google-research/tree/master/rouge",
             ],
         )
 
