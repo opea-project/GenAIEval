@@ -134,6 +134,34 @@ class MultiHop_Evaluator(Evaluator):
         overall.update({"accuracy": accuracy / len(results)})
         return overall
 
+    def evaluate(self, all_queries, arguments):
+        from langchain_community.embeddings import HuggingFaceHubEmbeddings
+        embeddings = HuggingFaceHubEmbeddings(model=arguments.embedding_endpoint)
+        metric = RagasMetric(threshold=0.5, model=arguments.llm_endpoint, embeddings=embeddings)
+        all_answer_relevancy = 0
+        all_faithfulness = 0
+        ragas_inputs = {
+            "input": [],
+            "actual_output": [],
+            "expected_output": [],
+            "retrieval_context": [],}
+
+        for data in tqdm(all_queries):
+            if data['question_type'] == 'null_query':
+                continue
+            retrieved_documents = self.get_retrieved_documents(data['query'], arguments)
+            generated_text = self.send_request(data, arguments)
+            data["generated_text"] = generated_text
+
+            ragas_inputs["input"].append(data['query'])
+            ragas_inputs["actual_output"].append(generated_text)
+            ragas_inputs["expected_output"].append(data["answer"])
+            ragas_inputs["retrieval_context"].append(retrieved_documents[:3])
+
+        ragas_metrics = metric.measure(ragas_inputs)
+        return ragas_metrics
+
+
 
 def args_parser():
     parser = argparse.ArgumentParser()
@@ -175,6 +203,7 @@ def args_parser():
     parser.add_argument("--tasks", default=["question_answering"], nargs="+", help="Task to perform")
     parser.add_argument("--ingest_docs", action="store_true", help="Whether to ingest documents to vector database")
     parser.add_argument("--retrieval_metrics", action="store_true", help="Whether to compute retrieval metrics.")
+    parser.add_argument("--ragas_metrics", action="store_true", help="Whether to compute ragas metrics.")
     parser.add_argument(
         "--database_endpoint", type=str, default="http://localhost:6007/v1/dataprep", help="Service URL address."
     )
@@ -197,7 +226,7 @@ def args_parser():
 def main():
     args = args_parser()
 
-    evaluator = MultiHop_Evaluator(llm_endpoint=args.llm_endpoint)
+    evaluator = MultiHop_Evaluator()
 
     with open(args.docs_path, "r") as file:
         doc_data = json.load(file)
@@ -223,6 +252,11 @@ def main():
     if args.retrieval_metrics:
         retrieval_metrics = evaluator.get_retrieval_metrics(all_queries, args)
         print(retrieval_metrics)
+
+    # get rag quality
+    if args.ragas_metrics:
+        ragas_metrics = evaluator.get_ragas_metrics(all_queries, args)
+        print(ragas_metrics)
 
     # test e2e rag
     rag_metrics = evaluator.evaluate(all_queries, args)
