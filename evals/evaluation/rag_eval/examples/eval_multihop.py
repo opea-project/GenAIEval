@@ -4,13 +4,15 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import sys
+
 sys.path.append("/home/jenkins/lkk/update_eval/GenAIEval")
 
 import argparse
 import json
 import os
-from tqdm import tqdm
+
 import requests
+from tqdm import tqdm
 
 from evals.evaluation.rag_eval import Evaluator
 from evals.metrics.retrieval import RetrievalBaseMetric
@@ -18,10 +20,10 @@ from evals.metrics.retrieval import RetrievalBaseMetric
 
 class MultiHop_Evaluator(Evaluator):
     def get_ground_truth_text(self, data: dict):
-        return data['answer']
+        return data["answer"]
 
     def get_query(self, data: dict):
-        return data['query']
+        return data["query"]
 
     def get_document(self, data: dict):
         if self.task == "summarization":
@@ -73,18 +75,18 @@ class MultiHop_Evaluator(Evaluator):
         mrr_at_10 = 0
         total = 0
         for data in tqdm(all_queries):
-            if data['question_type'] == 'null_query':
+            if data["question_type"] == "null_query":
                 continue
-            query = data['query']
+            query = data["query"]
             retrieved_documents = self.get_retrieved_documents(query, arguments)
-            golden_context = [each["fact"] for each in data['evidence_list']]
+            golden_context = [each["fact"] for each in data["evidence_list"]]
             test_case = {
                 "input": query,
                 "golden_context": golden_context,
                 "retrieval_context": retrieved_documents,
             }
             results = metric.measure(test_case)
-            hits_at_10 +=  results["Hits@10"]
+            hits_at_10 += results["Hits@10"]
             hits_at_4 += results["Hits@4"]
             map_at_10 += results["MAP@10"]
             mrr_at_10 += results["MRR@10"]
@@ -108,7 +110,7 @@ class MultiHop_Evaluator(Evaluator):
         accuracy = 0
         index = 0
         for data in tqdm(all_queries):
-            if data['question_type'] == 'null_query':
+            if data["question_type"] == "null_query":
                 continue
 
             generated_text = self.send_request(data, arguments)
@@ -133,7 +135,6 @@ class MultiHop_Evaluator(Evaluator):
         return overall
 
 
-
 def args_parser():
     parser = argparse.ArgumentParser()
 
@@ -151,19 +152,21 @@ def args_parser():
         "--chunk_size", type=int, default=256, help="the maximum number of characters that a chunk can contain"
     )
     parser.add_argument(
-        "--chunk_overlap", type=int, default=100, help="the number of characters that should overlap between two adjacent chunks"
+        "--chunk_overlap",
+        type=int,
+        default=100,
+        help="the number of characters that should overlap between two adjacent chunks",
     )
-    parser.add_argument(
-        "--search_type", type=str, default="similarity", help="similarity type"
-    )
-    parser.add_argument(
-        "--retrival_k", type=int, default=10, help="Number of Documents to return."
-    )
+    parser.add_argument("--search_type", type=str, default="similarity", help="similarity type")
+    parser.add_argument("--retrival_k", type=int, default=10, help="Number of Documents to return.")
     parser.add_argument(
         "--fetch_k", type=int, default=20, help="Number of Documents to fetch to pass to MMR algorithm."
     )
     parser.add_argument(
-        "--lambda_mult", type=float, default=0.5, help="Number between 0 and 1 that determines the degree of diversity among the results with 0 corresponding to maximum diversity and 1 to minimum diversity. Defaults to 0.5."
+        "--lambda_mult",
+        type=float,
+        default=0.5,
+        help="Number between 0 and 1 that determines the degree of diversity among the results with 0 corresponding to maximum diversity and 1 to minimum diversity. Defaults to 0.5.",
     )
     parser.add_argument("--dataset_path", default="../data/split_merged.json", help="Path to the dataset")
     parser.add_argument("--docs_path", default="../data/80000_docs", help="Path to the retrieval documents")
@@ -181,9 +184,7 @@ def args_parser():
     parser.add_argument(
         "--retrieval_endpoint", type=str, default="http://localhost:7000/v1/retrieval", help="Service URL address."
     )
-    parser.add_argument(
-        "--llm_endpoint", type=str, default=None, help="Service URL address."
-    )
+    parser.add_argument("--llm_endpoint", type=str, default=None, help="Service URL address.")
     parser.add_argument(
         "--show_progress_bar", action="store", default=True, type=bool, help="Whether to show a progress bar"
     )
@@ -198,13 +199,13 @@ def main():
 
     evaluator = MultiHop_Evaluator(llm_endpoint=args.llm_endpoint)
 
-    with open(args.docs_path, 'r') as file:
+    with open(args.docs_path, "r") as file:
         doc_data = json.load(file)
 
     documents = []
     for doc in doc_data:
-        metadata = {"title": doc['title'], "published_at": doc['published_at'],"source":doc['source']}
-        documents.append(doc['body'])
+        metadata = {"title": doc["title"], "published_at": doc["published_at"], "source": doc["source"]}
+        documents.append(doc["body"])
 
     # save docs to a tmp file
     tmp_corpus_file = "tmp_corpus.txt"
@@ -213,12 +214,9 @@ def main():
             f.write(doc + "\n")
 
     if args.ingest_docs:
-        evaluator.ingest_docs(tmp_corpus_file,
-                    args.database_endpoint,
-                    args.chunk_size,
-                    args.chunk_overlap)
+        evaluator.ingest_docs(tmp_corpus_file, args.database_endpoint, args.chunk_size, args.chunk_overlap)
 
-    with open(args.dataset_path, 'r') as file:
+    with open(args.dataset_path, "r") as file:
         all_queries = json.load(file)
 
     # get retrieval quality

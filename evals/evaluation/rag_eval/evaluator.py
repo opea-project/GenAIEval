@@ -9,17 +9,12 @@ import requests
 from tqdm import tqdm
 
 from evals.metrics import bleu_score, rougeL_score
-
-from evals.metrics.answer_relevancy import AnswerRelevancyMetric 
+from evals.metrics.answer_relevancy import AnswerRelevancyMetric
 
 
 class Evaluator:
     def __init__(
-        self,
-        dataset: list[dict] = None,
-        output_path: str = None,
-        task: str = None,
-        llm_endpoint: str = None
+        self, dataset: list[dict] = None, output_path: str = None, task: str = None, llm_endpoint: str = None
     ) -> None:
         """Args:
         dataset (list[dict]): The dataset for evaluation.
@@ -48,9 +43,11 @@ class Evaluator:
                 files += [os.path.join(root, f) for f in files_]
         for file in tqdm(files):
             file_obj = open(file, mode="rb")
-            response = requests.post(database_endpoint,
-                    files={"files": file_obj},
-                    data={"chunk_size": chunk_size, "chunk_overlap": chunk_overlap})
+            response = requests.post(
+                database_endpoint,
+                files={"files": file_obj},
+                data={"chunk_size": chunk_size, "chunk_overlap": chunk_overlap},
+            )
             if response.ok:
                 print(f"Successfully ingested {file}.")
             else:
@@ -75,8 +72,9 @@ class Evaluator:
         if self.llm_judge is None:
             llm_score = 0.0
         else:
-            llm_score = self.llm_judge.measure_zh({"input": ground_truth_text,
-                "actual_output": generated_text, "template": "zh"})
+            llm_score = self.llm_judge.measure_zh(
+                {"input": ground_truth_text, "actual_output": generated_text, "template": "zh"}
+            )
 
         return {
             "metrics": {
