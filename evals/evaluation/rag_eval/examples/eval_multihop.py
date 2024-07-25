@@ -136,6 +136,7 @@ class MultiHop_Evaluator(Evaluator):
 
     def evaluate(self, all_queries, arguments):
         from langchain_community.embeddings import HuggingFaceHubEmbeddings
+
         embeddings = HuggingFaceHubEmbeddings(model=arguments.embedding_endpoint)
         metric = RagasMetric(threshold=0.5, model=arguments.llm_endpoint, embeddings=embeddings)
         all_answer_relevancy = 0
@@ -144,23 +145,23 @@ class MultiHop_Evaluator(Evaluator):
             "input": [],
             "actual_output": [],
             "expected_output": [],
-            "retrieval_context": [],}
+            "retrieval_context": [],
+        }
 
         for data in tqdm(all_queries):
-            if data['question_type'] == 'null_query':
+            if data["question_type"] == "null_query":
                 continue
-            retrieved_documents = self.get_retrieved_documents(data['query'], arguments)
+            retrieved_documents = self.get_retrieved_documents(data["query"], arguments)
             generated_text = self.send_request(data, arguments)
             data["generated_text"] = generated_text
 
-            ragas_inputs["input"].append(data['query'])
+            ragas_inputs["input"].append(data["query"])
             ragas_inputs["actual_output"].append(generated_text)
             ragas_inputs["expected_output"].append(data["answer"])
             ragas_inputs["retrieval_context"].append(retrieved_documents[:3])
 
         ragas_metrics = metric.measure(ragas_inputs)
         return ragas_metrics
-
 
 
 def args_parser():
