@@ -3,9 +3,6 @@
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-import sys
-
-sys.path.append("/home/jenkins/lkk/update_eval/GenAIEval")
 
 import argparse
 import json
@@ -16,7 +13,7 @@ from tqdm import tqdm
 
 from evals.evaluation.rag_eval import Evaluator
 from evals.metrics.retrieval import RetrievalBaseMetric
-
+from evals.metrics.ragas import RagasMetric
 
 class MultiHop_Evaluator(Evaluator):
     def get_ground_truth_text(self, data: dict):
@@ -134,7 +131,7 @@ class MultiHop_Evaluator(Evaluator):
         overall.update({"accuracy": accuracy / len(results)})
         return overall
 
-    def evaluate(self, all_queries, arguments):
+    def get_ragas_metrics(self, all_queries, arguments):
         from langchain_community.embeddings import HuggingFaceHubEmbeddings
 
         embeddings = HuggingFaceHubEmbeddings(model=arguments.embedding_endpoint)

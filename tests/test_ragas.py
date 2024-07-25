@@ -26,10 +26,10 @@ class TestRagasMetric(unittest.TestCase):
         embeddings = HuggingFaceBgeEmbeddings(model_name="BAAI/bge-base-en-v1.5")
         metric = RagasMetric(threshold=0.5, model="http://localhost:8008", embeddings=embeddings)
         test_case = {
-            "input": "What if these shoes don't fit?",
-            "actual_output": actual_output,
-            "expected_output": expected_output,
-            "retrieval_context": retrieval_context,
+            "input": ["What if these shoes don't fit?"],
+            "actual_output": [actual_output],
+            "expected_output": [expected_output],
+            "retrieval_context": [retrieval_context],
         }
 
         metric.measure(test_case)
