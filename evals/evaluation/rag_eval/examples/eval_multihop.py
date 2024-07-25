@@ -12,8 +12,9 @@ import requests
 from tqdm import tqdm
 
 from evals.evaluation.rag_eval import Evaluator
-from evals.metrics.retrieval import RetrievalBaseMetric
 from evals.metrics.ragas import RagasMetric
+from evals.metrics.retrieval import RetrievalBaseMetric
+
 
 class MultiHop_Evaluator(Evaluator):
     def get_ground_truth_text(self, data: dict):
