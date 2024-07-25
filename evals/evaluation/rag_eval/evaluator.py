@@ -10,15 +10,16 @@ from tqdm import tqdm
 
 from evals.metrics import bleu_score, rougeL_score
 
-from .metrics import LLM_score
+from evals.metrics.answer_relevancy import AnswerRelevancyMetric 
 
 
 class Evaluator:
     def __init__(
         self,
-        dataset: list[dict],
-        output_path: str,
-        task: str,
+        dataset: list[dict] = None,
+        output_path: str = None,
+        task: str = None,
+        llm_endpoint: str = None
     ) -> None:
         """Args:
         dataset (list[dict]): The dataset for evaluation.
@@ -28,9 +29,13 @@ class Evaluator:
         self.task = task
         self.output_path = output_path
         self.dataset = dataset
+        if llm_endpoint is None:
+            self.llm_judge = None
+        else:
+            self.llm_judge = AnswerRelevancyMetric(model=llm_endpoint)
 
     @staticmethod
-    def ingest_docs(documents_path: str, database_endpoint: str):
+    def ingest_docs(documents_path: str, database_endpoint: str, chunk_size: int, chunk_overlap: int):
         """Args:
         documents_path (str): The path to documents.
         database_endpoint (str): URL of database.
@@ -43,7 +48,9 @@ class Evaluator:
                 files += [os.path.join(root, f) for f in files_]
         for file in tqdm(files):
             file_obj = open(file, mode="rb")
-            response = requests.post(database_endpoint, files={"files": file_obj})
+            response = requests.post(database_endpoint,
+                    files={"files": file_obj},
+                    data={"chunk_size": chunk_size, "chunk_overlap": chunk_overlap})
             if response.ok:
                 print(f"Successfully ingested {file}.")
             else:
@@ -59,12 +66,17 @@ class Evaluator:
     def get_document(self, data: dict):
         raise NotImplementedError("Depends on the specific dataset.")
 
-    def scoring(self, data: dict, llm_endpoint: str = None) -> dict:
+    def scoring(self, data: dict) -> dict:
         generated_text = data["generated_text"]
         ground_truth_text = self.get_ground_truth_text(data)
         data["ground_truth_text"] = ground_truth_text
 
         bleu_avg, bleu1, bleu2, bleu3, bleu4 = bleu_score(generated_text, ground_truth_text)
+        if self.llm_judge is None:
+            llm_score = 0.0
+        else:
+            llm_score = self.llm_judge.measure_zh({"input": ground_truth_text,
+                "actual_output": generated_text, "template": "zh"})
 
         return {
             "metrics": {
@@ -74,7 +86,7 @@ class Evaluator:
                 "bleu-3": bleu3 or 0.0,
                 "bleu-4": bleu4 or 0.0,
                 "rouge-L": rougeL_score(generated_text, ground_truth_text) or 0.0,
-                "LLM-score": LLM_score(generated_text, ground_truth_text, llm_endpoint) or 0.0,
+                "LLM-score": llm_score or 0.0,
                 "length": len(generated_text),
             },
             "log": {
