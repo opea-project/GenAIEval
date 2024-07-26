@@ -25,7 +25,7 @@ Please refer to this [guide](https://github.com/opea-project/GenAIExamples/blob/
 Use below command to run the evaluation, please note that for the first run, argument `--ingest_docs` should be added in the command to ingest the documents into the vector database, while for the subsequent run, this argument should be omitted.
 ```bash
 cd examples
-python main.py --dataset_path ../data/split_merged.json --docs_path ../data/80000_docs --ingest_docs
+python run_crud.py --dataset_path ../data/split_merged.json --docs_path ../data/80000_docs --ingest_docs
 ```
 
 ## Acknowledgements
