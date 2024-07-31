@@ -109,6 +109,8 @@ def bleu_score(continuation: str, reference: str, with_penalty=False) -> float:
 @catch_all_exceptions
 def rougeL_score(continuation: str, reference: str) -> float:
     rouge = evaluate.load(os.path.join(os.path.dirname(__file__), "rouge"))
-    results = rouge.compute(predictions=[continuation], references=[[reference]], tokenizer=tokenizer, rouge_types=["rougeL"])
+    results = rouge.compute(
+        predictions=[continuation], references=[[reference]], tokenizer=tokenizer, rouge_types=["rougeL"]
+    )
     score = results["rougeL"]
     return score
