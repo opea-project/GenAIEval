@@ -203,7 +203,7 @@ class Evaluator:
                 data["retrieved_documents"] = retrieved_documents
                 generated_text = self.send_request(data, arguments)
                 data["generated_text"] = generated_text
-                result = {"id": data["ID"], **self.scoring(data, arguments.llm_endpoint)}
+                result = {"id": data["ID"], **self.scoring(data)}
                 if contain_original_data:
                     result["original_data"] = data
                 results.append(result)
