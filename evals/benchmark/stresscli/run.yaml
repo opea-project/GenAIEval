@@ -1,0 +1,27 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+profile:
+  storage:
+    hostpath: /home/sdp/test_reports
+  global-settings:
+    tool: locust
+    locustfile: /home/sdp/GenAIEval/evals/benchmark/stresscli/locust/aistress.py
+    host: http://127.0.0.1:8888
+    stop-timeout: 120
+    processes: 2
+    namespace: default
+    bench-target: chatqnafixed
+    run-time: 60m
+    service-metric-collect: False
+    service-list:
+      - "chatqna-tei"
+      - "chatqna-tgi"
+      - "chatqna-teirerank"
+  runs:
+  - name: sample
+    users: 2
+    max-request: 2
+  - name: another
+    users: 4
+    max-request: 4

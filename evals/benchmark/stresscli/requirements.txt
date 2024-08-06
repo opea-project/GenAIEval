@@ -1,0 +1,9 @@
+click
+deepdiff
+flask
+kubernetes
+locust
+numpy
+pytest
+pyyaml
+requests
