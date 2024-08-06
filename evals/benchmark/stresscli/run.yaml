@@ -6,7 +6,7 @@ profile:
     hostpath: /home/sdp/test_reports
   global-settings:
     tool: locust
-    locustfile: /home/sdp/workspace/OPEAStress/locust/aistress.py
+    locustfile: /home/sdp/GenAIEval/evals/benchmark/stresscli/locust/aistress.py
     host: http://127.0.0.1:8888
     stop-timeout: 120
     processes: 2
