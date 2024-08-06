@@ -94,10 +94,10 @@ class RagasMetric:
             ]
 
         data = {
-            "question": [test_case["input"]],
-            "contexts": [test_case["retrieval_context"]],
-            "answer": [test_case["actual_output"]],
-            "ground_truth": [test_case["expected_output"]],
+            "question": test_case["input"],
+            "contexts": test_case["retrieval_context"],
+            "answer": test_case["actual_output"],
+            "ground_truth": test_case["expected_output"],
         }
         dataset = Dataset.from_dict(data)
 

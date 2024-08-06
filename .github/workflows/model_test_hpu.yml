@@ -10,7 +10,8 @@ on:
       types: [opened, reopened, ready_for_review, synchronize] # added `ready_for_review` since draft is skipped
       paths:
         - .github/workflows/model_test_hpu.yml
-        - GenAIEval/**
+        - evals/evaluation/**
+        - evals/metrics/**
         - setup.py
   workflow_dispatch:
 

@@ -33,6 +33,6 @@ pwd
 if [[ ! -f ${log_file} ]]; then
     echo "${device};${model};${tasks};${datasets};;" >> ${WORKSPACE}/summary.log
 else
-    acc=$(grep -Po "acc .*(\d+(\.\d+)?)" ${log_file} | awk -F "|" '{print $2}' | head -n 1 | sed 's/.*://;s/[^0-9.]//g')
+    acc=$(grep -Po "acc .*(\d+(\.\d+)?)" ${log_file} | awk -F "|" '{print $3}' | head -n 1 | sed 's/.*://;s/[^0-9.]//g')
     echo "${device};${model};${tasks};${datasets};${acc};" >> ${WORKSPACE}/summary.log
 fi

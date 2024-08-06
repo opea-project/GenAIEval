@@ -3,4 +3,8 @@
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-from .utils import bleu_score, rougeL_score
+#
+
+from .evaluator import Evaluator
+
+__all__ = [Evaluator]

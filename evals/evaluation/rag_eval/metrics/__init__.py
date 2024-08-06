@@ -3,4 +3,4 @@
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-from .utils import bleu_score, rougeL_score
+from .metrics import LLM_score
