@@ -76,7 +76,8 @@ class CRUD_Evaluator(Evaluator):
         return template
 
     def post_process(self, result):
-        return result.split('<response>')[-1].split('</response>')[0].strip()
+        return result.split("<response>")[-1].split("</response>")[0].strip()
+
 
 def args_parser():
     parser = argparse.ArgumentParser()
