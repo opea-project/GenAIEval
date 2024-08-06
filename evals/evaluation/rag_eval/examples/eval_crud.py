@@ -9,6 +9,7 @@ import json
 import os
 
 from evals.evaluation.rag_eval import Evaluator
+from evals.evaluation.rag_eval.template import CRUDTemplate
 
 
 class CRUD_Evaluator(Evaluator):
@@ -60,6 +61,22 @@ class CRUD_Evaluator(Evaluator):
             )
         return document
 
+    def get_template(self):
+        if self.task == "summarization":
+            template = CRUDTemplate.get_summarization_template()
+        elif self.task == "question_answering":
+            template = CRUDTemplate.get_question_answering_template()
+        elif self.task == "continuation":
+            template = CRUDTemplate.get_continuation_template()
+        else:
+            raise NotImplementedError(
+                f"Unknown task {self.task}, only support "
+                "summarization, question_answering, continuation and hallucinated_modified."
+            )
+        return template
+
+    def post_process(self, result):
+        return result.split('<response>')[-1].split('</response>')[0].strip()
 
 def args_parser():
     parser = argparse.ArgumentParser()

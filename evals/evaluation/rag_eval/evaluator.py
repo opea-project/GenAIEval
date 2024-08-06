@@ -129,6 +129,9 @@ class Evaluator:
         """Remove invalid results from the list and return the cleaned results."""
         return [result for result in results if result["valid"]]
 
+    def get_template(self):
+        raise NotImplementedError("Depends on the specific dataset.")
+
     def send_request(self, data, arguments):
         service_url = arguments.service_url
         headers = {"Content-Type": "application/json"}
@@ -138,13 +141,17 @@ class Evaluator:
         json_data["stream"] = False
         json_data["temperature"] = arguments.temperature
         json_data["max_new_tokens"] = arguments.max_new_tokens
+        json_data["chat_template"] = self.get_template()
         json_data = json.dumps(json_data)
         response = requests.post(service_url, data=json_data, headers=headers)
         if response.ok:
-            return response.json()["choices"][0]["message"]["content"]
+            return self.post_process(response.json()["choices"][0]["message"]["content"])
         else:
             print(f"Request for pipeline failed due to {response.text}.")
             return ""
+
+    def post_process(self, result):
+        return result
 
     def get_retrieved_documents(self, data, arguments):
         query = self.get_query(data)
