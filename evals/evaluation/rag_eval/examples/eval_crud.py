@@ -9,6 +9,7 @@ import json
 import os
 
 from evals.evaluation.rag_eval import Evaluator
+from evals.evaluation.rag_eval.template import CRUDTemplate
 
 
 class CRUD_Evaluator(Evaluator):
@@ -59,6 +60,23 @@ class CRUD_Evaluator(Evaluator):
                 "summarization, question_answering, continuation and hallucinated_modified."
             )
         return document
+
+    def get_template(self):
+        if self.task == "summarization":
+            template = CRUDTemplate.get_summarization_template()
+        elif self.task == "question_answering":
+            template = CRUDTemplate.get_question_answering_template()
+        elif self.task == "continuation":
+            template = CRUDTemplate.get_continuation_template()
+        else:
+            raise NotImplementedError(
+                f"Unknown task {self.task}, only support "
+                "summarization, question_answering, continuation and hallucinated_modified."
+            )
+        return template
+
+    def post_process(self, result):
+        return result.split("<response>")[-1].split("</response>")[0].strip()
 
 
 def args_parser():
@@ -128,7 +146,7 @@ def main():
             )
         output_save_path = os.path.join(args.output_dir, f"{task}.json")
         evaluator = CRUD_Evaluator(
-            dataset=dataset, output_save_path=output_save_path, task=task, llm_endpoint=args.llm_endpoint
+            dataset=dataset, output_path=output_save_path, task=task, llm_endpoint=args.llm_endpoint
         )
         if args.ingest_docs:
             CRUD_Evaluator.ingest_docs(args.docs_path, args.database_endpoint, args.chunk_size, args.chunk_overlap)
