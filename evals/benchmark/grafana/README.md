@@ -18,7 +18,7 @@ Change the job target endpoint to the microservice you want to track metrics for
 
 Here is an example of exporting metrics data from a TGI microservice (inside a Kubernetes cluster) to Prometheus.
 
-```yml
+```yaml
 # A scrape configuration containing exactly one endpoint to scrape:
 # Here it's Prometheus itself.
 scrape_configs:
