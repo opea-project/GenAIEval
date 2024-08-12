@@ -39,6 +39,22 @@ class MultiHop_Evaluator(Evaluator):
             )
         return document
 
+    def get_reranked_documents(self, query, docs, arguments):
+        data = {
+            "initial_query": query,
+            "retrieved_docs": [{"text": doc} for doc in docs],
+            "top_n": 10,
+        }
+        headers = {"Content-Type": "application/json"}
+
+        response = requests.post(arguments.reranking_endpoint, data=json.dumps(data), headers=headers)
+        if response.ok:
+            reranked_documents = response.json()["documents"]
+            return reranked_documents
+        else:
+            print(f"Request for retrieval failed due to {response.text}.")
+            return []
+
     def get_retrieved_documents(self, query, arguments):
         data = {"text": query}
         headers = {"Content-Type": "application/json"}
@@ -77,6 +93,8 @@ class MultiHop_Evaluator(Evaluator):
                 continue
             query = data["query"]
             retrieved_documents = self.get_retrieved_documents(query, arguments)
+            if arguments.rerank:
+                retrieved_documents = self.get_reranked_documents(query, retrieved_documents, arguments)
             golden_context = [each["fact"] for each in data["evidence_list"]]
             test_case = {
                 "input": query,
@@ -211,6 +229,10 @@ def args_parser():
     )
     parser.add_argument(
         "--retrieval_endpoint", type=str, default="http://localhost:7000/v1/retrieval", help="Service URL address."
+    )
+    parser.add_argument("--rerank", action="store_true", help="Whether to use rerank microservice.")
+    parser.add_argument(
+        "--reranking_endpoint", type=str, default="http://localhost:8000/v1/reranking", help="Service URL address."
     )
     parser.add_argument("--llm_endpoint", type=str, default=None, help="Service URL address.")
     parser.add_argument(
