@@ -14,7 +14,7 @@ query_rerank_2 = """Deep learning is a powerful tool in the field of artificial 
 
 
 def getReqData():
-    return {"query": my_query, "texts": [query_rerank_1, query_rerank_2]},
+    return ({"query": my_query, "texts": [query_rerank_1, query_rerank_2]},)
 
 
 def respStatics(environment, resp):
