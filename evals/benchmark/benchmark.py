@@ -90,16 +90,13 @@ def create_run_yaml(example, service_type, service_name, base_url, test_suite_co
     user_queries_list = test_suite_config["user_queries"]
     random_prompt = test_suite_config["random_prompt"]
     bench_target = "chatqnafixed"
-    if random_prompt:
-        if service_name == "e2e":
+    if service_name == "e2e":
+        if random_prompt:
             bench_target = example+"bench"
         else:
-            bench_target = service_type+"bench"
-    else:
-        if service_name == "e2e":
             bench_target = example+"fixed"
-        else:
-            bench_target = service_type+"fixed"
+    else:
+        bench_target = service_type+"fixed"
 
     # Create the directory if it doesn't exist
     os.makedirs(test_suite_config["test_output_dir"], exist_ok=True)
