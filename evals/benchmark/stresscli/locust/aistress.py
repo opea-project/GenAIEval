@@ -63,7 +63,6 @@ class AiStressUser(HttpUser):
         with AiStressUser._lock:
             AiStressUser.request += 1
             self.environment.runner.send_message("worker_reqsent", 1)
-        tokens = 0
         start_ts = time.time()
         # With stream=False here, Cannot get first response time,Workaround as response.elapsed.total_seconds()
         url = bench_package.getUrl()
@@ -77,7 +76,6 @@ class AiStressUser(HttpUser):
                 timeout=self.environment.parsed_options.http_timeout,
             ) as resp:
                 logging.debug("Got response...........................")
-                first_resp = time.perf_counter()
 
                 if resp.status_code >= 200 and resp.status_code < 400:
                     reqdata = bench_package.respStatics(self.environment, resp)
@@ -89,8 +87,8 @@ class AiStressUser(HttpUser):
             # In case of exception occurs, locust lost the statistic for this request.
             # Consider as a failed request, and report to Locust statistics
             logging.error(f"Failed with request : {e}")
-            self.environment.runner.stats.log_request("POST", "/v1/chatqna", time.time() - start_ts, 0)
-            self.environment.runner.stats.log_error("POST", "/v1/chatqna", "Locust Request error")
+            self.environment.runner.stats.log_request("POST", url, time.time() - start_ts, 0)
+            self.environment.runner.stats.log_error("POST", url, "Locust Request error")
 
     # def on_stop(self) -> None:
 
