@@ -57,6 +57,9 @@ def extract_test_case_data(content):
     concurrent_level = test_suite_config.get('concurrent_level')
     user_queries = test_suite_config.get('user_queries', [])
     random_prompt = test_suite_config.get('random_prompt')
+    run_time = test_suite_config.get('run_time')
+    collect_service_metric = test_suite_config.get('collect_service_metric')
+    test_output_dir = test_suite_config.get('test_output_dir')
 
     # Initialize a dictionary to hold data for all specified test cases
     all_case_data = {}
@@ -72,60 +75,77 @@ def extract_test_case_data(content):
         'concurrent_level': concurrent_level,
         'user_queries': user_queries,
         'random_prompt': random_prompt,
+        'test_output_dir': test_output_dir,
+        'run_time': run_time,
+        'collect_service_metric': collect_service_metric,
         'all_case_data': all_case_data
     }
 
 
-def create_run_yaml(service_name, base_url, parameters, test_suite_config, index):
+def create_run_yaml(example, service_type, service_name, base_url, test_suite_config, index):
     """Create and save the run.yaml file for the service being tested."""
     current_dir = os.getcwd()
     locustfile_path = os.path.join(current_dir, "stresscli/locust/aistress.py")
-
-    run_yaml_content = {
-        "profile": {
-            "storage": {
-                "hostpath": test_suite_config.test_output_dir
-            },
-            "global-settings": {
-                "tool": "locust",
-                "locustfile": locustfile_path,
-                "host": base_url,
-                "stop-timeout": 120,
-                "processes": 2,
-                "namespace": "default",
-                "bench-target": parameters.get("bench_target", "chatqnafixed"),
-                "run-time": parameters.get("run_time", "60m"),
-                "service-metric-collect": False,
-                "service-list": [
-                    f"{service_name}-tei",
-                    f"{service_name}-tgi",
-                    f"{service_name}-teirerank"
-                ]
-            },
-            "runs": [
-                {
-                    "name": "sample",
-                    "users": parameters.get("users", 2),
-                    "max-request": parameters.get("max_request", 2)
-                },
-                {
-                    "name": "another",
-                    "users": parameters.get("users", 4),
-                    "max-request": parameters.get("max_request", 4)
-                }
-            ]
-        }
-    }
+    concurrent_level = test_suite_config["concurrent_level"]
+    user_queries_list = test_suite_config["user_queries"]
+    random_prompt = test_suite_config["random_prompt"]
+    bench_target = "chatqnafixed"
+    if random_prompt:
+        if service_name == "e2e":
+            bench_target = example+"bench"
+        else:
+            bench_target = service_type+"bench"
+    else:
+        if service_name == "e2e":
+            bench_target = example+"fixed"
+        else:
+            bench_target = service_type+"fixed"
 
     # Create the directory if it doesn't exist
-    os.makedirs(test_suite_config.test_output_dir, exist_ok=True)
+    os.makedirs(test_suite_config["test_output_dir"], exist_ok=True)
 
-    # Save the run.yaml file
-    run_yaml_path = os.path.join(test_suite_config.test_output_dir, f"run_{service_name}_{index}.yaml")
-    with open(run_yaml_path, "w") as yaml_file:
-        yaml.dump(run_yaml_content, yaml_file)
+    run_yaml_paths = []
 
-    return run_yaml_path
+    for user_queries in user_queries_list:
+        if user_queries <= concurrent_level:
+            concurrency = 1
+        else:
+            concurrency = user_queries // concurrent_level
+
+        run_yaml_content = {
+            "profile": {
+                "storage": {
+                    "hostpath": test_suite_config["test_output_dir"]
+                },
+                "global-settings": {
+                    "tool": "locust",
+                    "locustfile": locustfile_path,
+                    "host": base_url,
+                    "stop-timeout": 120,
+                    "processes": 2,
+                    "namespace": "default",
+                    "bench-target": bench_target,
+                    "run-time": test_suite_config["run_time"],
+                    "service-metric-collect": test_suite_config["collect_service_metric"],
+                },
+                "runs": [
+                    {
+                        "name": "benchmark",
+                        "users": concurrency,
+                        "max-request": user_queries,
+                    },
+                ]
+            }
+        }
+
+        # Save the run.yaml file
+        run_yaml_path = os.path.join(test_suite_config["test_output_dir"], f"run_{service_name}_{index}_users_{user_queries}.yaml")
+        with open(run_yaml_path, "w") as yaml_file:
+            yaml.dump(run_yaml_content, yaml_file)
+
+        run_yaml_paths.append(run_yaml_path)
+
+        return run_yaml_paths
 
 
 def run_service_test(example, service_type, service_name, parameters, test_suite_config):
@@ -139,13 +159,13 @@ def run_service_test(example, service_type, service_name, parameters, test_suite
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     # Create the run.yaml for the service
-    run_yaml_path = create_run_yaml(service_name, base_url, parameters, test_suite_config, timestamp)
+    run_yaml_paths = create_run_yaml(example, service_type, service_name, base_url, test_suite_config, timestamp)
 
     # Run the test using locust_runtests function
-    locust_runtests(None, run_yaml_path)
+    for run_yaml_path in run_yaml_paths:
+        locust_runtests(None, run_yaml_path)
 
     print(f"Test completed for {service_name} at {url}")
-
 
 
 def process_service(example, service_name, case_data, test_suite_config):
@@ -162,6 +182,7 @@ def process_service(example, service_name, case_data, test_suite_config):
             # Run the test for the service
             run_service_test(example, service_name, service_name_value, parameters, test_suite_config)
 
+
 if __name__ == "__main__":
     # Load test suit configuration
     yaml_content = load_yaml("./benchmark.yaml")
@@ -173,6 +194,8 @@ if __name__ == "__main__":
     user_queries = parsed_data['user_queries']
     random_prompt = parsed_data['random_prompt']
     test_output_dir = parsed_data['test_output_dir']
+    run_time = parsed_data['run_time']
+    collect_service_metric = parsed_data['collect_service_metric']
     all_case_data = parsed_data['all_case_data']
 
     # Create a configuration dictionary
@@ -180,6 +203,8 @@ if __name__ == "__main__":
         'concurrent_level': concurrent_level,
         'user_queries': user_queries,
         'random_prompt': random_prompt,
+        'run_time': run_time,
+        'collect_service_metric': collect_service_metric,
         'test_output_dir': test_output_dir
     }
 

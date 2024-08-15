@@ -3,6 +3,8 @@ test_suite_config: # Overall configuration settings for the test suite
   concurrent_level: 4  # The concurrency level, adjustable based on requirements
   user_queries: [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]  # Number of test requests at each concurrency level
   random_prompt: false  # Use random prompts if true, fixed prompts if false
+  run_time: 60m  # The max total run time for the test suite
+  collect_service_metric: false  # Collect service metrics if true, do not collect service metrics if false
   test_output_dir: "/home/sdp/benchmark_output"  # The directory to store the test output
 
 test_cases:
@@ -10,9 +12,9 @@ test_cases:
     embedding:
       run_test: true
       service_name: "embedding-svc"  # Replace with your service name
-    embedding_serving:
+    embedserve:
       run_test: true
-      service_name: "embedding-serving-svc"  # Replace with your service name
+      service_name: "embedding-dependency-svc"  # Replace with your service name
     retriever:
       run_test: true
       service_name: "retriever-svc"  # Replace with your service name
@@ -27,9 +29,9 @@ test_cases:
       service_name: "reranking-svc"  # Replace with your service name
       parameters:
         top_n: 1
-    reranking_serving:
+    rerankserve:
       run_test: true
-      service_name: "reranking-serving-svc"  # Replace with your service name
+      service_name: "reranking-dependency-svc"  # Replace with your service name
     llm:
       run_test: true
       service_name: "llm-svc"  # Replace with your service name
@@ -41,9 +43,9 @@ test_cases:
         top_p: 0.95
         repetition_penalty: 1.03
         streaming: true
-    llm_serving:
+    llmserve:
       run_test: true
-      service_name: "llm-serving-svc"  # Replace with your service name
+      service_name: "llm-dependency-svc"  # Replace with your service name
     e2e:
       run_test: true
       service_name: "chatqna-backend-server-svc"  # Replace with your service name
@@ -60,7 +62,7 @@ test_cases:
         top_p: 0.95
         repetition_penalty: 1.03
         streaming: true
-    llm_serving:
+    llmserve:
       run_test: true
       service_name: "llm-serving-svc"  # Replace with your service name
     e2e:
@@ -79,7 +81,7 @@ test_cases:
         top_p: 0.95
         repetition_penalty: 1.03
         streaming: true
-    llm_serving:
+    llmserve:
       run_test: true
       service_name: "llm-serving-svc"  # Replace with your service name
     e2e:
@@ -98,7 +100,7 @@ test_cases:
         top_p: 0.95
         repetition_penalty: 1.03
         streaming: true
-    llm_serving:
+    llmserve:
       run_test: true
       service_name: "llm-serving-svc"  # Replace with your service name
     e2e:
@@ -120,7 +122,7 @@ test_cases:
         top_p: 0.95
         repetition_penalty: 1.03
         streaming: true
-    llm_serving:
+    llmserve:
       run_test: true
       service_name: "llm-serving-svc"  # Replace with your service name
     tts:
@@ -142,7 +144,7 @@ test_cases:
         top_p: 0.95
         repetition_penalty: 1.03
         streaming: true
-    lvm_serving:
+    lvmserve:
       run_test: true
       service_name: "lvm-serving-svc"  # Replace with your service name
     e2e:
