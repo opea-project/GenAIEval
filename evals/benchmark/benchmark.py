@@ -90,7 +90,7 @@ def create_run_yaml(example, service_type, service_name, base_url, test_suite_co
     user_queries_list = test_suite_config["user_queries"]
     random_prompt = test_suite_config["random_prompt"]
     bench_target = "chatqnafixed"
-    if service_name == "e2e":
+    if service_type == "e2e":
         if random_prompt:
             bench_target = example+"bench"
         else:
@@ -171,7 +171,7 @@ def process_service(example, service_name, case_data, test_suite_config):
         service_name_value = service.get('service_name')
         run_test = service.get('run_test')
         parameters = service.get('parameters', {})
-        print(f"  {service_name_value} Service - Name: {service_name_value}, Run Test: {run_test}")
+        print(f"  {example} Service - Name: {service_name_value}, Run Test: {run_test}")
         if parameters:
             print(f"    Parameters: {parameters}")
         if run_test:

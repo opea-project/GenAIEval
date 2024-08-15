@@ -10,13 +10,13 @@ test_suite_config: # Overall configuration settings for the test suite
 test_cases:
   chatqna:
     embedding:
-      run_test: true
+      run_test: false
       service_name: "embedding-svc"  # Replace with your service name
     embedserve:
-      run_test: true
+      run_test: false
       service_name: "embedding-dependency-svc"  # Replace with your service name
     retriever:
-      run_test: true
+      run_test: false
       service_name: "retriever-svc"  # Replace with your service name
       parameters:
         search_type: "similarity"
@@ -25,15 +25,15 @@ test_cases:
         lambda_mult: 0.5
         score_threshold: 0.2
     reranking:
-      run_test: true
+      run_test: false
       service_name: "reranking-svc"  # Replace with your service name
       parameters:
         top_n: 1
     rerankserve:
-      run_test: true
+      run_test: false
       service_name: "reranking-dependency-svc"  # Replace with your service name
     llm:
-      run_test: true
+      run_test: false
       service_name: "llm-svc"  # Replace with your service name
       parameters:
         model_name: "Intel/neural-chat-7b-v3-3"
@@ -44,7 +44,7 @@ test_cases:
         repetition_penalty: 1.03
         streaming: true
     llmserve:
-      run_test: true
+      run_test: false
       service_name: "llm-dependency-svc"  # Replace with your service name
     e2e:
       run_test: true
