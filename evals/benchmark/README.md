@@ -1,6 +1,6 @@
 # OPEA Benchmark Tool
 
-This Tool provides a microservices benchmarking framework that uses YAML configurations to define test cases for different services. It executes these tests using `stresscli`, which is built on top of `locust`, and logs the results for performance analysis and data virsualization.
+This Tool provides a microservices benchmarking framework that uses YAML configurations to define test cases for different services. It executes these tests using `stresscli`, built on top of [locust](https://github.com/locustio/locust), a performance/load testing tool for HTTP and other protocols and logs the results for performance analysis and data visualization.
 
 ## Features
 
@@ -17,7 +17,6 @@ This Tool provides a microservices benchmarking framework that uses YAML configu
 - [Configuration](#configuration)
   - [Test Suite Configuration](#test-suite-configuration)
   - [Test Cases](#test-cases)
-
 
 
 ## Installation
@@ -41,13 +40,12 @@ pip install -r ../../requirements.txt
 python benchmark.py
 ```
 
-The results will be stored in the directory specified by test_output_dir in the configuration.
+The results will be stored in the directory specified by `test_output_dir` in the configuration.
 
 
 ## Configuration
 
 The benchmark.yaml file defines the test suite and individual test cases. Below are the primary sections:
-
 
 ### Test Suite Configuration
 
@@ -65,7 +63,7 @@ test_suite_config:
 
 ### Test Cases
 
-Each test case includes multiple services, each of which can be toggled on/off using the run_test flag. You can also define specific parameters for each service.
+Each test case includes multiple services, each of which can be toggled on/off using the `run_test` flag. You can also change specific parameters for each service for performance tuning.
 
 Example test case configuration for `chatqna`:
 
