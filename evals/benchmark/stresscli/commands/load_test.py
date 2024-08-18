@@ -23,6 +23,7 @@ locust_defaults = {
     "run-time": "48h",
     "processes": 2,
     "bench-target": "chatqnafixed",
+    "llm-model": "Intel/neural-chat-7b-v3-3",
     "users": 10,
     "max-request": 100,
     "namespace": "default",

@@ -28,8 +28,8 @@ def respStatics(environment, req, resp):
         "tokens_input": num_token_input_prompt,
         "tokens_output": num_token_output,
         "first_token": resp["first_token_latency"] * 1000,
-        "next_token": (resp["total_latency"] - resp["first_token_latency"])/num_token_output * 1000,
-        "totoal_latency": resp["total_latency"] * 1000,
+        "next_token": (resp["total_latency"] - resp["first_token_latency"]) / (num_token_output - 1) * 1000,
+        "total_latency": resp["total_latency"] * 1000,
     }
 
 
@@ -49,8 +49,8 @@ def staticsOutput(environment, reqlist):
         first_token.append(req["first_token"])
         if req["tokens_output"] != 0:
             next_token.append(req["next_token"])
-            avg_token.append((req["totoal_latency"]) / req["tokens_output"])
-        e2e_lat.append(req["first_token"] + req["next_token"])
+            avg_token.append((req["total_latency"]) / req["tokens_output"])
+        e2e_lat.append(req["total_latency"])
         tokens_output += req["tokens_output"]
         tokens_input += req["tokens_input"]
 
@@ -59,8 +59,8 @@ def staticsOutput(environment, reqlist):
         req_msg = "Succeed Response:  {} (Total {}, {:.1%} Success), Duration: {:.2f}s, RPS: {:.2f}"
     else:
         req_msg = (
-            "Succeed Response:  {} (Total {}, {:.1%} Success), Duration: {:.2f}s, Tokens: {},"
-            " RPS: {:.2f}, Output Tokens per Second: {:.2f}, Input Tokens per Second: {:.2f}"
+            "Succeed Response:  {} (Total {}, {:.1%} Success), Duration: {:.2f}s, Input Tokens: {},"
+            " Output Tokens: {}, RPS: {:.2f}, Output Tokens per Second: {:.2f}, Input Tokens per Second: {:.2f}"
         )
     e2e_msg = "End to End latency(ms),    P50: {:.2f},   P99: {:.2f},   Avg: {:.2f}"
     first_msg = "First token latency(ms),   P50: {:.2f},   P99: {:.2f},   Avg: {:.2f}"
@@ -84,6 +84,7 @@ def staticsOutput(environment, reqlist):
                 environment.runner.stats.num_requests,
                 len(reqlist) / environment.runner.stats.num_requests,
                 duration,
+                tokens_input,
                 tokens_output,
                 len(reqlist) / duration,
                 tokens_output / duration,
