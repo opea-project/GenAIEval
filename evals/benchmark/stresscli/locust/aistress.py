@@ -9,6 +9,7 @@ import time
 
 import gevent
 import numpy
+import sseclient
 from locust import HttpUser, between, events, task
 from locust.runners import STATE_CLEANUP, STATE_STOPPED, STATE_STOPPING, MasterRunner, WorkerRunner
 
@@ -34,6 +35,13 @@ def _(parser):
         env_var="BENCH_TARGET",
         default="chatqnafixed",
         help="python package name for benchmark target",
+    )
+    parser.add_argument(
+        "--llm-model",
+        type=str,
+        env_var="LLM_MODEL",
+        default="Intel/neural-chat-7b-v3-3",
+        help="LLM model name",
     )
 
 
@@ -63,23 +71,40 @@ class AiStressUser(HttpUser):
         with AiStressUser._lock:
             AiStressUser.request += 1
             self.environment.runner.send_message("worker_reqsent", 1)
-        start_ts = time.time()
-        # With stream=False here, Cannot get first response time,Workaround as response.elapsed.total_seconds()
-        url = bench_package.getUrl()
         reqData = bench_package.getReqData()
+        url = bench_package.getUrl()
         try:
+            start_ts = time.perf_counter()
             with self.client.post(
                 url,
                 json=reqData,
-                stream=False,
+                stream=True,
                 catch_response=True,
                 timeout=self.environment.parsed_options.http_timeout,
             ) as resp:
                 logging.debug("Got response...........................")
 
                 if resp.status_code >= 200 and resp.status_code < 400:
-                    reqdata = bench_package.respStatics(self.environment, resp)
-                    #                   reqlist.append(reqdata)
+                    first_token_ts = None
+                    client = sseclient.SSEClient(resp)
+                    complete_response = ""
+                    for event in client.events():
+                        if event.data == "[DONE]":
+                            break
+                        else:
+                            if first_token_ts is None:
+                                first_token_ts = time.perf_counter()
+                            chunk = event.data.strip()
+                            if chunk.startswith("b'") and chunk.endswith("'"):
+                                chunk = chunk[2:-1]
+                        complete_response += chunk
+                    end_ts = time.perf_counter()
+                    respData = {
+                        "response_string": complete_response,
+                        "first_token_latency": first_token_ts - start_ts,
+                        "total_latency": end_ts - start_ts,
+                    }
+                    reqdata = bench_package.respStatics(self.environment, reqData, respData)
                     logging.debug(f"Request data collected {reqdata}")
                     self.environment.runner.send_message("worker_reqdata", reqdata)
             logging.debug("Finished response analysis...........................")
@@ -87,7 +112,7 @@ class AiStressUser(HttpUser):
             # In case of exception occurs, locust lost the statistic for this request.
             # Consider as a failed request, and report to Locust statistics
             logging.error(f"Failed with request : {e}")
-            self.environment.runner.stats.log_request("POST", url, time.time() - start_ts, 0)
+            self.environment.runner.stats.log_request("POST", url, time.perf_counter() - start_ts, 0)
             self.environment.runner.stats.log_error("POST", url, "Locust Request error")
 
     # def on_stop(self) -> None:

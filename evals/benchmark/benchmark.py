@@ -67,6 +67,7 @@ def create_run_yaml_content(service_name, base_url, bench_target, concurrency, u
                 "bench-target": bench_target,
                 "run-time": test_suite_config["run_time"],
                 "service-metric-collect": test_suite_config["collect_service_metric"],
+                "llm-model": test_suite_config["llm_model"],
             },
             "runs": [{"name": "benchmark", "users": concurrency, "max-request": user_queries}],
         }
@@ -142,6 +143,7 @@ if __name__ == "__main__":
         "random_prompt": parsed_data["random_prompt"],
         "run_time": parsed_data["run_time"],
         "collect_service_metric": parsed_data["collect_service_metric"],
+        "llm_model": parsed_data["llm_model"],
         "test_output_dir": parsed_data["test_output_dir"],
     }
 

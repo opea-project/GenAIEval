@@ -5,13 +5,13 @@ import tokenresponse as token
 
 
 def getUrl():
-    return "/v1/chatqna"
+    return "/v1/chat/completions"
 
 
 def getReqData():
     return {
-        "/v1/chat/completions": "What is the revenue of Nike in last 10 years before 2023? Give me detail",
-        "max_tokens": 128,
+        "query": "What is the revenue of Nike in last 10 years before 2023? Give me detail",
+        "max_new_tokens": 128,
     }
 
 
