@@ -96,9 +96,7 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
     runspec["bench-target"] = run_settings.get(
         "bench-target", global_settings.get("bench-target", locust_defaults["bench-target"])
     )
-    runspec["llm-model"] = run_settings.get(
-        "llm-model", global_settings.get("llm-model", locust_defaults["llm-model"])
-    )
+    runspec["llm-model"] = run_settings.get("llm-model", global_settings.get("llm-model", locust_defaults["llm-model"]))
     runspec["namespace"] = run_settings.get("namespace", global_settings.get("namespace", locust_defaults["namespace"]))
 
     runspec["run_name"] = run_settings["name"]
