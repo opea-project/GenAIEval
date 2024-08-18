@@ -60,7 +60,7 @@ def staticsOutput(environment, reqlist):
     else:
         req_msg = (
             "Succeed Response:  {} (Total {}, {:.1%} Success), Duration: {:.2f}s, Input Tokens: {},"
-            " Output Tokens: {}, RPS: {:.2f}, Output Tokens per Second: {:.2f}, Input Tokens per Second: {:.2f}"
+            " Output Tokens: {}, RPS: {:.2f}, Input Tokens per Second: {:.2f}, Output Tokens per Second: {:.2f}"
         )
     e2e_msg = "End to End latency(ms),    P50: {:.2f},   P99: {:.2f},   Avg: {:.2f}"
     first_msg = "First token latency(ms),   P50: {:.2f},   P99: {:.2f},   Avg: {:.2f}"
@@ -87,8 +87,8 @@ def staticsOutput(environment, reqlist):
                 tokens_input,
                 tokens_output,
                 len(reqlist) / duration,
-                tokens_output / duration,
                 tokens_input / duration,
+                tokens_output / duration,
             )
         )
     console_logger.warning(
