@@ -28,7 +28,7 @@ def respStatics(environment, req, resp):
         "tokens_input": num_token_input_prompt,
         "tokens_output": num_token_output,
         "first_token": resp["first_token_latency"] * 1000,
-        "next_token": (resp["total_latency"] - resp["first_token_latency"])/num_token_output * 1000,
+        "next_token": (resp["total_latency"] - resp["first_token_latency"]) / num_token_output * 1000,
         "totoal_latency": resp["total_latency"] * 1000,
     }
 
