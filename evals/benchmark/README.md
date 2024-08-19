@@ -1,71 +1,96 @@
-# Stress Test Script
+# OPEA Benchmark Tool
 
-## Introduction
+This Tool provides a microservices benchmarking framework that uses YAML configurations to define test cases for different services. It executes these tests using `stresscli`, built on top of [locust](https://github.com/locustio/locust), a performance/load testing tool for HTTP and other protocols and logs the results for performance analysis and data visualization.
 
-This script is a load testing tool designed to simulate high-concurrency scenarios for a given server. It supports multiple task types and models, allowing users to evaluate the performance and stability of different configurations under heavy load.
+## Features
 
-## Prerequisites
+- **Services load testing**: Simulates high concurrency levels to test services like LLM, reranking, ASR, E2E and more.
+- **YAML-based configuration**: Define test cases, service endpoints, and testing parameters in YAML.
+- **Service metrics collection**: Optionally collect service metrics for detailed performance analysis.
+- **Flexible testing**: Supports various test cases like chatqna, codegen, codetrans, faqgen, audioqna, and visualqna.
+- **Data analysis and visualization**: After tests are executed, results can be analyzed and visualized to gain insights into the performance and behavior of each service. Performance trends, bottlenecks, and other key metrics are highlighted for decision-making.
 
-- Python 3.8+
-- Required Python packages:
-  - argparse
-  - requests
-  - transformers
+## Table of Contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+  - [Test Suite Configuration](#test-suite-configuration)
+  - [Test Cases](#test-cases)
+
 
 ## Installation
 
-1. Clone the repository or download the script to your local machine.
-2. Install the required Python packages using `pip`:
+### Prerequisites
 
-   ```sh
-   pip install argparse requests transformers
-   ```
+- Python 3.x
+- Install the required Python packages:
+
+```bash
+pip install -r ../../requirements.txt
+```
 
 ## Usage
 
-The script can be executed with various command-line arguments to customize the test. Here is a breakdown of the available options:
+1 Define the test cases and configurations in the benchmark.yaml file.
 
-- `-f`: The file path containing the list of questions to be used for the test. If not provided, a default question will be used.
-- `-s`: The server address in the format `host:port`. Default is `localhost:8080`.
-- `-c`: The number of concurrent workers. Default is 20.
-- `-d`: The duration for which the test should run. This can be specified in seconds (e.g., `30s`), minutes (e.g., `10m`), or hours (e.g., `1h`). Default is `1h`.
-- `-u`: The delay time before each worker starts, specified in seconds (e.g., `2s`). Default is `1s`.
-- `-t`: The task type to be tested. Options are `chatqna`, `openai`, `tgi`, `llm`, `tei_embedding`, `embedding`, `retrieval`, `tei_rerank` or `reranking`. Default is `chatqna`.
-- `-m`: The model to be used. Default is `Intel/neural-chat-7b-v3-3`.
-- `-z`: The maximum number of tokens for the model. Default is 1024.
-
-### Example Commands
+2 Run the benchmark script:
 
 ```bash
-python stress_benchmark.py -f data.txt -s localhost:8888 -c 50 -d 30m -t chatqna
+python benchmark.py
 ```
 
-### Running the Test
+The results will be stored in the directory specified by `test_output_dir` in the configuration.
 
-To start the test, execute the script with the desired options. The script will:
 
-1. Initialize the question pool from the provided file or use the default question.
-2. Start a specified number of worker threads.
-3. Each worker will repeatedly send requests to the server and collect response data.
-4. Results will be written to a CSV file.
+## Configuration
 
-### Output
+The benchmark.yaml file defines the test suite and individual test cases. Below are the primary sections:
 
-The results will be stored in a CSV file with the following columns:
+### Test Suite Configuration
 
-- `question_len`: The length of the input question in tokens.
-- `answer_len`: The length of the response in tokens.
-- `first_chunk`: The time taken to receive the first chunk of the response.
-- `overall`: The total time taken for the request to complete.
-- `err`: Any error that occurred during the request.
-- `code`: The HTTP status code of the response.
+```yaml
+test_suite_config: 
+  examples: ["chatqna"]  # Test cases to be run (e.g., chatqna, codegen)
+  concurrent_level: 4  # The concurrency level
+  user_queries: [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]  # Number of test requests
+  random_prompt: false  # Use random prompts if true, fixed prompts if false
+  run_time: 60m  # Total runtime for the test suite
+  collect_service_metric: false  # Enable service metrics collection
+  data_visualization: false # Enable data visualization
+  test_output_dir: "/home/sdp/benchmark_output"  # Directory for test outputs
+```
 
-## Notes
+### Test Cases
 
-- Ensure the server address is correctly specified and accessible.
-- Adjust the concurrency level (`-c`) and duration (`-d`) based on the capacity of your server and the goals of your test.
-- Monitor the server's performance and logs to identify any potential issues during the load test.
+Each test case includes multiple services, each of which can be toggled on/off using the `run_test` flag. You can also change specific parameters for each service for performance tuning.
 
-## Logging
+Example test case configuration for `chatqna`:
 
-The script logs detailed information about each request and any errors encountered. The logs can be useful for diagnosing issues and understanding the behavior of the server under load.
+```yaml
+test_cases:
+  chatqna:
+    embedding:
+      run_test: false
+      service_name: "embedding-svc"
+    retriever:
+      run_test: false
+      service_name: "retriever-svc"
+      parameters:
+        search_type: "similarity"
+        k: 4
+        fetch_k: 20
+        lambda_mult: 0.5
+        score_threshold: 0.2
+    llm:
+      run_test: false
+      service_name: "llm-svc"
+      parameters:
+        model_name: "Intel/neural-chat-7b-v3-3"
+        max_new_tokens: 128
+        temperature: 0.01
+        streaming: true
+    e2e:
+      run_test: true
+      service_name: "chatqna-backend-server-svc"
+```

@@ -107,6 +107,8 @@ def export_testdata(testcase, folder, include="output.log|stats.csv|testspec.yam
 def read_log_keywords(filename="config.ini"):
     config = configparser.ConfigParser()
     config.optionxform = str
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    filename = os.path.join(script_dir, filename)
     config.read(filename)
     keywords = {}
     if KEYWORDS_SECTION_NAME in config:
@@ -117,6 +119,8 @@ def read_log_keywords(filename="config.ini"):
 
 def read_csv_keywords(filename="config.ini"):
     config = configparser.ConfigParser(interpolation=None)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    filename = os.path.join(script_dir, filename)
     config.read(filename)
     columns_to_extract = [col.strip() for col in config.get(CSV_SECTION_NAME, "columns_name").split(",")]
     row_name = config.get(CSV_SECTION_NAME, "row_name").strip()
@@ -126,6 +130,8 @@ def read_csv_keywords(filename="config.ini"):
 def read_yaml_keywords(filename="config.ini"):
     config = configparser.ConfigParser()
     config.optionxform = str
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    filename = os.path.join(script_dir, filename)
     config.read(filename)
     keywords = {}
     if TESTSPEC_SECTION_NAME in config:

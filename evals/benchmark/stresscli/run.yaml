@@ -12,6 +12,7 @@ profile:
     processes: 2
     namespace: default
     bench-target: chatqnafixed
+    llm-model: Intel/neural-chat-7b-v3-3
     run-time: 60m
     service-metric-collect: False
     service-list:
