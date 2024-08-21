@@ -24,7 +24,8 @@ def getUrl():
 
 
 def getReqData():
-    qid = random.randint(1, 189)
+    qlen = len(qlist)
+    qid = random.randint(0, qlen - 1)
     logging.debug(f"Selected question: {qlist[qid]['qText']}")
 
     return {"messages": qlist[qid]["qText"], "max_tokens": 128}
