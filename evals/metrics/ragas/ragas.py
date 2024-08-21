@@ -31,7 +31,7 @@ class RagasMetric:
         self.model = model
         self.embeddings = embeddings
         self.metrics = metrics
-        self.validated_list = ["answer_relevancy", "faithfulness"]
+        self.validated_list = ["answer_relevancy", "faithfulness", "answer_correctness"]
 
     async def a_measure(self, test_case: Dict):
         return self.measure(test_case)
