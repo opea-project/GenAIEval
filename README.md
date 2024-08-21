@@ -9,7 +9,7 @@ Evaluation, benchmark, and scorecard, targeting for performance on throughput an
 pip install -r requirements.txt
 pip install opea-eval
 ```
-> notes: We have to install requirements.txt at first, cause Pypi can't have direct dependency with specific commit. 
+> notes: We have to install requirements.txt at first, cause Pypi can't have direct dependency with specific commit.
 
 - Build from Source
 
@@ -118,6 +118,13 @@ args = BigcodeEvalParser(
 )
 results = evaluate(args)
 ```
+
+### Kubernetes platform optimization
+
+Node resource management helps optimizing AI container performance and
+isolation on Kubernetes nodes. See [Platform
+optimization](doc/platform-optimization/README.md).
+
 
 ## Additional Content
 - [Code of Conduct](https://github.com/opea-project/docs/tree/main/community/CODE_OF_CONDUCT.md)
