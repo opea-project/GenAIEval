@@ -92,12 +92,20 @@ def staticsOutput(environment, reqlist):
             )
         )
     console_logger.warning(
-        e2e_msg.format(numpy.percentile(e2e_lat, 50), numpy.percentile(e2e_lat, 90), numpy.percentile(e2e_lat, 99), numpy.average(e2e_lat))
+        e2e_msg.format(
+            numpy.percentile(e2e_lat, 50),
+            numpy.percentile(e2e_lat, 90),
+            numpy.percentile(e2e_lat, 99),
+            numpy.average(e2e_lat),
+        )
     )
     if tokens_output != 0:
         console_logger.warning(
             first_msg.format(
-                numpy.percentile(first_token, 50), numpy.percentile(first_token, 90), numpy.percentile(first_token, 99), numpy.average(first_token)
+                numpy.percentile(first_token, 50),
+                numpy.percentile(first_token, 90),
+                numpy.percentile(first_token, 99),
+                numpy.average(first_token),
             )
         )
         console_logger.warning(next_msg.format(numpy.average(next_token)))
