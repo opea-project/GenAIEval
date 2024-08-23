@@ -9,13 +9,16 @@ export $WORKDIR=<your-work-directory>
 cd $WORKDIR
 git clone https://github.com/opea-project/GenAIEval.git
 ```
-2. Create conda environment and install packages
+2. Build docker image
 ```
-conda create -n crag-benchmark-env python=3.11
-conda activate crag-benchmark-env
-cd $WORKDIR/GenAIEval/evals/evaluation/crag_eval/
-pip install -r requirements.txt
+cd $WORKDIR/GenAIEval/evals/evaluation/crag_eval/docker/
+bash build_image.sh
 ```
+3. Start docker container
+```
+bash launch_eval_container.sh
+```
+
 ## CRAG dataset
 1. Download original data and process it with commands below.
 You need to create an account on the Meta CRAG challenge [website](https://www.aicrowd.com/challenges/meta-comprehensive-rag-benchmark-kdd-cup-2024). After login, go to this [link](https://www.aicrowd.com/challenges/meta-comprehensive-rag-benchmark-kdd-cup-2024/problems/meta-kdd-cup-24-crag-end-to-end-retrieval-augmented-generation/dataset_files) and download the `crag_task_3_dev_v4.tar.bz2` file. Then make a `datasets` directory in your work directory using the commands below.
@@ -74,6 +77,21 @@ cd $WORKDIR/GenAIEval/evals/evaluation/crag_eval/run_benchmark
 bash run_generate_answer.sh
 ```
 2. Use LLM-as-judge to grade the answers
+First, in another terminal, launch llm endpoint with HF TGI
 ```
+cd llm_judge
+bash launch_llm_judge_endpoint.sh
+```
+Validate that the llm endpoint is working properly.
+```
+export host_ip=$(hostname -I | awk '{print $1}')
+curl ${host_ip}:8085/generate_stream \
+    -X POST \
+    -d '{"inputs":"What is Deep Learning?","parameters":{"max_new_tokens":20}}' \
+    -H 'Content-Type: application/json'
+```
+Second, back to the interactive crag-eval docker, run command below
+```
+bash run_grading.sh
 ```
 
