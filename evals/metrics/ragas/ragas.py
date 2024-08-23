@@ -31,13 +31,15 @@ class RagasMetric:
         self.model = model
         self.embeddings = embeddings
         self.metrics = metrics
-        self.validated_list = ["answer_relevancy",
-                "faithfulness",
-                "answer_correctness",
-                "answer_similarity",
-                "context_precision",
-                "context_relevancy",
-                "context_recall"]
+        self.validated_list = [
+            "answer_relevancy",
+            "faithfulness",
+            "answer_correctness",
+            "answer_similarity",
+            "context_precision",
+            "context_relevancy",
+            "context_recall",
+        ]
 
     async def a_measure(self, test_case: Dict):
         return self.measure(test_case)
@@ -48,13 +50,13 @@ class RagasMetric:
         try:
             from ragas import evaluate
             from ragas.metrics import (
-                answer_relevancy,
-                faithfulness,
                 answer_correctness,
+                answer_relevancy,
                 answer_similarity,
                 context_precision,
+                context_recall,
                 context_relevancy,
-                context_recall
+                faithfulness,
             )
 
         except ModuleNotFoundError:
