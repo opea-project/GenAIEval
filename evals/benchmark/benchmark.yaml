@@ -94,8 +94,8 @@ test_cases:
 
   faqgen:
     llm:
-      run_test: true
-      service_name: "llm-svc"  # Replace with your service name
+      run_test: false
+      service_name: "faq-tgi-svc"  # Replace with your service name
       parameters:
         model_name: "meta-llama/Meta-Llama-3-8B-Instruct"
         max_new_tokens: 128
@@ -104,12 +104,12 @@ test_cases:
         top_p: 0.95
         repetition_penalty: 1.03
         streaming: true
-    llmserve:
-      run_test: true
-      service_name: "llm-serving-svc"  # Replace with your service name
+    llm_serving:
+      run_test: false
+      service_name: "faq-micro-svc"  # Replace with your service name
     e2e:
       run_test: true
-      service_name: "faqgen-backend-server-svc"  # Replace with your service name
+      service_name: "faq-mega-server-svc"  # Replace with your service name
 
   audioqna:
     asr:
