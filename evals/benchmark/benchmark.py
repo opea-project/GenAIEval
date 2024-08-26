@@ -46,6 +46,7 @@ def extract_test_case_data(content):
         "test_output_dir": test_suite_config.get("test_output_dir"),
         "run_time": test_suite_config.get("run_time"),
         "collect_service_metric": test_suite_config.get("collect_service_metric"),
+        "llm_model": test_suite_config.get("llm_model"),
         "deployment_type": test_suite_config.get("deployment_type"),
         "service_ip": test_suite_config.get("service_ip"),
         "service_port": test_suite_config.get("service_port"),
