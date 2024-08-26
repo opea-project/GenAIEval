@@ -4,15 +4,16 @@
 import json
 import logging
 import os
+import random
 
 import tokenresponse as token
 
 cwd = os.path.dirname(__file__)
 filename = f"{cwd}/../dataset/codetrans.json"
-qdict = {}
+qlist = {}
 try:
     with open(filename) as qfile:
-        qdict = json.load(qfile)
+        qlist = json.load(qfile)
 except:
     logging.error(f"Code Translation File open failed: {filename}")
     exit()
@@ -23,8 +24,10 @@ def getUrl():
 
 
 def getReqData():
-    prompt_length = "100"
-    return qdict[prompt_length]
+    qid = random.randint(0, 5)
+    qinput = qlist[qid]['input']
+    logging.debug(f"Selected input code: {qinput}")
+    return qinput
 
 
 def respStatics(environment, resp):
