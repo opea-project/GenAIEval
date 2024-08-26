@@ -31,7 +31,15 @@ class RagasMetric:
         self.model = model
         self.embeddings = embeddings
         self.metrics = metrics
-        self.validated_list = ["answer_relevancy", "faithfulness", "answer_correctness"]
+        self.validated_list = [
+            "answer_relevancy",
+            "faithfulness",
+            "answer_correctness",
+            "answer_similarity",
+            "context_precision",
+            "context_relevancy",
+            "context_recall",
+        ]
 
     async def a_measure(self, test_case: Dict):
         return self.measure(test_case)
@@ -41,7 +49,15 @@ class RagasMetric:
         # sends to server
         try:
             from ragas import evaluate
-            from ragas.metrics import answer_relevancy, faithfulness
+            from ragas.metrics import (
+                answer_correctness,
+                answer_relevancy,
+                answer_similarity,
+                context_precision,
+                context_recall,
+                context_relevancy,
+                faithfulness,
+            )
 
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
@@ -91,6 +107,11 @@ class RagasMetric:
             self.metrics = [
                 answer_relevancy,
                 faithfulness,
+                answer_correctness,
+                answer_similarity,
+                context_precision,
+                context_relevancy,
+                context_recall,
             ]
 
         data = {
@@ -107,7 +128,6 @@ class RagasMetric:
             llm=chat_model,
             embeddings=self.embeddings,
         )
-        print(self.score)
         return self.score
 
     def is_successful(self):
