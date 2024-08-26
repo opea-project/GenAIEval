@@ -9,7 +9,8 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     wget \
     git \
     poppler-utils \
-    libmkl-dev
+    libmkl-dev \
+    curl
 
 COPY requirements.txt /home/user/requirements.txt
 

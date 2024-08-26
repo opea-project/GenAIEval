@@ -7,7 +7,7 @@
 import os
 from typing import Dict, Optional, Union
 
-from langchain_community.llms import HuggingFaceEndpoint
+from langchain_huggingface import HuggingFaceEndpoint
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseLanguageModel
 
@@ -82,10 +82,15 @@ class RagasMetric:
             print("OPENAI_API_KEY is provided, ragas initializes the model by OpenAI.")
             self.model = None
         if isinstance(self.model, str):
+            print('LLM endpoint: ', self.model)
             chat_model = HuggingFaceEndpoint(
                 endpoint_url=self.model,
-                timeout=600,
+                task="text-generation",
+                max_new_tokens=1024,
+                do_sample=False,
             )
+            print('Validating LLM endpoint....')
+            chat_model.invoke("Hello!")
         else:
             chat_model = self.model
         # Create a dataset from the test case
@@ -128,7 +133,7 @@ class RagasMetric:
             llm=chat_model,
             embeddings=self.embeddings,
         )
-        print(self.score)
+        # print(self.score)
         return self.score
 
     def is_successful(self):

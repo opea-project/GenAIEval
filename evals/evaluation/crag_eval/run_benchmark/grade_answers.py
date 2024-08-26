@@ -17,6 +17,22 @@ def convert_data_format_for_ragas(data):
     return output
 
 
+def make_list_of_test_cases(data):
+    # data: pandas dataframe
+    # columns: ['query', 'answer', 'ref_answer']
+    # return: a dict with keys: 'input', 'actual_output', 'expected_output'
+    output = []
+    for _, row in data.iterrows():
+        output.append(
+            {
+                'input': [row['query']],
+                'actual_output': [row['answer']],
+                'expected_output': [row['ref_answer']],
+                'retrieval_context': [["dummy_context"]]
+            }
+        )
+    return output
+
 def grade_answers(args, test_case):
     from langchain_community.embeddings import HuggingFaceBgeEmbeddings
     print('==============getting embeddings==============')
@@ -27,8 +43,14 @@ def grade_answers(args, test_case):
                          model= args.llm_endpoint, 
                          embeddings=embeddings)
     print('==============start grading==============')
-    metric.measure(test_case)
-    print(metric.score)
+    scores = []
+    for case in test_case:
+        metric.measure(case)
+        scores.append(metric.score)
+        print(metric.score)
+        print('-'*50)
+    # metric.measure(test_case)
+    return scores
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -41,7 +63,9 @@ if __name__ == '__main__':
     data = pd.read_csv(os.path.join(args.filedir, args.filename))
     data = data.head(2)
     print(data)
-    test_case = convert_data_format_for_ragas(data)
+    # test_case = convert_data_format_for_ragas(data)
+    test_case = make_list_of_test_cases(data)
     print(test_case)
-    grade_answers(args, test_case)
+    scores = grade_answers(args, test_case)
+    print(scores)
 

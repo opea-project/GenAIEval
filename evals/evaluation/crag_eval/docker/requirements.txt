@@ -2,6 +2,7 @@ pandas
 datasets
 ragas
 langchain-community
+langchain-huggingface
 evaluate
 jieba
 sentence_transformers
