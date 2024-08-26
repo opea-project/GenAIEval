@@ -9,25 +9,23 @@ import random
 import tokenresponse as token
 
 cwd = os.path.dirname(__file__)
-filename = f"{cwd}/../dataset/chatqna.json"
-qlist = []
+filename = f"{cwd}/../dataset/faqgen.json"
+qdict = {}
 try:
     with open(filename) as qfile:
-        qlist = json.load(qfile)
+        qdict = json.load(qfile)
 except:
     logging.error(f"Question File open failed: {filename}")
     exit()
 
 
 def getUrl():
-    return "/v1/chatqna"
+    return "/v1/faqgen"
 
 
 def getReqData():
-    qid = random.randint(1, 189)
-    logging.debug(f"Selected question: {qlist[qid]['qText']}")
-
-    return {"messages": qlist[qid]["qText"], "max_tokens": 128}
+    prompt = "50"
+    return {"messages": qdict[prompt], "max_tokens": 128}
 
 
 def respStatics(environment, resp):

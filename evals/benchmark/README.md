@@ -34,7 +34,15 @@ pip install -r ../../requirements.txt
 
 1 Define the test cases and configurations in the benchmark.yaml file.
 
-2 Run the benchmark script:
+2 Temporarily increase the file descriptor limit before run test:
+
+```bash
+ulimit -n 100000
+```
+
+This command increases the maximum number of file descriptors (which represent open files, network connections, etc.) that a single process can use. By default, many systems set a conservative limit, such as 1024, which may not be sufficient for high-concurrency applications or large-scale load testing. Raising this limit ensures that the process can handle a larger number of open connections or files without running into errors caused by insufficient file descriptors.
+
+3 Run the benchmark script:
 
 ```bash
 python benchmark.py

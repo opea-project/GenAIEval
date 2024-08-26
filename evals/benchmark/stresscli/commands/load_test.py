@@ -115,6 +115,9 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         os.makedirs(end_output_folder, exist_ok=True)
         metrics_output = os.path.join(output_folder, f"{index}_metrics.json")
 
+    spawn_rate = 100 if runspec["users"] > 100 else runspec["users"]
+    processes = 10 if runspec["max_requests"] > 2000 else 5 if runspec["max_requests"] > 1000 else 2
+
     cmd = [
         "locust",
         "--locustfile",
@@ -126,11 +129,11 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         "--users",
         str(runspec["users"]),
         "--spawn-rate",
-        str(runspec["users"]),
+        str(spawn_rate),
         "--max-request",
         str(runspec["max_requests"]),
         "--processes",
-        str(runspec["processes"]),
+        str(processes),
         "--bench-target",
         str(runspec["bench-target"]),
         "--llm-model",

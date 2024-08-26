@@ -42,8 +42,8 @@ underlying hardware topology.
 
 ## Install
 
-Warning: installing and reconfiguring the balloons policy in can
-change allowed CPUs and memories of already running containers in the
+Warning: installing and reconfiguring the balloons policy can change
+allowed CPUs and memories of already running containers in the
 cluster. This may hurt containers that rely on the number of allowed
 CPUs being static.
 
@@ -55,7 +55,7 @@ Install the balloons policy with helm:
    ```
 
 2. Install the balloons resource policy and patch container runtime's
-   configuration on host in order to switch NRI support on.
+   configuration on the individual worker nodes/hosts to enable NRI support.
    ```bash
    helm install balloons nri-plugins/nri-resource-policy-balloons --set patchRuntimeConfig=true
    ```
@@ -80,10 +80,15 @@ In the
 [manifest](https://github.com/opea-project/GenAIExamples/blob/main/ChatQnA/kubernetes/manifests/gaudi/chatqna.yaml)
 there are "tgi" and "tei" containers that will need a lot of CPUs.
 
-We will allocate 16 CPUs (8 full CPU cores with two hyperthreads on
-each core) for each tgi container, and 32 CPUs (that is 16
-hyperthreaded cores) for each tei container. This is done with the
-following balloons policy configuration that is explained below.
+A note on terminology: we refer to physical CPU cores as "CPU cores"
+and hyperthreads as vCPUs or just CPUs. When hyperthreading is on, the
+operating system typically sees every CPU core as two separate vCPUs.
+
+In the example configuration below, we assume that hyperthreading is
+on. We allocate 16 CPUs (8 CPU cores with two hyperthreads per core)
+for each tgi container, and 32 CPUs (that is 16 CPU cores) for each
+tei container. This happens with the following balloons policy
+configuration.
 
 ```yaml
 apiVersion: config.nri/v1alpha1
@@ -113,10 +118,8 @@ spec:
     - key: name
       operator: Equals
       values: ["tei"]
-  - allocatorPriority: normal
-    minCPUs: 1
+  - name: default
     hideHyperthreads: false
-    name: default
     namespaces:
     - "*"
     shareIdleCPUsInSame: numa
@@ -137,16 +140,22 @@ spec:
 ```
 
 The balloons policy creates "balloons" of CPUs that only containers
-assigned into a balloon are allowed to use.
+assigned into a balloon are allowed to use. A CPU belongs into at most
+one balloon at a time. CPUs that do not belong to any balloon are
+called idle CPUs.
 
 The most important options in the above configuration example are:
 
 - `allocatorTopologyBalancing: true`. This option ensures that
   balloons (sets of allowed CPUs) are balanced between CPU sockets in
-  the system, and local NUMA nodes if the system is running a sub-NUMA
-  clustering (SNC) mode. Without this options balloons would be
-  tightly packed on a single socket allowing the other CPU socket
-  sleep and save power. Here we have optimized for performance.
+  the system. Balancing happens also within a CPU socket if the system
+  is running in a sub-NUMA clustering (SNC) mode. Without this option
+  balloons would be tightly packed on a single socket allowing the
+  other CPU socket to sleep and save power. Here we have optimized for
+  performance, but to optimize for power savings, one could
+  alternately have set `allocatorTopologyBalancing: false`. For more
+  information about sub-NUMA clustering, see [Xeon scalable
+  overview](https://www.intel.com/content/www/us/en/developer/articles/technical/fourth-generation-xeon-scalable-family-overview.html)
 - The list of `balloonTypes` includes two application-specific balloon
   types: one for tgi and one for tei containers.
 - `matchExpressions` of a balloon type enable matching containers that
@@ -167,12 +176,23 @@ The most important options in the above configuration example are:
   all. Correspondingly `maxCPUs` could be used to set an upper limit
   for CPUs.
 - `hideHyperthreads: true` means that containers in balloons of this
-  type are allowed to use only single CPU hyperthread from each full
-  CPU core in the balloon. By default, both using hyperthreads of all
-  CPUs in the balloon is allowed. Note that when `true`, both
-  hyperthreads are allocated to the balloon in any case, preventing
-  alloating them into other balloons. This ensures that the whole CPU
-  core is dedicated to containers in these balloons only.
+  type are allowed to use only single CPU hyperthread from each CPU
+  core in the balloon. By default, both using hyperthreads of all CPUs
+  in the balloon is allowed. Note that when `true`, both hyperthreads
+  are allocated to the balloon in any case, preventing allocating them
+  into other balloons. This ensures that the whole CPU core is
+  dedicated to containers in these balloons only.
+- `hideHyperthreads: false` allows containers in a balloon use all
+  balloon's CPUs, whether or not they are from same CPU cores. As the
+  default balloon option, this option applies to all other containers
+  but tgi and tei in the example configuration. Note that `false`
+  cannot unhide hyperthreads if hyperthreading is off in BIOS.
+- `shareIdleCPUsInSame: numa` means that containers in a balloon of
+  this type are allowed to use, not only balloon's own CPUs, but also
+  idle CPUs within the same NUMA nodes as balloon's own CPUs. This
+  enables bursting CPU usage above what is requested by containers in
+  the balloon, yet still keep using only CPUs with the lowest latency
+  to the data in the memory.
 
 For more information about the configuration and the balloons resource
 policy, refer to the balloons
@@ -180,9 +200,12 @@ policy, refer to the balloons
 
 ## NRI topology-aware resource policy
 
-NRI plugins include topology-aware resource policy, too. Unlike
-balloons, it does not require configuration to start with. It will
-create CPU pools for containers based on their resource requests and
-limits. See the topology-aware policy
+NRI plugins include the topology-aware resource policy, too. Unlike
+balloons, it does not require configuration to start with. Instead, it
+will create CPU pools for containers purely based on their resource
+requests and limits, that must be set for effective use of the
+policy. Yet container and node type-specific configuration
+possibilities are more limited, the policy works well for ensuring
+NUMA alignment and more. See the topology-aware policy
 [documentation](https://containers.github.io/nri-plugins/stable/docs/resource-policy/policy/topology-aware.html)
 for more information.
