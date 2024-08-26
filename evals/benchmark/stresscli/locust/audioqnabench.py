@@ -1,12 +1,12 @@
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+import base64
 import json
 import logging
 import os
 import random
 import urllib.request
-import base64
 
 import tokenresponse as token
 
@@ -24,6 +24,7 @@ except:
 def getUrl():
     return "/v1/audioqna"
 
+
 def get_byte_str_with_url(url):
     file_name = url.split("/")[-1]
     if not os.path.exists(file_name):
@@ -36,10 +37,11 @@ def get_byte_str_with_url(url):
         test_audio_base64_str = base64.b64encode(f.read()).decode("utf-8")
     return test_audio_base64_str
 
+
 def getReqData():
     qid = random.randint(1, 4)
     logging.debug(f"Selected audio: {qlist[qid]['qUrl']}")
-    qUrl = qlist[qid]['qUrl']
+    qUrl = qlist[qid]["qUrl"]
     base64_str = get_byte_str_with_url(qUrl)
 
     return {"audio": base64_str, "max_tokens": 64}
