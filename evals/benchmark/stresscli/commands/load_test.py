@@ -163,7 +163,7 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
     result = subprocess.run(cmd, capture_output=True, text=True)
     runspec["endtest_time"] = datetime.now().isoformat()
 
-    if service_metric:
+    if service_metric and runspec["deployment-type"] == "k8s":
         collect_metrics(collector, namespace, services, end_output_folder)
         export_metric(start_output_folder, end_output_folder, metrics_output_folder, metrics_output, services)
 
@@ -172,7 +172,8 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         json_file.write(result.stdout)
     print(result.stderr)
     print(result.stdout)
-    dump_test_spec(kubeconfig, runspec, runspec["namespace"], output_folder, index)
+    if runspec["deployment-type"] == "k8s":
+        dump_test_spec(kubeconfig, runspec, runspec["namespace"], output_folder, index)
 
 
 def dump_test_spec(kubeconfig, run, namespace, output_folder, index):

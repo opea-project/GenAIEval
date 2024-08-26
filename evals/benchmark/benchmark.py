@@ -46,7 +46,9 @@ def extract_test_case_data(content):
         "test_output_dir": test_suite_config.get("test_output_dir"),
         "run_time": test_suite_config.get("run_time"),
         "collect_service_metric": test_suite_config.get("collect_service_metric"),
-        "llm_model": test_suite_config.get("llm_model"),
+        "deployment_type": test_suite_config.get("deployment_type"),
+        "service_ip": test_suite_config.get("service_ip"),
+        "service_port": test_suite_config.get("service_port"),
         "all_case_data": {
             example: content["test_cases"].get(example, {}) for example in test_suite_config.get("examples", [])
         },
@@ -88,7 +90,7 @@ def create_and_save_run_yaml(example, deployment_type, service_type, service_nam
             f"{example}{'bench' if service_type == 'e2e' and test_suite_config['random_prompt'] else 'fixed'}"
         )
         run_yaml_content = create_run_yaml_content(
-            deployment_type, service_name, base_url, bench_target, concurrency, user_queries, test_suite_config
+            service_name, base_url, bench_target, concurrency, user_queries, test_suite_config
         )
 
         run_yaml_path = os.path.join(
@@ -182,6 +184,9 @@ if __name__ == "__main__":
         "run_time": parsed_data["run_time"],
         "collect_service_metric": parsed_data["collect_service_metric"],
         "llm_model": parsed_data["llm_model"],
+        "deployment_type": parsed_data["deployment_type"],
+        "service_ip": parsed_data["service_ip"],
+        "service_port": parsed_data["service_port"],
         "test_output_dir": parsed_data["test_output_dir"],
     }
 
