@@ -9,7 +9,7 @@ def getUrl():
 
 
 def getReqData():
-    return {"audio": "UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA", "max_tokens":64}
+    return {"audio": "UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA", "max_tokens": 64}
 
 
 def respStatics(environment, resp):
