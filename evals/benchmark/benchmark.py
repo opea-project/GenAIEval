@@ -101,9 +101,9 @@ def create_and_save_run_yaml(example, deployment_type, service_type, service_nam
 
     return run_yaml_paths
 
+
 def get_service_ip(service_name, deployment_type="k8s", service_ip=None, service_port=None):
-    """
-    Get the service IP and port based on the deployment type.
+    """Get the service IP and port based on the deployment type.
 
     Args:
         service_name (str): The name of the service.
@@ -120,7 +120,9 @@ def get_service_ip(service_name, deployment_type="k8s", service_ip=None, service
     elif deployment_type == "docker":
         # For Docker deployment, service_ip and service_port must be specified
         if not service_ip or not service_port:
-            raise ValueError("For Docker deployment, service_ip and service_port must be provided in the configuration.")
+            raise ValueError(
+                "For Docker deployment, service_ip and service_port must be provided in the configuration."
+            )
         svc_ip = service_ip
         port = service_port
     else:
@@ -135,10 +137,7 @@ def run_service_test(example, service_type, service_name, parameters, test_suite
 
     # Get the service IP and port based on deployment type
     svc_ip, port = get_service_ip(
-        service_name, 
-        deployment_type, 
-        test_suite_config.get("service_ip"), 
-        test_suite_config.get("service_port")
+        service_name, deployment_type, test_suite_config.get("service_ip"), test_suite_config.get("service_port")
     )
 
     base_url = f"http://{svc_ip}:{port}"
