@@ -9,7 +9,11 @@ def getUrl():
 
 
 def getReqData():
-    return {"language_from": "Rust", "language_to": "Python", "source_code": "'''Rust\nfn main() {\n    let x = 5;\n    let x = x + 1;\n    let x = x * 2;\n    println!(\"The value of x is: {}\", x);\n}'''"}
+    return {
+        "language_from": "Rust",
+        "language_to": "Python",
+        "source_code": "'''Rust\nfn main() {\n    let x = 5;\n    let x = x + 1;\n    let x = x * 2;\n    println!(\"The value of x is: {}\", x);\n}'''",
+    }
 
 
 def respStatics(environment, reqData, respData):

@@ -34,7 +34,7 @@
         }
 
         void print_info() const {
-            std::cout << "Name: " << name << ", Age: " << age << ", Average Grade: " 
+            std::cout << "Name: " << name << ", Age: " << age << ", Average Grade: "
                     << average_grade() << std::endl;
         }
 
