@@ -1,0 +1,7 @@
+pandas
+datasets
+ragas
+langchain-community
+evaluate
+jieba
+sentence_transformers
