@@ -5,12 +5,12 @@
 - [Evaluation Methodology](#evaluation-methodology)
   - [Introduction](#introduction)
   - [Prerequisites](#prerequisites)
-  - [MultiHop](#multihop)
+  - [MultiHop (English dataset)](#multihop)
     - [Launch Service of RAG System](#launch-service-of-rag-system)
     - [Launch Service of LLM-as-a-Judge](launch-service-of-llm)
     - [Prepare Dataset](#prepare-dataset)
     - [Evaluation](#evaluation)
-  - [CRUD](#crud)
+  - [CRUD (Chinese dataset)](#crud)
     - [Launch Service of RAG System](#launch-service-of-rag-system)
     - [Prepare Dataset](#prepare-dataset)
     - [Evaluation](#evaluation)
@@ -37,8 +37,6 @@ For evaluating the accuracy of a RAG pipeline, we use 2 latest published dataset
     - BLEU
     - ROUGE(L)
     - LLM-as-a-Judge
-    - Human-Evaluation
-
 
 ## Prerequisite
 
@@ -47,7 +45,7 @@ For evaluating the accuracy of a RAG pipeline, we use 2 latest published dataset
 pip install -r requirements.txt
 ```
 
-## MultiHop
+## MultiHop (English dataset)
 
 [MultiHop-RAG](https://arxiv.org/pdf/2401.15391): a QA dataset to evaluate retrieval and reasoning across documents with metadata in the RAG pipelines. It contains 2556 queries, with evidence for each query distributed across 2 to 4 documents. The queries also involve document metadata, reflecting complex scenarios commonly found in real-world RAG applications.
 
@@ -79,7 +77,7 @@ Use below command to run the evaluation, please note that for the first run, arg
 python eval_multihop.py --docs_path MultiHop-RAG/dataset/corpus.json  --dataset_path MultiHop-RAG/dataset/MultiHopRAG.json --ingest_docs --retrieval_metrics --ragas_metrics --llm_endpoint http://{your_ip}:{your_llm_port}/generate
 ```
 
-## CRUD
+## CRUD (Chinese dataset)
 [CRUD-RAG](https://arxiv.org/abs/2401.17043) is a Chinese benchmark for RAG (Retrieval-Augmented Generation) system. This example utilize CRUD-RAG for evaluating the RAG system.
 
 
@@ -94,7 +92,7 @@ python examples/process_crud_dataset.py
 ```
 
 ### Launch Service of RAG System
-Please refer to this [guide](https://github.com/opea-project/GenAIExamples/blob/main/ChatQnA/README.md) to launch the service of RAG system.
+Please refer to this [guide](https://github.com/opea-project/GenAIExamples/blob/main/ChatQnA/README.md) to launch the service of RAG system. For Chinese dataset, you should replace the English emebdding and llm model with Chinese, for example, `EMBEDDING_MODEL_ID="BAAI/bge-base-zh-v1.5"` and `LLM_MODEL_ID=Qwen/Qwen2-7B-Instruct`.
 
 ### Evaluation
 Use below command to run the evaluation, please note that for the first run, argument `--ingest_docs` should be added in the command to ingest the documents into the vector database, while for the subsequent run, this argument should be omitted.
