@@ -1,7 +1,7 @@
 [
     {
         "length": "50",
-        "input": 
+        "input":
         {
             "language_from": "Python",
             "language_to": "Rust",

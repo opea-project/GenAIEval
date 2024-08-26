@@ -25,7 +25,7 @@ def getUrl():
 
 def getReqData():
     qid = random.randint(0, 5)
-    qinput = qlist[qid]['input']
+    qinput = qlist[qid]["input"]
     logging.debug(f"Selected input code: {qinput}")
     return qinput
 
