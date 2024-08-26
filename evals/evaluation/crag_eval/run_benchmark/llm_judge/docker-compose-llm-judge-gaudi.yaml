@@ -1,7 +1,7 @@
 services:
   tgi-service:
     image: ghcr.io/huggingface/tgi-gaudi:latest
-    container_name: tgi-gaudi-server
+    container_name: tgi-server
     ports:
       - "8085:80"
     volumes:
@@ -15,8 +15,9 @@ services:
       HF_HUB_ENABLE_HF_TRANSFER: 0
       HABANA_VISIBLE_DEVICES: all
       OMPI_MCA_btl_vader_single_copy_mechanism: none
+      PT_HPU_ENABLE_LAZY_COLLECTIVES: true
     runtime: habana
     cap_add:
       - SYS_NICE
     ipc: host
-    command: --model-id ${LLM_MODEL_ID} --max-input-length 2048 --max-total-tokens 4096
+    command: --model-id ${LLM_MODEL_ID} --max-input-length 2048 --max-total-tokens 4096 --sharded true --num-shard 4
