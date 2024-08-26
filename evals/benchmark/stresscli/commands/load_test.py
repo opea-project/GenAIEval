@@ -10,8 +10,6 @@ from datetime import datetime
 import click
 import yaml
 
-from .metrics import MetricsCollector
-from .metrics_util import export_metric
 from .report import export_testdata
 from .utils import dump_k8s_config, generate_lua_script, generate_random_suffix
 
@@ -24,6 +22,7 @@ locust_defaults = {
     "processes": 2,
     "bench-target": "chatqnafixed",
     "llm-model": "Intel/neural-chat-7b-v3-3",
+    "deployment-type": "k8s",
     "users": 10,
     "max-request": 100,
     "namespace": "default",
@@ -97,6 +96,7 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         "bench-target", global_settings.get("bench-target", locust_defaults["bench-target"])
     )
     runspec["llm-model"] = run_settings.get("llm-model", global_settings.get("llm-model", locust_defaults["llm-model"]))
+    runspec["deployment-type"] = run_settings.get("deployment-type", global_settings.get("deployment-type", locust_defaults["deployment-type"]))
     runspec["namespace"] = run_settings.get("namespace", global_settings.get("namespace", locust_defaults["namespace"]))
 
     runspec["run_name"] = run_settings["name"]
@@ -152,7 +152,9 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
     print(f"Running test: {' '.join(cmd)}")
     namespace = runspec["namespace"]
 
-    if service_metric:
+    if service_metric and runspec["deployment-type"] == "k8s":
+        from .metrics import MetricsCollector
+        from .metrics_util import export_metric
         collector = MetricsCollector()
         services = global_settings.get("service-list") or []
         collect_metrics(collector, namespace, services, start_output_folder)

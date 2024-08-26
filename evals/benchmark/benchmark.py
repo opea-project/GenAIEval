@@ -69,13 +69,14 @@ def create_run_yaml_content(service_name, base_url, bench_target, concurrency, u
                 "run-time": test_suite_config["run_time"],
                 "service-metric-collect": test_suite_config["collect_service_metric"],
                 "llm-model": test_suite_config["llm_model"],
+                "deployment-type": test_suite_config["deployment_type"],
             },
             "runs": [{"name": "benchmark", "users": concurrency, "max-request": user_queries}],
         }
     }
 
 
-def create_and_save_run_yaml(example, service_type, service_name, base_url, test_suite_config, index):
+def create_and_save_run_yaml(example, deployment_type, service_type, service_name, base_url, test_suite_config, index):
     """Create and save the run.yaml file for the service being tested."""
     os.makedirs(test_suite_config["test_output_dir"], exist_ok=True)
 
@@ -87,7 +88,7 @@ def create_and_save_run_yaml(example, service_type, service_name, base_url, test
             f"{example}{'bench' if service_type == 'e2e' and test_suite_config['random_prompt'] else 'fixed'}"
         )
         run_yaml_content = create_run_yaml_content(
-            service_name, base_url, bench_target, concurrency, user_queries, test_suite_config
+            deployment_type, service_name, base_url, bench_target, concurrency, user_queries, test_suite_config
         )
 
         run_yaml_path = os.path.join(
@@ -150,7 +151,7 @@ def run_service_test(example, service_type, service_name, parameters, test_suite
 
     # Create the run.yaml for the service
     run_yaml_paths = create_and_save_run_yaml(
-        example, service_type, service_name, base_url, test_suite_config, timestamp
+        example, deployment_type, service_type, service_name, base_url, test_suite_config, timestamp
     )
 
     # Run the test using locust_runtests function
