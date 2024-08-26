@@ -5,15 +5,15 @@ import tokenresponse as token
 
 
 def getUrl():
-    return "/v1/chatqna"
+    return "/v1/codetrans"
 
 
 def getReqData():
-    return {"messages": "What is the revenue of Nike in last 10 years before 2023? Give me detail", "max_tokens": 128}
+    return {"language_from": "Rust", "language_to": "Python", "source_code": "'''Rust\nfn main() {\n    let x = 5;\n    let x = x + 1;\n    let x = x * 2;\n    println!(\"The value of x is: {}\", x);\n}'''"}
 
 
-def respStatics(environment, resp):
-    return token.respStatics(environment, resp)
+def respStatics(environment, reqData, respData):
+    return token.respStatics(environment, reqData, respData)
 
 
 def staticsOutput(environment, reqlist):

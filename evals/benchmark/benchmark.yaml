@@ -87,7 +87,7 @@ test_cases:
         streaming: true
     llmserve:
       run_test: true
-      service_name: "llm-serving-svc"  # Replace with your service name
+      service_name: "codetrans-llm-svc"  # Replace with your service name
     e2e:
       run_test: true
       service_name: "codetrans-backend-server-svc"  # Replace with your service name
