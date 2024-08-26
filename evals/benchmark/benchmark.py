@@ -100,9 +100,46 @@ def create_and_save_run_yaml(example, service_type, service_name, base_url, test
 
     return run_yaml_paths
 
+def get_service_ip(service_name, deployment_type="k8s", service_ip=None, service_port=None):
+    """
+    Get the service IP and port based on the deployment type.
+
+    Args:
+        service_name (str): The name of the service.
+        deployment_type (str): The type of deployment ("k8s" or "docker").
+        service_ip (str): The IP address of the service (required for Docker deployment).
+        service_port (int): The port of the service (required for Docker deployment).
+
+    Returns:
+        (str, int): The service IP and port.
+    """
+    if deployment_type == "k8s":
+        # Kubernetes IP and port retrieval logic
+        svc_ip, port = get_service_cluster_ip(service_name)
+    elif deployment_type == "docker":
+        # For Docker deployment, service_ip and service_port must be specified
+        if not service_ip or not service_port:
+            raise ValueError("For Docker deployment, service_ip and service_port must be provided in the configuration.")
+        svc_ip = service_ip
+        port = service_port
+    else:
+        raise ValueError("Unsupported deployment type. Use 'k8s' or 'docker'.")
+
+    return svc_ip, port
+
 
 def run_service_test(example, service_type, service_name, parameters, test_suite_config):
-    svc_ip, port = get_service_cluster_ip(service_name)
+    # Get the deployment type from the test suite configuration
+    deployment_type = test_suite_config.get("deployment_type", "k8s")
+
+    # Get the service IP and port based on deployment type
+    svc_ip, port = get_service_ip(
+        service_name, 
+        deployment_type, 
+        test_suite_config.get("service_ip"), 
+        test_suite_config.get("service_port")
+    )
+
     base_url = f"http://{svc_ip}:{port}"
     endpoint = service_endpoints[example][service_type]
     url = f"{base_url}{endpoint}"
