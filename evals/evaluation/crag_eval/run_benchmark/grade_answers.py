@@ -1,4 +1,5 @@
 from evals.metrics.ragas import RagasMetric
+from ragas.metrics import answer_correctness
 import argparse
 import pandas as pd
 import os
@@ -11,7 +12,7 @@ def convert_data_format_for_ragas(data):
         'input': data['query'].tolist(),
         'actual_output': data['answer'].tolist(),
         'expected_output': data['ref_answer'].tolist(),
-        'retrieval_context': data['ref_answer'].tolist()
+        'retrieval_context': [["dummy_context"] for _ in range(data['query'].shape[0])]
     }
     return output
 

@@ -14,7 +14,15 @@ git clone https://github.com/opea-project/GenAIEval.git
 cd $WORKDIR/GenAIEval/evals/evaluation/crag_eval/docker/
 bash build_image.sh
 ```
-3. Start docker container
+3. Set environment vars for downloading models from Huggingface
+```
+mkdir $WORKDIR/hf_cache 
+export HF_CACHE_DIR=$WORKDIR/hf_cache
+export HF_HOME=$HF_CACHE_DIR
+export HUGGINGFACEHUB_API_TOKEN=<your-hf-api-token>
+```
+4. Start docker container
+This container will be used to preprocess dataset and run benchmark scripts.
 ```
 bash launch_eval_container.sh
 ```
@@ -42,7 +50,7 @@ The CRAG dataset has more than 4000 queries, and running all of them can be very
 ```
 bash run_sample_data.sh
 ```
-3. Use the small subset that we have processed for a quick run
+4. Use the small subset that we have processed for a quick run
 ```
 Small data files in this repo
 ```

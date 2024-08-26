@@ -16,6 +16,27 @@ def format_ragas_metric_name(name: str):
     return f"{name} (ragas)"
 
 
+def get_metric(name: str):
+    validated_list = ["answer_relevancy", "faithfulness", "answer_correctness"]
+    if name == "answer_relevancy":
+        from ragas.metrics import answer_relevancy
+        return answer_relevancy
+    elif name == "faithfulness":
+        from ragas.metrics import faithfulness
+        return faithfulness
+    elif name == "answer_correctness":
+        from ragas.metrics import answer_correctness
+        return answer_correctness
+    else:
+        raise ValueError(
+                        "metric should be in supported list {}. ".format(validated_list)
+                        + "ClientResponseError raised with LangchainLLM "
+                        + "when context_precision, context_recall ran. "
+                        + "Here are the related issues described in ragas "
+                        "https://github.com/explodinggradients/ragas/issues/934, "
+                        + "https://github.com/explodinggradients/ragas/issues/664."
+                    )
+
 class RagasMetric:
     """This metric checks if the output is more than 3 letters."""
 
@@ -41,7 +62,7 @@ class RagasMetric:
         # sends to server
         try:
             from ragas import evaluate
-            from ragas.metrics import answer_relevancy, faithfulness
+            from ragas.metrics import answer_relevancy, faithfulness, answer_correctness
 
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
@@ -85,7 +106,7 @@ class RagasMetric:
                 else:
                     if metric == "answer_relevancy" and self.embeddings is None:
                         raise ValueError("answer_relevancy metric need provide embeddings model.")
-                    tmp_metrics.append(metric)
+                    tmp_metrics.append(get_metric(metric))
             self.metrics = tmp_metrics
         else:
             self.metrics = [
