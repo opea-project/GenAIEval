@@ -27,7 +27,7 @@ def _(parser):
         help="Stop the benchmark If exceed this request",
     )
     parser.add_argument(
-        "--http-timeout", type=int, env_var="HTTP_TIMEOUT", default=3000, help="Http timeout before receive response"
+        "--http-timeout", type=int, env_var="HTTP_TIMEOUT", default=120000, help="Http timeout before receive response"
     )
     parser.add_argument(
         "--bench-target",

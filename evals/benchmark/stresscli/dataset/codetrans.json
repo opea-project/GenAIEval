@@ -25,6 +25,7 @@
             "language_to": "Python",
             "source_code": "\n    #include <iostream>\n    #include <vector>\n    #include <string>\n    #include <algorithm>\n\n    class Student {\n    public:\n        Student(std::string name, int age, std::vector<int> grades)\n            : name(name), age(age), grades(grades) {}\n\n        double average_grade() const {\n            int sum = 0;\n            for (int grade : grades) {\n                sum += grade;\n            }\n            return static_cast<double>(sum) / grades.size();\n        }\n\n        void print_info() const {\n            std::cout << \"Name: \" << name << \", Age: \" << age << \", Average Grade: \" \n                    << average_grade() << std::endl;\n        }\n\n    private:\n        std::string name;\n        int age;\n        std::vector<int> grades;\n    };\n\n    int main() {\n        std::vector<Student> students = {\n            Student(\"Alice\", 20, {85, 90, 78}),\n            Student(\"Bob\", 21, {88, 92, 80}),\n            Student(\"Charlie\", 19, {95, 89, 84}),\n            Student(\"David\", 22, {72, 85, 90}),\n            Student(\"Eve\", 20, {88, 76, 95}),\n            Student(\"Frank\", 24, {88, 76, 95})\n        };\n\n        std::sort(students.begin(), students.end(), [](const Student& a, const Student& b) {\n            return a.average_grade() > b.average_grade();\n        });\n\n        for (const Student& student : students) {\n            student.print_info();\n        }\n\n        return 0;\n    }\n    "
         }
+
     },
 
     {
