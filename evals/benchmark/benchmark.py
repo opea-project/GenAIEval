@@ -19,7 +19,7 @@ service_endpoints = {
         "llm_serving": "/v1/chat/completions",
         "e2e": "/v1/chatqna",
     },
-    "codegen": {"llm": "/v1/chat/completions", "llm_serving": "/v1/chat/completions", "e2e": "/v1/codegen"},
+    "codegen": {"llm": "/generate_stream", "llm_serving": "/v1/chat/completions", "e2e": "/v1/codegen"},
     "codetrans": {"llm": "/generate", "llm_serving": "/v1/chat/completions", "e2e": "/v1/codetrans"},
     "faqgen": {"llm": "/v1/chat/completions", "llm_serving": "/v1/chat/completions", "e2e": "/v1/faqgen"},
     "audioqna": {
