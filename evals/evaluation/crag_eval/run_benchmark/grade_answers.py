@@ -46,12 +46,12 @@ def grade_answers(args, test_case):
 
     if args.batch_grade:
         metric.measure(test_case)
-        return metric.score
+        return metric.score['answer_correctness']
     else:
         scores = []
         for case in test_case:
             metric.measure(case)
-            scores.append(metric.score)
+            scores.append(metric.score['answer_correctness'])
             print(metric.score)
             print('-'*50)
         return scores
@@ -66,7 +66,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     data = pd.read_csv(os.path.join(args.filedir, args.filename))
-    data = data.head(2)
+    # data = data.head(2)
     print(data)
     if args.batch_grade:
         test_case = convert_data_format_for_ragas(data)
@@ -74,6 +74,17 @@ if __name__ == '__main__':
         test_case = make_list_of_test_cases(data)
     
     print(test_case)
+
     scores = grade_answers(args, test_case)
-    print(scores)
+
+    # save the scores
+    if args.batch_grade:
+        print("Aggregated answer correctness score: ", scores)
+    else:
+        data['answer_correctness'] = scores
+        output_file = args.filename.split('.')[0] + '_graded.csv'
+        data.to_csv(os.path.join(args.filedir, output_file), index=False)
+        print("Scores saved to ", os.path.join(args.filedir, args.output))
+        
+
 
