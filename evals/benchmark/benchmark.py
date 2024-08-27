@@ -87,14 +87,10 @@ def create_and_save_run_yaml(example, deployment_type, service_type, service_nam
     for user_queries in test_suite_config["user_queries"]:
         concurrency = max(1, user_queries // test_suite_config["concurrent_level"])
 
-        if service_type == 'e2e':
-            bench_target = (
-                f"{example}{'bench' if test_suite_config['random_prompt'] else 'fixed'}"
-            )
+        if service_type == "e2e":
+            bench_target = f"{example}{'bench' if test_suite_config['random_prompt'] else 'fixed'}"
         else:
-            bench_target = (
-                f"{service_type}{'bench' if test_suite_config['random_prompt'] else 'fixed'}"
-            )
+            bench_target = f"{service_type}{'bench' if test_suite_config['random_prompt'] else 'fixed'}"
         run_yaml_content = create_run_yaml_content(
             service_name, base_url, bench_target, concurrency, user_queries, test_suite_config
         )
