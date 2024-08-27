@@ -13,6 +13,7 @@ profile:
     namespace: default
     bench-target: chatqnafixed
     llm-model: Intel/neural-chat-7b-v3-3
+    deployment-type: k8s
     run-time: 60m
     service-metric-collect: False
     service-list:
