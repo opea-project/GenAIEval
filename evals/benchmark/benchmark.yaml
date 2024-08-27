@@ -128,7 +128,7 @@ test_cases:
         streaming: true
     llmserve:
       run_test: true
-      service_name: "llm-serving-svc"  # Replace with your service name
+      service_name: "llm-svc"  # Replace with your service name
     tts:
       run_test: true
       service_name: "tts-svc"  # Replace with your service name
