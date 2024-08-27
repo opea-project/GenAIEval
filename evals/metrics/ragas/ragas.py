@@ -54,27 +54,10 @@ class RagasMetric:
         self.metrics = metrics
         self.validated_list = ["answer_relevancy", "faithfulness", "answer_correctness"]
 
-    async def a_measure(self, test_case: Dict):
-        return self.measure(test_case)
-
-    def measure(self, test_case: Dict):
-
-        # sends to server
         try:
-            from ragas import evaluate
             from ragas.metrics import answer_relevancy, faithfulness, answer_correctness
-
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
-
-        try:
-            from datasets import Dataset
-        except ModuleNotFoundError:
-            raise ModuleNotFoundError("Please install dataset")
-        self.metrics_instance = {
-            "answer_relevancy": answer_relevancy,
-            "faithfulness": faithfulness,
-        }
 
         # Set LLM model
         openai_key = os.getenv("OPENAI_API_KEY", None)
@@ -83,18 +66,16 @@ class RagasMetric:
             self.model = None
         if isinstance(self.model, str):
             print('LLM endpoint: ', self.model)
-            chat_model = HuggingFaceEndpoint(
+            self.chat_model = HuggingFaceEndpoint(
                 endpoint_url=self.model,
                 task="text-generation",
                 max_new_tokens=1024,
                 do_sample=False,
             )
-            print('Validating LLM endpoint....')
-            chat_model.invoke("Hello!")
         else:
-            chat_model = self.model
-        # Create a dataset from the test case
-        # Convert the Dict to a format compatible with Dataset
+            self.chat_model = self.model
+        
+        # initialize metrics
         if self.metrics is not None:
             tmp_metrics = []
             # check supported list
@@ -113,12 +94,26 @@ class RagasMetric:
                         raise ValueError("answer_relevancy metric need provide embeddings model.")
                     tmp_metrics.append(get_metric(metric))
             self.metrics = tmp_metrics
-        else:
+        else: # default metrics
             self.metrics = [
                 answer_relevancy,
                 faithfulness,
+                answer_correctness,
             ]
 
+
+    async def a_measure(self, test_case: Dict):
+        return self.measure(test_case)
+
+    def measure(self, test_case: Dict):
+        from ragas import evaluate
+        try:
+            from datasets import Dataset
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError("Please install dataset")
+        
+        # Create a dataset from the test case
+        # Convert the Dict to a format compatible with Dataset
         data = {
             "question": test_case["input"],
             "contexts": test_case["retrieval_context"],
@@ -130,10 +125,9 @@ class RagasMetric:
         self.score = evaluate(
             dataset,
             metrics=self.metrics,
-            llm=chat_model,
+            llm=self.chat_model,
             embeddings=self.embeddings,
         )
-        # print(self.score)
         return self.score
 
     def is_successful(self):
