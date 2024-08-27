@@ -72,7 +72,7 @@ def preprocess_data(input_file):
                     output[k] = v
             return_data.append(output)
 
-            n+=1
+            n += 1
             if n == 10:
                 break
 

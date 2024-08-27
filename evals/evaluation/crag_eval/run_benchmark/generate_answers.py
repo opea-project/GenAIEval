@@ -53,7 +53,7 @@ if __name__ == "__main__":
 
     if not os.path.exists(os.path.dirname(args.output_file)):
         os.makedirs(os.path.dirname(args.output_file))
-    
+
     output_list = []
     n = 0
     for _, row in df.iterrows():
