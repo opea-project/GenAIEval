@@ -1,8 +1,8 @@
-pandas
 datasets
-ragas
-langchain-community
-langchain-huggingface
 evaluate
 jieba
+langchain-community
+langchain-huggingface
+pandas
+ragas
 sentence_transformers

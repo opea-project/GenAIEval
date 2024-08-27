@@ -104,4 +104,3 @@ python3 test_llm_endpoint.py
 cd $WORKDIR/GenAIEval/evals/evaluation/crag_eval/run_benchmark/
 bash run_grading.sh
 ```
-

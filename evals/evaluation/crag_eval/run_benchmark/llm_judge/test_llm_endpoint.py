@@ -1,7 +1,11 @@
-from langchain_huggingface import HuggingFaceEndpoint
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 import os
 
-host_ip=os.environ.get("host_ip", "localhost")
+from langchain_huggingface import HuggingFaceEndpoint
+
+host_ip = os.environ.get("host_ip", "localhost")
 url = "http://{host_ip}:8085".format(host_ip=host_ip)
 print(url)
 

@@ -1,3 +1,6 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 host_ip=$(hostname -I | awk '{print $1}') # change this to the IP of the agent
 port=9095 # change this to the port of the agent
 endpoint=${port}/v1/chat/completions # change this to the endpoint of the agent

@@ -7,9 +7,9 @@
 import os
 from typing import Dict, Optional, Union
 
-from langchain_huggingface import HuggingFaceEndpoint
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseLanguageModel
+from langchain_huggingface import HuggingFaceEndpoint
 
 
 def format_ragas_metric_name(name: str):
@@ -20,22 +20,26 @@ def get_metric(name: str):
     validated_list = ["answer_relevancy", "faithfulness", "answer_correctness"]
     if name == "answer_relevancy":
         from ragas.metrics import answer_relevancy
+
         return answer_relevancy
     elif name == "faithfulness":
         from ragas.metrics import faithfulness
+
         return faithfulness
     elif name == "answer_correctness":
         from ragas.metrics import answer_correctness
+
         return answer_correctness
     else:
         raise ValueError(
-                        "metric should be in supported list {}. ".format(validated_list)
-                        + "ClientResponseError raised with LangchainLLM "
-                        + "when context_precision, context_recall ran. "
-                        + "Here are the related issues described in ragas "
-                        "https://github.com/explodinggradients/ragas/issues/934, "
-                        + "https://github.com/explodinggradients/ragas/issues/664."
-                    )
+            "metric should be in supported list {}. ".format(validated_list)
+            + "ClientResponseError raised with LangchainLLM "
+            + "when context_precision, context_recall ran. "
+            + "Here are the related issues described in ragas "
+            "https://github.com/explodinggradients/ragas/issues/934, "
+            + "https://github.com/explodinggradients/ragas/issues/664."
+        )
+
 
 class RagasMetric:
     """This metric checks if the output is more than 3 letters."""
@@ -81,7 +85,7 @@ class RagasMetric:
             print("OPENAI_API_KEY is provided, ragas initializes the model by OpenAI.")
             self.model = None
         if isinstance(self.model, str):
-            print('LLM endpoint: ', self.model)
+            print("LLM endpoint: ", self.model)
             self.chat_model = HuggingFaceEndpoint(
                 endpoint_url=self.model,
                 task="text-generation",
@@ -90,7 +94,7 @@ class RagasMetric:
             )
         else:
             self.chat_model = self.model
-        
+
         # initialize metrics
         if self.metrics is not None:
             tmp_metrics = []
@@ -110,7 +114,7 @@ class RagasMetric:
                         raise ValueError("answer_relevancy metric need provide embeddings model.")
                     tmp_metrics.append(get_metric(metric))
             self.metrics = tmp_metrics
-        else: # default metrics
+        else:  # default metrics
             self.metrics = [
                 answer_relevancy,
                 faithfulness,
@@ -121,17 +125,17 @@ class RagasMetric:
                 context_recall,
             ]
 
-
     async def a_measure(self, test_case: Dict):
         return self.measure(test_case)
 
     def measure(self, test_case: Dict):
         from ragas import evaluate
+
         try:
             from datasets import Dataset
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install dataset")
-        
+
         # Create a dataset from the test case
         # Convert the Dict to a format compatible with Dataset
         data = {
