@@ -52,10 +52,26 @@ class RagasMetric:
         self.model = model
         self.embeddings = embeddings
         self.metrics = metrics
-        self.validated_list = ["answer_relevancy", "faithfulness", "answer_correctness"]
+        self.validated_list = [
+            "answer_relevancy",
+            "faithfulness",
+            "answer_correctness",
+            "answer_similarity",
+            "context_precision",
+            "context_relevancy",
+            "context_recall",
+        ]
 
         try:
-            from ragas.metrics import answer_relevancy, faithfulness, answer_correctness
+            from ragas.metrics import (
+                answer_correctness,
+                answer_relevancy,
+                answer_similarity,
+                context_precision,
+                context_recall,
+                context_relevancy,
+                faithfulness,
+            )
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
 
@@ -99,6 +115,10 @@ class RagasMetric:
                 answer_relevancy,
                 faithfulness,
                 answer_correctness,
+                answer_similarity,
+                context_precision,
+                context_relevancy,
+                context_recall,
             ]
 
 

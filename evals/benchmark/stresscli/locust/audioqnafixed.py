@@ -5,15 +5,15 @@ import tokenresponse as token
 
 
 def getUrl():
-    return "/v1/chatqna"
+    return "/v1/audioqna"
 
 
 def getReqData():
-    return {"messages": "What is the revenue of Nike in last 10 years before 2023? Give me detail", "max_tokens": 128}
+    return {"audio": "UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA", "max_tokens": 64}
 
 
-def respStatics(environment, resp):
-    return token.respStatics(environment, resp)
+def respStatics(environment, reqData, resp):
+    return token.respStatics(environment, reqData, resp)
 
 
 def staticsOutput(environment, reqlist):

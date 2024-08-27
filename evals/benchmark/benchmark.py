@@ -20,7 +20,7 @@ service_endpoints = {
         "e2e": "/v1/chatqna",
     },
     "codegen": {"llm": "/v1/chat/completions", "llm_serving": "/v1/chat/completions", "e2e": "/v1/codegen"},
-    "codetrans": {"llm": "/v1/chat/completions", "llm_serving": "/v1/chat/completions", "e2e": "/v1/codetrans"},
+    "codetrans": {"llm": "/generate", "llm_serving": "/v1/chat/completions", "e2e": "/v1/codetrans"},
     "faqgen": {"llm": "/v1/chat/completions", "llm_serving": "/v1/chat/completions", "e2e": "/v1/faqgen"},
     "audioqna": {
         "asr": "/v1/audio/transcriptions",
@@ -47,6 +47,9 @@ def extract_test_case_data(content):
         "run_time": test_suite_config.get("run_time"),
         "collect_service_metric": test_suite_config.get("collect_service_metric"),
         "llm_model": test_suite_config.get("llm_model"),
+        "deployment_type": test_suite_config.get("deployment_type"),
+        "service_ip": test_suite_config.get("service_ip"),
+        "service_port": test_suite_config.get("service_port"),
         "all_case_data": {
             example: content["test_cases"].get(example, {}) for example in test_suite_config.get("examples", [])
         },
@@ -69,13 +72,14 @@ def create_run_yaml_content(service_name, base_url, bench_target, concurrency, u
                 "run-time": test_suite_config["run_time"],
                 "service-metric-collect": test_suite_config["collect_service_metric"],
                 "llm-model": test_suite_config["llm_model"],
+                "deployment-type": test_suite_config["deployment_type"],
             },
             "runs": [{"name": "benchmark", "users": concurrency, "max-request": user_queries}],
         }
     }
 
 
-def create_and_save_run_yaml(example, service_type, service_name, base_url, test_suite_config, index):
+def create_and_save_run_yaml(example, deployment_type, service_type, service_name, base_url, test_suite_config, index):
     """Create and save the run.yaml file for the service being tested."""
     os.makedirs(test_suite_config["test_output_dir"], exist_ok=True)
 
@@ -101,8 +105,44 @@ def create_and_save_run_yaml(example, service_type, service_name, base_url, test
     return run_yaml_paths
 
 
+def get_service_ip(service_name, deployment_type="k8s", service_ip=None, service_port=None):
+    """Get the service IP and port based on the deployment type.
+
+    Args:
+        service_name (str): The name of the service.
+        deployment_type (str): The type of deployment ("k8s" or "docker").
+        service_ip (str): The IP address of the service (required for Docker deployment).
+        service_port (int): The port of the service (required for Docker deployment).
+
+    Returns:
+        (str, int): The service IP and port.
+    """
+    if deployment_type == "k8s":
+        # Kubernetes IP and port retrieval logic
+        svc_ip, port = get_service_cluster_ip(service_name)
+    elif deployment_type == "docker":
+        # For Docker deployment, service_ip and service_port must be specified
+        if not service_ip or not service_port:
+            raise ValueError(
+                "For Docker deployment, service_ip and service_port must be provided in the configuration."
+            )
+        svc_ip = service_ip
+        port = service_port
+    else:
+        raise ValueError("Unsupported deployment type. Use 'k8s' or 'docker'.")
+
+    return svc_ip, port
+
+
 def run_service_test(example, service_type, service_name, parameters, test_suite_config):
-    svc_ip, port = get_service_cluster_ip(service_name)
+    # Get the deployment type from the test suite configuration
+    deployment_type = test_suite_config.get("deployment_type", "k8s")
+
+    # Get the service IP and port based on deployment type
+    svc_ip, port = get_service_ip(
+        service_name, deployment_type, test_suite_config.get("service_ip"), test_suite_config.get("service_port")
+    )
+
     base_url = f"http://{svc_ip}:{port}"
     endpoint = service_endpoints[example][service_type]
     url = f"{base_url}{endpoint}"
@@ -113,7 +153,7 @@ def run_service_test(example, service_type, service_name, parameters, test_suite
 
     # Create the run.yaml for the service
     run_yaml_paths = create_and_save_run_yaml(
-        example, service_type, service_name, base_url, test_suite_config, timestamp
+        example, deployment_type, service_type, service_name, base_url, test_suite_config, timestamp
     )
 
     # Run the test using locust_runtests function
@@ -145,6 +185,9 @@ if __name__ == "__main__":
         "run_time": parsed_data["run_time"],
         "collect_service_metric": parsed_data["collect_service_metric"],
         "llm_model": parsed_data["llm_model"],
+        "deployment_type": parsed_data["deployment_type"],
+        "service_ip": parsed_data["service_ip"],
+        "service_port": parsed_data["service_port"],
         "test_output_dir": parsed_data["test_output_dir"],
     }
 

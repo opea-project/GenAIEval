@@ -3,6 +3,9 @@
 
 test_suite_config: # Overall configuration settings for the test suite
   examples: ["chatqna"]  # The specific test cases being tested, e.g., chatqna, codegen, codetrans, faqgen, audioqna, visualqna
+  deployment_type: "k8s"  # Default is "k8s", can also be "docker"
+  service_ip: None  # Leave as None for k8s, specify for Docker
+  service_port: None  # Leave as None for k8s, specify for Docker
   concurrent_level: 4  # The concurrency level, adjustable based on requirements
   user_queries: [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]  # Number of test requests at each concurrency level
   random_prompt: false  # Use random prompts if true, fixed prompts if false
@@ -87,15 +90,15 @@ test_cases:
         streaming: true
     llmserve:
       run_test: true
-      service_name: "llm-serving-svc"  # Replace with your service name
+      service_name: "codetrans-llm-svc"  # Replace with your service name
     e2e:
       run_test: true
       service_name: "codetrans-backend-server-svc"  # Replace with your service name
 
   faqgen:
     llm:
-      run_test: true
-      service_name: "llm-svc"  # Replace with your service name
+      run_test: false
+      service_name: "faq-tgi-svc"  # Replace with your service name
       parameters:
         model_name: "meta-llama/Meta-Llama-3-8B-Instruct"
         max_new_tokens: 128
@@ -104,12 +107,12 @@ test_cases:
         top_p: 0.95
         repetition_penalty: 1.03
         streaming: true
-    llmserve:
-      run_test: true
-      service_name: "llm-serving-svc"  # Replace with your service name
+    llm_serving:
+      run_test: false
+      service_name: "faq-micro-svc"  # Replace with your service name
     e2e:
       run_test: true
-      service_name: "faqgen-backend-server-svc"  # Replace with your service name
+      service_name: "faq-mega-server-svc"  # Replace with your service name
 
   audioqna:
     asr:
@@ -128,7 +131,7 @@ test_cases:
         streaming: true
     llmserve:
       run_test: true
-      service_name: "llm-serving-svc"  # Replace with your service name
+      service_name: "llm-svc"  # Replace with your service name
     tts:
       run_test: true
       service_name: "tts-svc"  # Replace with your service name
