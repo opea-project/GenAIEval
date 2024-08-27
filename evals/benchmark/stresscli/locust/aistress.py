@@ -90,7 +90,7 @@ class AiStressUser(HttpUser):
                         "audioqnabench",
                     ]:  # non-stream case
                         respData = {
-                            "response_string": complete_response,
+                            "response_string": resp.text,
                             "first_token_latency": time.perf_counter() - start_ts,
                             "total_latency": time.perf_counter() - start_ts,
                         }
