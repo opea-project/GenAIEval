@@ -3,7 +3,6 @@
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-
 import argparse
 import json
 import os
@@ -23,21 +22,8 @@ class MultiHop_Evaluator(Evaluator):
     def get_query(self, data: dict):
         return data["query"]
 
-    def get_document(self, data: dict):
-        if self.task == "summarization":
-            document = data["text"]
-        elif self.task == "question_answering":
-            document = data["news1"]
-        elif self.task == "continuation":
-            document = data["beginning"]
-        elif self.task == "hallucinated_modified":
-            document = data["newsBeginning"]
-        else:
-            raise NotImplementedError(
-                f"Unknown task {self.task}, only support "
-                "summarization, question_answering, continuation and hallucinated_modified."
-            )
-        return document
+    def get_template(self):
+        return None
 
     def get_reranked_documents(self, query, docs, arguments):
         data = {
@@ -278,10 +264,6 @@ def main():
     if args.ragas_metrics:
         ragas_metrics = evaluator.get_ragas_metrics(all_queries, args)
         print(ragas_metrics)
-
-    # test e2e rag
-    rag_metrics = evaluator.evaluate(all_queries, args)
-    print(rag_metrics)
 
 
 if __name__ == "__main__":
