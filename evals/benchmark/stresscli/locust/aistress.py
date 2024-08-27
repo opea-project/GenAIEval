@@ -85,25 +85,35 @@ class AiStressUser(HttpUser):
                 logging.debug("Got response...........................")
 
                 if resp.status_code >= 200 and resp.status_code < 400:
-                    first_token_ts = None
-                    client = sseclient.SSEClient(resp)
-                    complete_response = ""
-                    for event in client.events():
-                        if event.data == "[DONE]":
-                            break
-                        else:
-                            if first_token_ts is None:
-                                first_token_ts = time.perf_counter()
-                            chunk = event.data.strip()
-                            if chunk.startswith("b'") and chunk.endswith("'"):
-                                chunk = chunk[2:-1]
-                        complete_response += chunk
-                    end_ts = time.perf_counter()
-                    respData = {
-                        "response_string": complete_response,
-                        "first_token_latency": first_token_ts - start_ts,
-                        "total_latency": end_ts - start_ts,
-                    }
+                    if self.environment.parsed_options.bench_target in [
+                        "audioqnafixed",
+                        "audioqnabench",
+                    ]:  # non-stream case
+                        respData = {
+                            "response_string": resp.text,
+                            "first_token_latency": time.perf_counter() - start_ts,
+                            "total_latency": time.perf_counter() - start_ts,
+                        }
+                    else:
+                        first_token_ts = None
+                        client = sseclient.SSEClient(resp)
+                        complete_response = ""
+                        for event in client.events():
+                            if event.data == "[DONE]":
+                                break
+                            else:
+                                if first_token_ts is None:
+                                    first_token_ts = time.perf_counter()
+                                chunk = event.data.strip()
+                                if chunk.startswith("b'") and chunk.endswith("'"):
+                                    chunk = chunk[2:-1]
+                            complete_response += chunk
+                        end_ts = time.perf_counter()
+                        respData = {
+                            "response_string": complete_response,
+                            "first_token_latency": first_token_ts - start_ts,
+                            "total_latency": end_ts - start_ts,
+                        }
                     reqdata = bench_package.respStatics(self.environment, reqData, respData)
                     logging.debug(f"Request data collected {reqdata}")
                     self.environment.runner.send_message("worker_reqdata", reqdata)
