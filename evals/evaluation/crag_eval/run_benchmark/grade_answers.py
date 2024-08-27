@@ -66,14 +66,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     data = pd.read_csv(os.path.join(args.filedir, args.filename))
-    # data = data.head(2)
-    print(data)
+
     if args.batch_grade:
         test_case = convert_data_format_for_ragas(data)
     else:
         test_case = make_list_of_test_cases(data)
     
-    print(test_case)
+    # print(test_case)
 
     scores = grade_answers(args, test_case)
 
@@ -82,9 +81,10 @@ if __name__ == '__main__':
         print("Aggregated answer correctness score: ", scores)
     else:
         data['answer_correctness'] = scores
+        print("Average answer correctness score: ", data['answer_correctness'].mean())
         output_file = args.filename.split('.')[0] + '_graded.csv'
         data.to_csv(os.path.join(args.filedir, output_file), index=False)
-        print("Scores saved to ", os.path.join(args.filedir, args.output))
+        print("Scores saved to ", os.path.join(args.filedir, output_file))
         
 
 

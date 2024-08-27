@@ -50,10 +50,7 @@ The CRAG dataset has more than 4000 queries, and running all of them can be very
 ```
 bash run_sample_data.sh
 ```
-4. Use the small subset that we have processed for a quick run
-```
-Small data files in this repo
-```
+
 ## Launch agent QnA system
 Here we showcase a RAG agent in GenAIExample repo. Please refer to the README in the AgentQnA example for more details. You can build your own agent systems using OPEA components, then expose your own systems as an endpoint for this benchmark.
 1. Build images
@@ -77,20 +74,19 @@ bash 4_launch_and_validate_agent.sh
 ```
 
 ## Run CRAG benchmark
-Once you have your agent system up and running, you can follow the steps below to run the benchmark.
-1. Generate answers with agent
-Change the variables in the script below and run the script. By default, it will run a sampled set of queries in music domain.
+Once you have your agent system up and running, the next step is to generate answers with agent. Change the variables in the script below and run the script. By default, it will run a sampled set of queries in music domain.
 ```
 cd $WORKDIR/GenAIEval/evals/evaluation/crag_eval/run_benchmark
 bash run_generate_answer.sh
 ```
-2. Use LLM-as-judge to grade the answers
-First, in another terminal, launch llm endpoint with HF TGI
+
+## Use LLM-as-judge to grade the answers
+1. Launch llm endpoint with HF TGI: in another terminal, run the command below. By default, `meta-llama/Meta-Llama-3-70B-Instruct` is used as the LLM judge.
 ```
 cd llm_judge
 bash launch_llm_judge_endpoint.sh
 ```
-Validate that the llm endpoint is working properly.
+2. Validate that the llm endpoint is working properly.
 ```
 export host_ip=$(hostname -I | awk '{print $1}')
 curl ${host_ip}:8085/generate_stream \
@@ -98,8 +94,14 @@ curl ${host_ip}:8085/generate_stream \
     -d '{"inputs":"What is Deep Learning?","parameters":{"max_new_tokens":20}}' \
     -H 'Content-Type: application/json'
 ```
-Second, back to the interactive crag-eval docker, run command below
+And then go back to the interactive crag-eval docker, run command below.
 ```
+cd $WORKDIR/GenAIEval/evals/evaluation/crag_eval/run_benchmark/llm_judge/
+python3 test_llm_endpoint.py
+```
+3. Grade the answer correctness using LLM judge. We use `answer_correctness` metrics from [ragas](https://github.com/explodinggradients/ragas/blob/main/src/ragas/metrics/_answer_correctness.py).
+```
+cd $WORKDIR/GenAIEval/evals/evaluation/crag_eval/run_benchmark/
 bash run_grading.sh
 ```
 
