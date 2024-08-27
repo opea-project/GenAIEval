@@ -47,8 +47,8 @@ def getReqData():
     return {"audio": base64_str, "max_tokens": 64}
 
 
-def respStatics(environment, resp):
-    return token.respStatics(environment, resp)
+def respStatics(environment, reqData, resp):
+    return token.respStatics(environment, reqData, resp)
 
 
 def staticsOutput(environment, reqlist):
