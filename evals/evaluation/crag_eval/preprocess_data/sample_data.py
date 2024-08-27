@@ -27,6 +27,7 @@ if __name__ == "__main__":
 
     data_files = os.listdir(args.filedir)
     for file in tqdm.tqdm(data_files):
+        print(file)
         file = os.path.join(args.filedir, file)
         output_file = file.replace(".jsonl", "_sampled.jsonl")
         sample_data(file, output_file)

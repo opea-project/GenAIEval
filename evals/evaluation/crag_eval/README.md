@@ -45,17 +45,22 @@ Data preprocessing directly relates to the quality of retrieval corpus and thus 
 cd $WORKDIR/GenAIEval/evals/evaluation/crag_eval/preprocess_data
 bash run_data_preprocess.sh
 ```
-3. Optional - Sample queries for benchmark
+**Note**: This is an example of data processing. You can develop and optimize your own data processing for this benchmark.
+3. Sample queries for benchmark
 The CRAG dataset has more than 4000 queries, and running all of them can be very expensive and time-consuming. You can sample a subset for benchmark. Here we provide a script to sample up to 5 queries per question_type per dynamism in each domain. For example, we were able to get 92 queries from the music domain using the script.
 ```
 bash run_sample_data.sh
 ```
 
 ## Launch agent QnA system
-Here we showcase a RAG agent in GenAIExample repo. Please refer to the README in the AgentQnA example for more details. You can build your own agent systems using OPEA components, then expose your own systems as an endpoint for this benchmark.
+Here we showcase a RAG agent in GenAIExample repo. Please refer to the README in the [AgentQnA example](https://github.com/opea-project/GenAIExamples/tree/main/AgentQnA) for more details. </br>
+**Please note**: This is an example. You can build your own agent systems using OPEA components, then expose your own systems as an endpoint for this benchmark.</br>
+To launch the agent in our AgentQnA example, open another terminal and build images and launch agent system there.
 1. Build images
 ```
-git clone
+export $WORKDIR=<your-work-directory>
+cd $WORKDIR
+git clone https://github.com/opea-project/GenAIExamples.git
 cd GenAIExamples/AgentQnA/tests/
 bash 1_build_images.sh
 ```
@@ -65,17 +70,27 @@ bash 2_start_retrieval_tool.sh
 ```
 3. Ingest data into vector database and validate retrieval tool
 ```
-# Placeholder - may change depending on data
-bash 3_ingest_data_and_validate_retrieval.sh
+# As an example, we will use the index_data.py script in AgentQnA example.
+# You can write your own script to ingest data.
+# As an example, We will ingest the docs of the music domain.
+# We will use the crag-eval docker container to run the index_data.py script.
+# The index_data.py is a client script.
+# it will send data-indexing requests to the dataprep server that is part of the retrieval tool.
+# So you need to switch back to the terminal where the crag-eval container is running.
+cd $WORKDIR/GenAIExamples/AgentQnA/retrieval_tool/
+python3 index_data.py --host_ip $host_ip --filedir ${WORKDIR}/datasets/crag_docs/ --filename crag_docs_music.jsonl
 ```
-3. Launch and validate agent endpoint
+4. Launch and validate agent endpoint
 ```
+# Go to the terminal where you launched the AgentQnA example
+cd $WORKDIR/GenAIExamples/AgentQnA/tests/
 bash 4_launch_and_validate_agent.sh
 ```
 
 ## Run CRAG benchmark
 Once you have your agent system up and running, the next step is to generate answers with agent. Change the variables in the script below and run the script. By default, it will run a sampled set of queries in music domain.
 ```
+# Come back to the interactive crag-eval docker container
 cd $WORKDIR/GenAIEval/evals/evaluation/crag_eval/run_benchmark
 bash run_generate_answer.sh
 ```
@@ -96,11 +111,13 @@ curl ${host_ip}:8085/generate_stream \
 ```
 And then go back to the interactive crag-eval docker, run command below.
 ```
+# Inside the crag-eval container
 cd $WORKDIR/GenAIEval/evals/evaluation/crag_eval/run_benchmark/llm_judge/
 python3 test_llm_endpoint.py
 ```
 3. Grade the answer correctness using LLM judge. We use `answer_correctness` metrics from [ragas](https://github.com/explodinggradients/ragas/blob/main/src/ragas/metrics/_answer_correctness.py).
 ```
+# Inside the crag-eval container
 cd $WORKDIR/GenAIEval/evals/evaluation/crag_eval/run_benchmark/
 bash run_grading.sh
 ```

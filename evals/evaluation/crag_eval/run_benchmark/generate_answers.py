@@ -51,6 +51,9 @@ if __name__ == "__main__":
     df = get_test_data(args)
     # df = df.head() # for validation purpose
 
+    if not os.path.exists(os.path.dirname(args.output_file)):
+        os.makedirs(os.path.dirname(args.output_file))
+    
     output_list = []
     n = 0
     for _, row in df.iterrows():

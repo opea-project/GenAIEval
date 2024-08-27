@@ -64,7 +64,6 @@ def preprocess_data(input_file):
                 #         "domain": data['domain'],
                 #         "doc":chunk})
                 snippet.append({"query": data["query"], "domain": data["domain"], "doc": doc["page_snippet"]})
-                print("-----------------------------------")
 
             # qa pairs without search results
             output = {}
@@ -72,6 +71,10 @@ def preprocess_data(input_file):
                 if k != "search_results":
                     output[k] = v
             return_data.append(output)
+
+            n+=1
+            if n == 10:
+                break
 
     return snippet, return_data
 
