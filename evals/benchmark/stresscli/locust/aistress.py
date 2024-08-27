@@ -85,8 +85,15 @@ class AiStressUser(HttpUser):
                 logging.debug("Got response...........................")
 
                 if resp.status_code >= 200 and resp.status_code < 400:
-                    if self.environment.parsed_options.bench_target in ['audioqnafixed', 'audioqnabench']:#non-stream case
-                        respData = {"response_string": complete_response, "first_token_latency": time.perf_counter()-start_ts, "total_latency": time.perf_counter()-start_ts }
+                    if self.environment.parsed_options.bench_target in [
+                        "audioqnafixed",
+                        "audioqnabench",
+                    ]:  # non-stream case
+                        respData = {
+                            "response_string": complete_response,
+                            "first_token_latency": time.perf_counter() - start_ts,
+                            "total_latency": time.perf_counter() - start_ts,
+                        }
                     else:
                         first_token_ts = None
                         client = sseclient.SSEClient(resp)
