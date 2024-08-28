@@ -13,11 +13,11 @@ def getReqData():
         "query": "What is the revenue of Nike in last 10 years before 2023? Give me detail",
         "max_new_tokens": 128,
         "top_k": 10,
-        "top_p":0.95,
+        "top_p": 0.95,
         "typical_p": 0.95,
-        "temperature":0.01,
-        "repetition_penalty":1.03,
-        "streaming": True
+        "temperature": 0.01,
+        "repetition_penalty": 1.03,
+        "streaming": True,
     }
 
 
