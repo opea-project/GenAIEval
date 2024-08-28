@@ -36,7 +36,7 @@ Next, run Prometheus server `nohup ./prometheus --config.file=./prometheus.yml &
 
 You should now access `localhost:9090/targets?search=` to open the Prometheus UI.
 
-# 2. Setup Grafana
+## 2. Setup Grafana
 
 Grafana provides numerous dashboards to visualize data from a data source. Here we introduce how to visualize TGI metrics.
 
