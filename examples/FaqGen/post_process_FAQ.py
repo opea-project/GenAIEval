@@ -1,9 +1,12 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 import json
 
 faq_dict = {}
 fails = []
 for i in range(1204):
-    data = open(f"data/result/sqv2_faq_{i}","r").readlines()
+    data = open(f"data/result/sqv2_faq_{i}", "r").readlines()
     result = data[-6][6:]
     # print(result)
     if "LLMChain/final_output" not in result:

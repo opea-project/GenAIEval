@@ -1,3 +1,6 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 max_input_tokens=3072
 max_total_tokens=4096
 port_number=8082
@@ -23,5 +26,3 @@ docker run -it --rm \
     --max-total-tokens $max_total_tokens \
     --sharded true \
     --num-shard 2
-
-

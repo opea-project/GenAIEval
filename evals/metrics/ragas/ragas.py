@@ -56,8 +56,8 @@ class RagasMetric:
                 answer_similarity,
                 context_precision,
                 context_recall,
-                faithfulness,
                 context_utilization,
+                faithfulness,
                 reference_free_rubrics_score,
             )
 
