@@ -125,9 +125,7 @@ def staticsOutputForMicroservice(environment, reqlist):
         e2e_lat.append(req["total_latency"])
 
     # Statistics for success response data only
-    req_msg = (
-        "Succeed Response:  {} (Total {}, {:.1%} Success), Duration: {:.2f}s, RPS: {:.2f}"
-    )
+    req_msg = "Succeed Response:  {} (Total {}, {:.1%} Success), Duration: {:.2f}s, RPS: {:.2f}"
     e2e_msg = "End to End latency(ms),    P50: {:.2f},   P90: {:.2f},   P99: {:.2f},   Avg: {:.2f}"
     console_logger.warning("\n=================Total statistics=====================")
     console_logger.warning(

@@ -73,8 +73,16 @@ class AiStressUser(HttpUser):
             self.environment.runner.send_message("worker_reqsent", 1)
         reqData = bench_package.getReqData()
         url = bench_package.getUrl()
-        streaming_bench_target = ["llmfixed", "llmbench", "chatqnafixed", "chatqnabench",
-                                  "codegenfixed", "codegenbench", "faqgenfixed", "faqgenbench"]
+        streaming_bench_target = [
+            "llmfixed",
+            "llmbench",
+            "chatqnafixed",
+            "chatqnabench",
+            "codegenfixed",
+            "codegenbench",
+            "faqgenfixed",
+            "faqgenbench",
+        ]
         try:
             start_ts = time.perf_counter()
             with self.client.post(
@@ -87,8 +95,13 @@ class AiStressUser(HttpUser):
                 logging.debug("Got response...........................")
 
                 if resp.status_code >= 200 and resp.status_code < 400:
-                    if self.environment.parsed_options.bench_target in ["embedservefixed", "embeddingfixed", "retrieverfixed",
-                                                                        "rerankservefixed", "rerankingfixed"]:
+                    if self.environment.parsed_options.bench_target in [
+                        "embedservefixed",
+                        "embeddingfixed",
+                        "retrieverfixed",
+                        "rerankservefixed",
+                        "rerankingfixed",
+                    ]:
                         respData = {
                             "total_latency": time.perf_counter() - start_ts,
                         }
