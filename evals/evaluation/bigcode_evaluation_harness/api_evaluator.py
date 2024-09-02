@@ -1,9 +1,11 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 import inspect
 import json
 import warnings
 
 import aiohttp
-
 from bigcode_eval import tasks
 from bigcode_eval.evaluator import Evaluator
 
@@ -20,13 +22,16 @@ class APIEvaluator(Evaluator):
         # adjust n_tasks by args.limit_start to prevent out of bounds issues
         if not self.args.limit:
             n_tasks -= self.args.limit_start
-        references = [task.get_reference(dataset[i]) for i in
-                      range(self.args.limit_start, self.args.limit_start + n_tasks)]
+        references = [
+            task.get_reference(dataset[i]) for i in range(self.args.limit_start, self.args.limit_start + n_tasks)
+        ]
 
         if self.args.check_references:
             if "get_solution" in inspect.signature(task.get_reference).parameters:
-                solutions = [[task.get_reference(dataset[i], get_solution=True)] for i in
-                             range(self.args.limit_start, self.args.limit_start + n_tasks)]
+                solutions = [
+                    [task.get_reference(dataset[i], get_solution=True)]
+                    for i in range(self.args.limit_start, self.args.limit_start + n_tasks)
+                ]
             else:
                 solutions = [[ref] for ref in references]
             return solutions, references
@@ -41,7 +46,6 @@ class APIEvaluator(Evaluator):
             self.accelerator,
             n_tasks=n_tasks,
             args=self.args,
-
         )
 
         if len(generations[0]) > self.args.n_samples:
@@ -53,11 +57,11 @@ class APIEvaluator(Evaluator):
 
 
 def parallel_generations_by_api(
-        task,
-        dataset,
-        accelerator,
-        n_tasks,
-        args,
+    task,
+    dataset,
+    accelerator,
+    n_tasks,
+    args,
 ):
     if args.load_generations_path:
         # load generated code
@@ -73,8 +77,10 @@ def parallel_generations_by_api(
         assert "/codegen" in codegen_url, "Only OPEA codegen compatible APIs are supported"
         import asyncio
         import os
-        from tqdm.asyncio import tqdm
+
         import requests
+        from tqdm.asyncio import tqdm
+
         async def get_res(prompt):
             headers = {"Content-Type": "application/json"}
             data = {
@@ -95,6 +101,6 @@ def parallel_generations_by_api(
         responses = asyncio.run(tqdm.gather(*awaitables))
         generations = []
         for i, (prompt, response) in enumerate(zip(prompts, responses)):
-            texts = [prompt + choice["message"]["content"] for choice in json.loads(response)['choices']]
+            texts = [prompt + choice["message"]["content"] for choice in json.loads(response)["choices"]]
             generations.append([task.postprocess_generation(text, i) for text in texts])
         return generations

@@ -21,6 +21,7 @@ from accelerate import Accelerator
 from bigcode_eval.evaluator import Evaluator
 from bigcode_eval.tasks import ALL_TASKS
 from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer
+
 from evals.evaluation.bigcode_evaluation_harness.api_evaluator import APIEvaluator
 
 
@@ -73,7 +74,7 @@ def evaluate(args):
         # here we generate code using an OPEA codegen API
         if accelerator.is_main_process:
             print("OPEA codegen API generation mode")
-        evaluator =  APIEvaluator(accelerator, args.model, None, args)
+        evaluator = APIEvaluator(accelerator, args.model, None, args)
         for task in task_names:
             results[task] = evaluator.evaluate(task)
     else:
