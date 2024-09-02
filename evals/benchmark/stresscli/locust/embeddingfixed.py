@@ -21,4 +21,4 @@ def respStatics(environment, reqData, resp):
 
 
 def staticsOutput(environment, reqlist):
-    token.staticsMicroserviceOutput(environment, reqlist)
+    token.staticsOutputForMicroservice(environment, reqlist)
