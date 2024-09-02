@@ -204,6 +204,11 @@ def setup_parser():
         action="store_true",
         help="Don't run generation but benchmark groundtruth (useful for debugging)",
     )
+    parser.add_argument(
+        "--codegen_url",
+        default=None,
+        help="Base URL to use OPEA Codegen API,",
+    )
     return parser.parse_args()
 
 
