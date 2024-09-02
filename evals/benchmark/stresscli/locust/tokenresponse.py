@@ -112,3 +112,69 @@ def staticsOutput(environment, reqlist):
         console_logger.warning(average_msg.format(numpy.average(avg_token)))
     console_logger.warning("======================================================\n\n")
     logging.shutdown()
+
+
+def staticsMicroserviceOutput(environment, reqlist):
+    avg_token = []
+    e2e_lat = []
+    tokens_input = 0
+    tokens_output = 0
+    duration = environment.runner.stats.last_request_timestamp - environment.runner.stats.start_time
+
+    if len(reqlist) == 0:
+        logging.debug(f"len(reqlist): {len(reqlist)}, skip printing")
+        return
+    for req in iter(reqlist):
+        if req["tokens_output"] != 0:
+            avg_token.append((req["total_latency"]) / req["tokens_input"])
+        e2e_lat.append(req["total_latency"])
+        tokens_output += req["tokens_output"]
+        tokens_input += req["tokens_input"]
+
+    # Statistics for success response data only
+    if tokens_output == 0:
+        req_msg = "Succeed Response:  {} (Total {}, {:.1%} Success), Duration: {:.2f}s, RPS: {:.2f}"
+    else:
+        req_msg = (
+            "Succeed Response:  {} (Total {}, {:.1%} Success), Duration: {:.2f}s, Input Tokens: {},"
+            " Output Tokens: {}, RPS: {:.2f}, Input Tokens per Second: {:.2f}, Output Tokens per Second: {:.2f}"
+        )
+    e2e_msg = "End to End latency(ms),    P50: {:.2f},   P90: {:.2f},   P99: {:.2f},   Avg: {:.2f}"
+    average_msg = "Average token latency(ms)     : {:.2f}"
+    console_logger.warning("\n=================Total statistics=====================")
+    if tokens_output == 0:
+        console_logger.warning(
+            req_msg.format(
+                len(reqlist),
+                environment.runner.stats.num_requests,
+                len(reqlist) / environment.runner.stats.num_requests,
+                duration,
+                len(reqlist) / duration,
+            )
+        )
+    else:
+        console_logger.warning(
+            req_msg.format(
+                len(reqlist),
+                environment.runner.stats.num_requests,
+                len(reqlist) / environment.runner.stats.num_requests,
+                duration,
+                tokens_input,
+                tokens_output,
+                len(reqlist) / duration,
+                tokens_input / duration,
+                tokens_output / duration,
+            )
+        )
+    console_logger.warning(
+        e2e_msg.format(
+            numpy.percentile(e2e_lat, 50),
+            numpy.percentile(e2e_lat, 90),
+            numpy.percentile(e2e_lat, 99),
+            numpy.average(e2e_lat),
+        )
+    )
+    if tokens_output != 0:
+        console_logger.warning(average_msg.format(numpy.average(avg_token)))
+    console_logger.warning("======================================================\n\n")
+    logging.shutdown()

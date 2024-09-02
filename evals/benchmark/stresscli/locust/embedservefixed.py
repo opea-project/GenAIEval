@@ -14,9 +14,13 @@ def getReqData():
     }
 
 
-def respStatics(environment, resp):
-    return token.respStatics(environment, resp)
+def respStatics(environment, reqData, resp):
+    return {
+        "tokens_input": resp.prompt_tokens,
+        "tokens_output": len(resp.response_string),
+        "total_latency": resp["total_latency"] * 1000,
+    }
 
 
 def staticsOutput(environment, reqlist):
-    token.staticsOutput(environment, reqlist)
+    token.staticsMicroserviceOutput(environment, reqlist)
