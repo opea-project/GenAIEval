@@ -17,9 +17,12 @@ def getReqData():
     return ({"initial_query": my_query, "retrieved_docs": [{"text": query_rerank_1}, {"text": query_rerank_2}]},)
 
 
-def respStatics(environment, resp):
-    return token.respStatics(environment, resp)
+def respStatics(environment, reqData, resp):
+    return {
+        "total_latency": resp["total_latency"] * 1000,
+    }
 
 
 def staticsOutput(environment, reqlist):
-    token.staticsOutput(environment, reqlist)
+    token.staticsOutputForMicroservice(environment, reqlist)
+

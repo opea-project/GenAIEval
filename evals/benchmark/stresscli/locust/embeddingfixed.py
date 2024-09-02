@@ -16,8 +16,6 @@ def getReqData():
 
 def respStatics(environment, reqData, resp):
     return {
-        "tokens_input": resp.prompt_tokens,
-        "tokens_output": len(resp.response_string),
         "total_latency": resp["total_latency"] * 1000,
     }
 

@@ -87,10 +87,9 @@ class AiStressUser(HttpUser):
                 logging.debug("Got response...........................")
 
                 if resp.status_code >= 200 and resp.status_code < 400:
-                    if self.environment.parsed_options.bench_target in ["embedservefixed", "embeddingfixed"]:
+                    if self.environment.parsed_options.bench_target in ["embedservefixed", "embeddingfixed", "retrieverfixed",
+                                                                        "rerankservefixed", "rerankingfixed"]:
                         respData = {
-                            "response_string": resp.text["data"][0]["embedding"],
-                            "prompt_tokens": resp.text["usage"]["prompt_tokens"],
                             "total_latency": time.perf_counter() - start_ts,
                         }
                     elif self.environment.parsed_options.bench_target in [
