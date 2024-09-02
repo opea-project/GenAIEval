@@ -118,7 +118,6 @@ class RagasMetric:
                 answer_correctness,
                 answer_similarity,
                 context_precision,
-                context_relevancy,
                 context_recall,
             ]
 
