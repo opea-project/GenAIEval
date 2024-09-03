@@ -9,7 +9,10 @@ def getUrl():
 
 
 def getReqData():
-    return {"messages": "What is the revenue of Nike in last 10 years before 2023? Give me detail", "max_tokens": 128}
+    return {
+        "messages": "In a world where technology has advanced beyond our wildest dreams, humanity stands on the brink of a new era. The year is 2050, and artificial intelligence has become an integral part of everyday life. Autonomous vehicles zip through the streets, drones deliver packages with pinpoint accuracy, and smart homes anticipate every need of their inhabitants. But with these advancements come new challenges and ethical dilemmas. As society grapples with the implications of AI, questions about privacy, security, and the nature of consciousness itself come to the forefront. Please answer me about what is artificial intelligence.",
+        "max_tokens": 128,
+    }
 
 
 def respStatics(environment, reqData, respData):
