@@ -64,7 +64,7 @@ def staticsOutput(environment, reqlist):
         )
     e2e_msg = "End to End latency(ms),    P50: {:.2f},   P90: {:.2f},   P99: {:.2f},   Avg: {:.2f}"
     first_msg = "First token latency(ms),   P50: {:.2f},   P90: {:.2f},   P99: {:.2f},   Avg: {:.2f}"
-    next_msg = "Average Next token latency(ms): {:.2f}"
+    next_msg = "Next token latency(ms),   P50: {:.2f},   P90: {:.2f},   P99: {:.2f},   Avg: {:.2f}"
     average_msg = "Average token latency(ms)     : {:.2f}"
     console_logger.warning("\n=================Total statistics=====================")
     if tokens_output == 0:
@@ -108,7 +108,14 @@ def staticsOutput(environment, reqlist):
                 numpy.average(first_token),
             )
         )
-        console_logger.warning(next_msg.format(numpy.average(next_token)))
+        console_logger.warning(
+            next_msg.format(
+                numpy.percentile(next_token, 50),
+                numpy.percentile(next_token, 90),
+                numpy.percentile(next_token, 99),
+                numpy.average(next_token),
+            )
+        )
         console_logger.warning(average_msg.format(numpy.average(avg_token)))
     console_logger.warning("======================================================\n\n")
     logging.shutdown()
