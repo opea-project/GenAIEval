@@ -175,9 +175,7 @@ def process_service(example, service_type, case_data, test_suite_config):
     service = case_data.get(service_type)
     if service and service.get("run_test"):
         print(f"[OPEA BENCHMARK] 🚀 Example: {example} Service: {service.get('service_name')}, Running test...")
-        run_service_test(
-            example, service_type, service, test_suite_config
-        )
+        run_service_test(example, service_type, service, test_suite_config)
 
 
 if __name__ == "__main__":
