@@ -258,6 +258,7 @@ class BigcodeEvalParser:
         check_references=False,
         user_model=None,  # used for pass model object
         tokenizer=None,  # used for pass tokenizer object
+        codegen_url=None,
     ):
         self.prefix = prefix
         self.do_sample = do_sample
@@ -300,3 +301,4 @@ class BigcodeEvalParser:
         self.check_references = check_references
         self.user_model = user_model
         self.tokenizer = tokenizer
+        self.codegen_url = codegen_url
