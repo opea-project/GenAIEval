@@ -56,7 +56,7 @@ def extract_test_case_data(content):
     }
 
 
-def create_run_yaml_content(service_name, base_url, bench_target, concurrency, user_queries, test_suite_config):
+def create_run_yaml_content(service, base_url, bench_target, concurrency, user_queries, test_suite_config):
     """Create content for the run.yaml file."""
     return {
         "profile": {
@@ -71,6 +71,7 @@ def create_run_yaml_content(service_name, base_url, bench_target, concurrency, u
                 "bench-target": bench_target,
                 "run-time": test_suite_config["run_time"],
                 "service-metric-collect": test_suite_config["collect_service_metric"],
+                "service-list": service.get("service_list", []),
                 "llm-model": test_suite_config["llm_model"],
                 "deployment-type": test_suite_config["deployment_type"],
             },
@@ -79,10 +80,11 @@ def create_run_yaml_content(service_name, base_url, bench_target, concurrency, u
     }
 
 
-def create_and_save_run_yaml(example, deployment_type, service_type, service_name, base_url, test_suite_config, index):
+def create_and_save_run_yaml(example, deployment_type, service_type, service, base_url, test_suite_config, index):
     """Create and save the run.yaml file for the service being tested."""
     os.makedirs(test_suite_config["test_output_dir"], exist_ok=True)
 
+    service_name = service.get("service_name")
     run_yaml_paths = []
     for user_queries in test_suite_config["user_queries"]:
         concurrency = max(1, user_queries // test_suite_config["concurrent_level"])
@@ -92,7 +94,7 @@ def create_and_save_run_yaml(example, deployment_type, service_type, service_nam
         else:
             bench_target = f"{service_type}{'bench' if test_suite_config['random_prompt'] else 'fixed'}"
         run_yaml_content = create_run_yaml_content(
-            service_name, base_url, bench_target, concurrency, user_queries, test_suite_config
+            service, base_url, bench_target, concurrency, user_queries, test_suite_config
         )
 
         run_yaml_path = os.path.join(
@@ -135,7 +137,11 @@ def get_service_ip(service_name, deployment_type="k8s", service_ip=None, service
     return svc_ip, port
 
 
-def run_service_test(example, service_type, service_name, parameters, test_suite_config):
+def run_service_test(example, service_type, service, test_suite_config):
+
+    # Get the service name
+    service_name = service.get("service_name")
+
     # Get the deployment type from the test suite configuration
     deployment_type = test_suite_config.get("deployment_type", "k8s")
 
@@ -154,7 +160,7 @@ def run_service_test(example, service_type, service_name, parameters, test_suite
 
     # Create the run.yaml for the service
     run_yaml_paths = create_and_save_run_yaml(
-        example, deployment_type, service_type, service_name, base_url, test_suite_config, timestamp
+        example, deployment_type, service_type, service, base_url, test_suite_config, timestamp
     )
 
     # Run the test using locust_runtests function
@@ -165,13 +171,11 @@ def run_service_test(example, service_type, service_name, parameters, test_suite
     print(f"[OPEA BENCHMARK] 🚀 Test completed for {service_name} at {url}")
 
 
-def process_service(example, service_name, case_data, test_suite_config):
-    service = case_data.get(service_name)
+def process_service(example, service_type, case_data, test_suite_config):
+    service = case_data.get(service_type)
     if service and service.get("run_test"):
         print(f"[OPEA BENCHMARK] 🚀 Example: {example} Service: {service.get('service_name')}, Running test...")
-        run_service_test(
-            example, service_name, service.get("service_name"), service.get("parameters", {}), test_suite_config
-        )
+        run_service_test(example, service_type, service, test_suite_config)
 
 
 if __name__ == "__main__":

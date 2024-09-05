@@ -56,6 +56,10 @@ test_cases:
     e2e:
       run_test: true
       service_name: "chatqna-backend-server-svc"  # Replace with your service name
+      service_list:  # Replace with your k8s service names for metrics collection,
+                     # activate if deployment_type is k8s and collect_service_metric is true
+        - "chatqna-tei"
+        - "chatqna-teirerank"
 
   codegen:
     llm:
