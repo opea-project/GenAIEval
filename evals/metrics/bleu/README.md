@@ -1,27 +1,4 @@
----
-title: BLEU
-emoji: 🤗 
-colorFrom: blue
-colorTo: red
-sdk: gradio
-sdk_version: 3.19.1
-app_file: app.py
-pinned: false
-tags:
-- evaluate
-- metric
-description: >-
-  BLEU (Bilingual Evaluation Understudy) is an algorithm for evaluating the quality of text which has been machine-translated from one natural language to another.
-  Quality is considered to be the correspondence between a machine's output and that of a human: "the closer a machine translation is to a professional human translation, the better it is"
-  – this is the central idea behind BLEU. BLEU was one of the first metrics to claim a high correlation with human judgements of quality, and remains one of the most popular automated and inexpensive metrics.
-
-  Scores are calculated for individual translated segments—generally sentences—by comparing them with a set of good quality reference translations.
-  Those scores are then averaged over the whole corpus to reach an estimate of the translation's overall quality.
-  Neither intelligibility nor grammatical correctness are not taken into account.
----
-
 # Metric Card for BLEU
-
 
 ## Metric Description
 BLEU (Bilingual Evaluation Understudy) is an algorithm for evaluating the quality of text which has been machine-translated from one natural language to another. Quality is considered to be the correspondence between a machine's output and that of a human: "the closer a machine translation is to a professional human translation, the better it is" – this is the central idea behind BLEU. BLEU was one of the first metrics to claim a high correlation with human judgements of quality, and remains one of the most popular automated and inexpensive metrics.
@@ -48,17 +25,20 @@ This metric takes as input a list of predicted sentences and a list of lists of 
 ```
 
 ### Inputs
+
 - **predictions** (`list` of `str`s): Translations to score.
 - **references** (`list` of `list`s of `str`s): references for each translation.
-- ** tokenizer** : approach used for standardizing `predictions` and `references`.
+- **tokenizer** : approach used for standardizing `predictions` and `references`.
     The default tokenizer is `tokenizer_13a`, a relatively minimal tokenization approach that is however equivalent to `mteval-v13a`, used by WMT.
     This can be replaced by another tokenizer from a source such as [SacreBLEU](https://github.com/mjpost/sacrebleu/tree/master/sacrebleu/tokenizers).
 
 The default tokenizer is based on whitespace and regexes. It can be replaced by any function that takes a string as input and returns a list of tokens as output. E.g. `word_tokenize()` from [NLTK](https://www.nltk.org/api/nltk.tokenize.html) or pretrained tokenizers from the [Tokenizers library](https://huggingface.co/docs/tokenizers/index).
+
 - **max_order** (`int`): Maximum n-gram order to use when computing BLEU score. Defaults to `4`.
 - **smooth** (`boolean`): Whether or not to apply Lin et al. 2004 smoothing. Defaults to `False`.
 
 ### Output Values
+
 - **bleu** (`float`): bleu score
 - **precisions** (`list` of `float`s): geometric mean of n-gram precisions,
 - **brevity_penalty** (`float`): brevity penalty,
