@@ -32,13 +32,14 @@ class RagasMetric:
         self.embeddings = embeddings
         self.metrics = metrics
         self.validated_list = [
-            "answer_relevancy",
-            "faithfulness",
             "answer_correctness",
+            "answer_relevancy",
             "answer_similarity",
             "context_precision",
-            "context_relevancy",
             "context_recall",
+            "faithfulness",
+            "context_utilization",
+            "reference_free_rubrics_score",
         ]
 
     async def a_measure(self, test_case: Dict):
@@ -55,8 +56,9 @@ class RagasMetric:
                 answer_similarity,
                 context_precision,
                 context_recall,
-                context_relevancy,
+                context_utilization,
                 faithfulness,
+                reference_free_rubrics_score,
             )
 
         except ModuleNotFoundError:
@@ -67,8 +69,14 @@ class RagasMetric:
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install dataset")
         self.metrics_instance = {
+            "answer_correctness": answer_correctness,
             "answer_relevancy": answer_relevancy,
+            "answer_similarity": answer_similarity,
+            "context_precision": context_precision,
+            "context_recall": context_recall,
             "faithfulness": faithfulness,
+            "context_utilization": context_utilization,
+            "reference_free_rubrics_score": reference_free_rubrics_score,
         }
 
         # Set LLM model
@@ -101,7 +109,7 @@ class RagasMetric:
                 else:
                     if metric == "answer_relevancy" and self.embeddings is None:
                         raise ValueError("answer_relevancy metric need provide embeddings model.")
-                    tmp_metrics.append(metric)
+                    tmp_metrics.append(self.metrics_instance[metric])
             self.metrics = tmp_metrics
         else:
             self.metrics = [
@@ -110,15 +118,14 @@ class RagasMetric:
                 answer_correctness,
                 answer_similarity,
                 context_precision,
-                context_relevancy,
                 context_recall,
             ]
 
         data = {
-            "question": test_case["input"],
-            "contexts": test_case["retrieval_context"],
-            "answer": test_case["actual_output"],
-            "ground_truth": test_case["expected_output"],
+            "question": test_case["question"],
+            "contexts": test_case["contexts"],
+            "answer": test_case["answer"],
+            "ground_truth": test_case["ground_truth"],
         }
         dataset = Dataset.from_dict(data)
 
