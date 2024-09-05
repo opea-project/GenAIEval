@@ -20,7 +20,7 @@ except:
 
 
 def getUrl():
-    return "/v1/chatqna"
+    return "/v1/codegen"
 
 
 def getReqData():
