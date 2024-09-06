@@ -219,7 +219,10 @@ def args_parser():
         "--embedding_endpoint", type=str, default="http://localhost:6000/v1/embeddings", help="Service URL address."
     )
     parser.add_argument(
-        "--tei_embedding_endpoint", type=str, default="http://localhost:8090", help="Service URL address of tei embedding."
+        "--tei_embedding_endpoint",
+        type=str,
+        default="http://localhost:8090",
+        help="Service URL address of tei embedding.",
     )
     parser.add_argument(
         "--retrieval_endpoint", type=str, default="http://localhost:7000/v1/retrieval", help="Service URL address."
