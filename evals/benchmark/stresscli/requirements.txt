@@ -1,5 +1,6 @@
 click
 deepdiff
+docker
 flask
 kubernetes
 locust
@@ -7,4 +8,3 @@ numpy
 pytest
 pyyaml
 requests
-docker

@@ -82,7 +82,6 @@ def collect_metrics(collector, services, output_dir, namespace=None):
             services=services,
             output_dir=output_dir,
             restart_pods_flag=False,
-
         )
     else:
         # If namespace is not provided, call without namespace
@@ -175,10 +174,12 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         services = global_settings.get("service-list") or []
         if runspec["deployment-type"] == "k8s":
             from .metrics import MetricsCollector
+
             collector = MetricsCollector()
             collect_metrics(collector, services, start_output_folder, namespace)
         elif runspec["deployment-type"] == "docker":
             from .metrics_docker import DockerMetricsCollector
+
             collector = DockerMetricsCollector()
             collect_metrics(collector, services, start_output_folder)
 
@@ -188,6 +189,7 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
 
     if service_metric:
         from .metrics_util import export_metric
+
         services = global_settings.get("service-list") or []
         if runspec["deployment-type"] == "k8s":
             collect_metrics(collector, services, end_output_folder, namespace)

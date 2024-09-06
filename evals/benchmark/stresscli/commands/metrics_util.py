@@ -117,7 +117,7 @@ def calculate_diff(start_dir, end_dir, output_dir, services=None):
 
     for service_name in services:
         # Create a regex pattern to match files starting with the service_name followed by symbol @
-        pattern = rf'^{re.escape(service_name)}@.*\.txt$'
+        pattern = rf"^{re.escape(service_name)}@.*\.txt$"
 
         start_service_files = [f for f in start_files if re.match(pattern, f)]
         end_service_files = [f for f in end_files if re.match(pattern, f)]

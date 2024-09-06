@@ -1,20 +1,26 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 import json
-import docker
-import requests
 import logging
 import os
 import time
 
+import requests
+
+import docker
+
 # Setup logs
 log_level = os.getenv("LOG_LEVEL", "ERROR").upper()
 logging.basicConfig(level=getattr(logging, log_level))
+
 
 class DockerMetricsCollector:
     def __init__(self):
         self.docker_client = docker.from_env()
 
     def get_docker_container(self, container_name):
-        """Retrieve Docker container information"""
+        """Retrieve Docker container information."""
         try:
             container = self.docker_client.containers.get(container_name)
             logging.info(f"Found Docker container {container_name}")
@@ -24,24 +30,28 @@ class DockerMetricsCollector:
             return None
 
     def get_exposed_port(self, container):
-        """Get the port exposed to the external environment by the Docker container"""
+        """Get the port exposed to the external environment by the Docker container."""
         try:
             # Retrieve ports in JSON format
-            ports_json = container.attrs['NetworkSettings']['Ports']
+            ports_json = container.attrs["NetworkSettings"]["Ports"]
             logging.debug(f"Container ports: {ports_json}")
 
             # Parse the ports to find the host port
             for container_port, host_infos in ports_json.items():
                 for host_info in host_infos:
-                    host_ip = host_info['HostIp']
-                    host_port = host_info['HostPort']
+                    host_ip = host_info["HostIp"]
+                    host_port = host_info["HostPort"]
 
                     # Use localhost if the port is mapped to 0.0.0.0 or empty
-                    if host_ip in ['0.0.0.0', '']:
-                        logging.debug(f"Found host port {host_port} for container port {container_port} (mapped to all interfaces)")
-                        return ('localhost', host_port)
+                    if host_ip in ["0.0.0.0", ""]:
+                        logging.debug(
+                            f"Found host port {host_port} for container port {container_port} (mapped to all interfaces)"
+                        )
+                        return ("localhost", host_port)
                     else:
-                        logging.debug(f"Found host port {host_port} for container port {container_port} (mapped to {host_ip})")
+                        logging.debug(
+                            f"Found host port {host_port} for container port {container_port} (mapped to {host_ip})"
+                        )
                         return (host_ip, host_port)
 
             logging.error("No valid host port found.")
@@ -51,7 +61,7 @@ class DockerMetricsCollector:
             return (None, None)
 
     def collect_metrics(self, container_name, metrics_path="/metrics"):
-        """Collect metrics from the Docker container"""
+        """Collect metrics from the Docker container."""
         container = self.get_docker_container(container_name)
         if container:
             try:
@@ -71,7 +81,7 @@ class DockerMetricsCollector:
         return None
 
     def start_collecting_data(self, services, output_dir="/data"):
-        """Start collecting metrics from services"""
+        """Start collecting metrics from services."""
         timestamp = int(time.time())
         for container_name in services:
             metrics = self.collect_metrics(container_name)
@@ -84,10 +94,18 @@ class DockerMetricsCollector:
                 logging.error(f"No metrics collected for container {container_name}")
         return {"status": "success"}
 
+
 if __name__ == "__main__":
     docker_collector = DockerMetricsCollector()
     result = docker_collector.start_collecting_data(
-        services=["llm-tgi-server", "retriever-redis-server", "embedding-tei-server", "tei-embedding-server", "tgi-service", "tei-reranking-server"],
+        services=[
+            "llm-tgi-server",
+            "retriever-redis-server",
+            "embedding-tei-server",
+            "tei-embedding-server",
+            "tgi-service",
+            "tei-reranking-server",
+        ],
         output_dir="/path/to/data",
     )
     print(result)
