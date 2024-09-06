@@ -59,7 +59,7 @@ To setup a LLM model, we can use [tgi-gaudi](https://github.com/huggingface/tgi-
 ```
 # please set your llm_port and hf_token
 
-docker run -p {your_llm_port}:80 --runtime=habana -e HABANA_VISIBLE_DEVICES=all -e PT_HPU_ENABLE_LAZY_COLLECTIVES=true -e OMPI_MCA_btl_vader_single_copy_mechanism=none -e HF_TOKEN={your_hf_token} --cap-add=sys_nice --ipc=host ghcr.io/huggingface/tgi-gaudi:2.0.1 --model-id mistralai/Mixtral-8x7B-Instruct-v0.1 --max-input-tokens 1024 --max-total-tokens 2048 --sharded true --num-shard 2
+docker run -p {your_llm_port}:80 --runtime=habana -e HABANA_VISIBLE_DEVICES=all -e PT_HPU_ENABLE_LAZY_COLLECTIVES=true -e OMPI_MCA_btl_vader_single_copy_mechanism=none -e HF_TOKEN={your_hf_token} --cap-add=sys_nice --ipc=host ghcr.io/huggingface/tgi-gaudi:2.0.1 --model-id mistralai/Mixtral-8x7B-Instruct-v0.1 --max-input-tokens 2048 --max-total-tokens 4096 --sharded true --num-shard 2
 ```
 
 ### Prepare Dataset
@@ -71,7 +71,7 @@ git clone https://github.com/yixuantt/MultiHop-RAG.git
 
 ### Evaluation
 
-Use below command to run the evaluation, please note that for the first run, argument `--ingest_docs` should be added in the command to ingest the documents into the vector database, while for the subsequent run, this argument should be omitted. Set `--retrieval_metrics` to get retrieval related metrics (MRR@10/MAP@10/Hits@10/Hits@4). Set `--ragas_metrics` and `--llm_endpoint` to get end-to-end rag pipeline metrics (faithfulness/answer_relevancy/...), which are judged by LLMs. 
+Use below command to run the evaluation, please note that for the first run, argument `--ingest_docs` should be added in the command to ingest the documents into the vector database, while for the subsequent run, this argument should be omitted. Set `--retrieval_metrics` to get retrieval related metrics (MRR@10/MAP@10/Hits@10/Hits@4). Set `--ragas_metrics` and `--llm_endpoint` to get end-to-end rag pipeline metrics (faithfulness/answer_relevancy/...), which are judged by LLMs. We set `--limits` is 100 as default, which means only 100 examples are evaluated by llm-as-judge as it is very time consuming.
 
 ```bash
 python eval_multihop.py --docs_path MultiHop-RAG/dataset/corpus.json  --dataset_path MultiHop-RAG/dataset/MultiHopRAG.json --ingest_docs --retrieval_metrics --ragas_metrics --llm_endpoint http://{your_ip}:{your_llm_port}/generate
