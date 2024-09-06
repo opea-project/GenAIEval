@@ -119,3 +119,38 @@ def staticsOutput(environment, reqlist):
         console_logger.warning(average_msg.format(numpy.average(avg_token)))
     console_logger.warning("======================================================\n\n")
     logging.shutdown()
+
+
+def staticsOutputForMicroservice(environment, reqlist):
+    e2e_lat = []
+    duration = environment.runner.stats.last_request_timestamp - environment.runner.stats.start_time
+
+    if len(reqlist) == 0:
+        logging.debug(f"len(reqlist): {len(reqlist)}, skip printing")
+        return
+    for req in iter(reqlist):
+        e2e_lat.append(req["total_latency"])
+
+    # Statistics for success response data only
+    req_msg = "Succeed Response:  {} (Total {}, {:.1%} Success), Duration: {:.2f}s, RPS: {:.2f}"
+    e2e_msg = "End to End latency(ms),    P50: {:.2f},   P90: {:.2f},   P99: {:.2f},   Avg: {:.2f}"
+    console_logger.warning("\n=================Total statistics=====================")
+    console_logger.warning(
+        req_msg.format(
+            len(reqlist),
+            environment.runner.stats.num_requests,
+            len(reqlist) / environment.runner.stats.num_requests,
+            duration,
+            len(reqlist) / duration,
+        )
+    )
+    console_logger.warning(
+        e2e_msg.format(
+            numpy.percentile(e2e_lat, 50),
+            numpy.percentile(e2e_lat, 90),
+            numpy.percentile(e2e_lat, 99),
+            numpy.average(e2e_lat),
+        )
+    )
+    console_logger.warning("======================================================\n\n")
+    logging.shutdown()

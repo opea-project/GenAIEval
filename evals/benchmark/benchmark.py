@@ -11,25 +11,25 @@ from utils import get_service_cluster_ip, load_yaml
 service_endpoints = {
     "chatqna": {
         "embedding": "/v1/embeddings",
-        "embedding_serving": "/v1/embeddings",
+        "embedserve": "/v1/embeddings",
         "retriever": "/v1/retrieval",
         "reranking": "/v1/reranking",
-        "reranking_serving": "/rerank",
+        "rerankserve": "/rerank",
         "llm": "/v1/chat/completions",
-        "llm_serving": "/v1/chat/completions",
+        "llmserve": "/v1/chat/completions",
         "e2e": "/v1/chatqna",
     },
-    "codegen": {"llm": "/generate_stream", "llm_serving": "/v1/chat/completions", "e2e": "/v1/codegen"},
-    "codetrans": {"llm": "/generate", "llm_serving": "/v1/chat/completions", "e2e": "/v1/codetrans"},
-    "faqgen": {"llm": "/v1/chat/completions", "llm_serving": "/v1/chat/completions", "e2e": "/v1/faqgen"},
+    "codegen": {"llm": "/generate_stream", "llmserve": "/v1/chat/completions", "e2e": "/v1/codegen"},
+    "codetrans": {"llm": "/generate", "llmserve": "/v1/chat/completions", "e2e": "/v1/codetrans"},
+    "faqgen": {"llm": "/v1/chat/completions", "llmserve": "/v1/chat/completions", "e2e": "/v1/faqgen"},
     "audioqna": {
         "asr": "/v1/audio/transcriptions",
         "llm": "/v1/chat/completions",
-        "llm_serving": "/v1/chat/completions",
+        "llmserve": "/v1/chat/completions",
         "tts": "/v1/audio/speech",
         "e2e": "/v1/audioqna",
     },
-    "visualqna": {"lvm": "/v1/chat/completions", "lvm_serving": "/v1/chat/completions", "e2e": "/v1/visualqna"},
+    "visualqna": {"lvm": "/v1/chat/completions", "lvmserve": "/v1/chat/completions", "e2e": "/v1/visualqna"},
 }
 
 
@@ -200,19 +200,19 @@ if __name__ == "__main__":
     example_service_map = {
         "chatqna": [
             "embedding",
-            "embedding_serving",
+            "embedserve",
             "retriever",
             "reranking",
-            "reranking_serving",
+            "rerankserve",
             "llm",
-            "llm_serving",
+            "llmserve",
             "e2e",
         ],
-        "codegen": ["llm", "llm_serving", "e2e"],
-        "codetrans": ["llm", "llm_serving", "e2e"],
-        "faqgen": ["llm", "llm_serving", "e2e"],
-        "audioqna": ["asr", "llm", "llm_serving", "tts", "e2e"],
-        "visualqna": ["lvm", "lvm_serving", "e2e"],
+        "codegen": ["llm", "llmserve", "e2e"],
+        "codetrans": ["llm", "llmserve", "e2e"],
+        "faqgen": ["llm", "llmserve", "e2e"],
+        "audioqna": ["asr", "llm", "llmserve", "tts", "e2e"],
+        "visualqna": ["lvm", "lvmserve", "e2e"],
     }
 
     # Process each example's services

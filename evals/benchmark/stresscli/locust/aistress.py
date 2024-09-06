@@ -73,12 +73,22 @@ class AiStressUser(HttpUser):
             self.environment.runner.send_message("worker_reqsent", 1)
         reqData = bench_package.getReqData()
         url = bench_package.getUrl()
+        streaming_bench_target = [
+            "llmfixed",
+            "llmbench",
+            "chatqnafixed",
+            "chatqnabench",
+            "codegenfixed",
+            "codegenbench",
+            "faqgenfixed",
+            "faqgenbench",
+        ]
         try:
             start_ts = time.perf_counter()
             with self.client.post(
                 url,
                 json=reqData,
-                stream=True,
+                stream=True if self.environment.parsed_options.bench_target in streaming_bench_target else False,
                 catch_response=True,
                 timeout=self.environment.parsed_options.http_timeout,
             ) as resp:
@@ -86,6 +96,16 @@ class AiStressUser(HttpUser):
 
                 if resp.status_code >= 200 and resp.status_code < 400:
                     if self.environment.parsed_options.bench_target in [
+                        "embedservefixed",
+                        "embeddingfixed",
+                        "retrieverfixed",
+                        "rerankservefixed",
+                        "rerankingfixed",
+                    ]:
+                        respData = {
+                            "total_latency": time.perf_counter() - start_ts,
+                        }
+                    elif self.environment.parsed_options.bench_target in [
                         "audioqnafixed",
                         "audioqnabench",
                     ]:  # non-stream case
