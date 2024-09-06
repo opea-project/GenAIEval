@@ -1,7 +1,7 @@
 # Code owners will review PRs within their respective folders. 
 # Typically, ownership is organized at the second-level subdirectory under the homepage
+/*/ kaokao.lv@intel.com
 /evals/benchmark/ liang1.lv@intel.com 
 /evals/evaluation/ kaokao.lv@intel.com
 /evals/metrics/ xinyu.ye@intel.com
 /tests/ kaokao.lv@intel.com
-/*/ kaokao.lv@intel.com
