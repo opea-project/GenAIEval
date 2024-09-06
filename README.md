@@ -69,27 +69,27 @@ results = evaluate(args)
 
 1. setup a separate server with [GenAIComps](https://github.com/opea-project/GenAIComps/tree/main/comps/llms/lm-eval)
 
-```
-# build cpu docker
-docker build -f Dockerfile.cpu -t opea/lm-eval:latest .
+   ```
+   # build cpu docker
+   docker build -f Dockerfile.cpu -t opea/lm-eval:latest .
 
-# start the server
-docker run -p 9006:9006 --ipc=host  -e MODEL="hf" -e MODEL_ARGS="pretrained=Intel/neural-chat-7b-v3-3" -e DEVICE="cpu" opea/lm-eval:latest
-```
+   # start the server
+   docker run -p 9006:9006 --ipc=host  -e MODEL="hf" -e MODEL_ARGS="pretrained=Intel/neural-chat-7b-v3-3" -e DEVICE="cpu" opea/lm-eval:latest
+   ```
 
 2. evaluate the model
 
-- set `base_url`, `tokenizer` and `--model genai-hf`
+   - set `base_url`, `tokenizer` and `--model genai-hf`
 
-```
-cd evals/evaluation/lm_evaluation_harness/examples
+     ```
+     cd evals/evaluation/lm_evaluation_harness/examples
 
-python main.py \
-    --model genai-hf \
-    --model_args "base_url=http://{your_ip}:9006,tokenizer=Intel/neural-chat-7b-v3-3" \
-    --tasks  "lambada_openai" \
-    --batch_size 2
-```
+     python main.py \
+         --model genai-hf \
+         --model_args "base_url=http://{your_ip}:9006,tokenizer=Intel/neural-chat-7b-v3-3" \
+         --tasks  "lambada_openai" \
+         --batch_size 2
+     ```
 
 ### bigcode-evaluation-harness
 For evaluating the models on coding tasks or specifically coding LLMs, we follow the [bigcode-evaluation-harness](https://github.com/bigcode-project/bigcode-evaluation-harness) and provide the command line usage and function call usage. [HumanEval](https://huggingface.co/datasets/openai_humaneval), [HumanEval+](https://huggingface.co/datasets/evalplus/humanevalplus), [InstructHumanEval](https://huggingface.co/datasets/codeparrot/instructhumaneval), [APPS](https://huggingface.co/datasets/codeparrot/apps), [MBPP](https://huggingface.co/datasets/mbpp), [MBPP+](https://huggingface.co/datasets/evalplus/mbppplus), and [DS-1000](https://github.com/HKUNLP/DS-1000/) for both completion (left-to-right) and insertion (FIM) mode are available.
@@ -104,6 +104,7 @@ python main.py \
     --batch_size 10 \
     --allow_code_execution
 ```
+
 #### function call usage
 ```python
 from evals.evaluation.bigcode_evaluation_harness import BigcodeEvalParser, evaluate
