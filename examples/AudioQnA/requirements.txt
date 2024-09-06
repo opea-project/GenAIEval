@@ -1,8 +1,8 @@
-transformers
-torch
 datasets
 evaluate
 jiwer
-soundfile
 librosa
 pydub
+soundfile
+torch
+transformers
