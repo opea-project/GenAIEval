@@ -16,6 +16,9 @@ class APIEvaluator(Evaluator):
         dataset = task.get_dataset()
         # if args.limit is None, use all samples
         # if args.limit is used, make sure args.limit_start + args.limit <= len(dataset)
+
+        # TODO: Only support running the entire task in its entirety now,
+        #       parameters limit or limit_start will result in inaccurate results.
         n_tasks = min(self.args.limit, len(dataset) - self.args.limit_start) if self.args.limit else len(dataset)
         print(n_tasks)
         # when args.limit is None
