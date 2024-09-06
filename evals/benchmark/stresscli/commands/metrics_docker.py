@@ -76,7 +76,7 @@ class DockerMetricsCollector:
         for container_name in services:
             metrics = self.collect_metrics(container_name)
             if metrics:
-                output_path = os.path.join(output_dir, f"{container_name}_{timestamp}.txt")
+                output_path = os.path.join(output_dir, f"{container_name}@{timestamp}.txt")
                 logging.debug(f"Writing Docker metrics to {output_path}")
                 with open(output_path, "w") as f:
                     f.write(metrics)
