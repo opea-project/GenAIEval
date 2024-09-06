@@ -45,7 +45,12 @@ underlying hardware topology.
 Warning: installing and reconfiguring the balloons policy can change
 allowed CPUs and memories of already running containers in the
 cluster. This may hurt containers that rely on the number of allowed
-CPUs being static.
+CPUs being static. Furthermore, if there are containers with gigabytes
+of memory allocated, reconfiguring the policy may cause the kernel to
+move large amounts of memory between NUMA nodes. This may cause
+extremely slow response times until moves have finished. Therefore, it
+is recommended that nodes are empty or relatively lightly loaded when
+new resource policy is applied.
 
 Install the balloons policy with helm:
 
@@ -61,9 +66,25 @@ Install the balloons policy with helm:
    ```
 
 Now the balloons policy is managing node resources in the cluster as a
-DaemonSet that communicates with the container runtime on every
-node. You should see `nri-resource-policy-balloons-...` pod running on
-every node.
+DaemonSet that communicates with the container runtime on every node.
+
+## Validate policy status
+
+The balloons policy is running on a node once you can find
+`nri-resource-policy-balloons-...` pod.
+
+```
+kubectl get pods -A -o wide | grep nri-resource-policy
+
+default   nri-resource-policy-balloons-v6bvq   1/1   Running   0   12s   10.0.0.136   spr-2   <none>   <none>
+```
+
+Status of the policy on each node in a cluster can be read from the
+balloonspolicy custom resource. For instance, see Status from
+
+```
+kubectl describe balloonspolicy default
+```
 
 ## Configure
 
@@ -78,7 +99,20 @@ application's Gaudi accelerated pipeline.
 
 In the
 [manifest](https://github.com/opea-project/GenAIExamples/blob/main/ChatQnA/kubernetes/manifests/gaudi/chatqna.yaml)
-there are "tgi" and "tei" containers that will need a lot of CPUs.
+there are "tgi", "tei" and "teirerank" containers in "chatqna-tgi" and
+"chatqna-tei" and "chatqna-teirerank" deployments that will need a lot
+of CPUs. They implement text-generation-interface and
+text-embeddings-interface services.
+
+Warning: an
+[issue](https://github.com/opea-project/GenAIExamples/issues/763) in
+the text-generation-interface causes bad performance when CPUs are
+managed. As a workaround, prevent CPU management of these containers
+by adding a pod annotation in both "chatqna-tei" and
+"chatqna-teirerank" deployments:
+```
+cpu.preserve.resource-policy.nri.io: "true"
+```
 
 A note on terminology: we refer to physical CPU cores as "CPU cores"
 and hyperthreads as vCPUs or just CPUs. When hyperthreading is on, the
@@ -116,8 +150,10 @@ spec:
     hideHyperthreads: true
     matchExpressions:
     - key: name
-      operator: Equals
-      values: ["tei"]
+      operator: In
+      values:
+      - tei
+      - teirerank
   - name: default
     hideHyperthreads: false
     namespaces:
@@ -198,14 +234,106 @@ For more information about the configuration and the balloons resource
 policy, refer to the balloons
 [documentation](https://containers.github.io/nri-plugins/stable/docs/resource-policy/policy/balloons.html).
 
+
+## Validate CPU affinity and hardware alignment in containers
+
+CPUs allowed in each container of the ChatQnA RAG pipeline can be
+listed by running grep in each container. Assuming that the pipeline
+is running in the "chatqna" namespace, this can be done as follows.
+
+```
+namespace=chatqna
+for pod in $(kubectl get pods -n $namespace -o name); do
+    echo $(kubectl exec -t -n $namespace $pod -- grep Cpus_allowed_list /proc/self/status) $pod
+done | sort
+
+Cpus_allowed_list: 0-30 chatqna-tgi-84c98dd9b7-26dhl
+Cpus_allowed_list: 32-39 chatqna-teirerank-7fd4d88d85-swjjv
+Cpus_allowed_list: 40-47 chatqna-tei-f5dd58487-vfv45
+Cpus_allowed_list: 56-62,120-126 chatqna-85fb984fb9-7rfrk
+Cpus_allowed_list: 56-62,120-126 chatqna-data-prep-5489d9b65d-szgth
+Cpus_allowed_list: 56-62,120-126 chatqna-embedding-usvc-64566dd669-hdr4k
+Cpus_allowed_list: 56-62,120-126 chatqna-llm-uservice-678dc9f98c-tvtqq
+Cpus_allowed_list: 56-62,120-126 chatqna-redis-vector-db-676fb75667-trqm6
+Cpus_allowed_list: 56-62,120-126 chatqna-reranking-usvc-74b5684cbc-28gdr
+Cpus_allowed_list: 56-62,120-126 chatqna-retriever-usvc-64fd64475b-f892k
+Cpus_allowed_list: 56-62,120-126 chatqna-ui-dd657bbf6-2wzhr
+```
+
+Alignment of allowed CPU sets with the underlying hardware topology
+can be validated by comparing above output to CPUs in each NUMA node.
+
+```
+lscpu | grep NUMA
+
+NUMA node(s):                       8
+NUMA node0 CPU(s):                  0-7,64-71
+NUMA node1 CPU(s):                  8-15,72-79
+NUMA node2 CPU(s):                  16-23,80-87
+NUMA node3 CPU(s):                  24-31,88-95
+NUMA node4 CPU(s):                  32-39,96-103
+NUMA node5 CPU(s):                  40-47,104-111
+NUMA node6 CPU(s):                  48-55,112-119
+NUMA node7 CPU(s):                  56-63,120-127
+```
+
+This shows that chatqna-tgi is executed on CPUs 0-30, that is, on NUMA
+nodes 0-3. All these NUMA nodes are located in the same CPU socket, as
+they have the same physical package id:
+
+```
+cat /sys/devices/system/node/node[0-3]/cpu*/topology/physical_package_id | sort -u
+0
+```
+
+The output also shows that chatqna-teirerank and chatqna-tei have been
+given CPUs from two separate NUMA nodes (4 and 5) from the other CPU socket.
+
+```
+cat /sys/devices/system/node/node[4-5]/cpu*/topology/physical_package_id | sort -u
+1
+```
+
+Finally, taking a deeper look into CPUs of chatqna-teirerank (32-39),
+we can find out that each of them is selected from a separate physical
+CPU core in NUMA node4. That is, there are no two vCPUs (hyperthreads)
+from the same core.
+
+```
+cat /sys/devices/system/node/node4/cpu3[2-9]/topology/core_id
+0
+1
+2
+3
+4
+5
+6
+7
+```
+
+## Remove a policy
+
+The balloons policy is uninstalled from the cluster with helm:
+
+```
+helm uninstall balloons
+```
+
+Note that removing the policy does not modify CPU affinity (cgroups
+cpuset.cpus files) of running containers. For that the containers need
+to be recreated or new policy installed.
+
 ## NRI topology-aware resource policy
 
 NRI plugins include the topology-aware resource policy, too. Unlike
 balloons, it does not require configuration to start with. Instead, it
 will create CPU pools for containers purely based on their resource
 requests and limits, that must be set for effective use of the
-policy. Yet container and node type-specific configuration
-possibilities are more limited, the policy works well for ensuring
-NUMA alignment and more. See the topology-aware policy
+policy. Containers in the
+[Guaranteed](https://kubernetes.io/docs/concepts/workloads/pods/pod-qos/#guaranteed)
+QoS class get dedicated CPUs. Yet container and node type-specific
+configuration possibilities are more limited, the policy works well
+for ensuring NUMA alignment and choosing CPUs with low latency access
+to accelerators like Gaudi cards. See the topology-aware policy
 [documentation](https://containers.github.io/nri-plugins/stable/docs/resource-policy/policy/topology-aware.html)
 for more information.
