@@ -1,5 +1,6 @@
 click
 deepdiff
+docker
 flask
 kubernetes
 locust
