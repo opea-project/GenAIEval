@@ -66,13 +66,30 @@ def locust_runtests(kubeconfig, profile):
         click.echo(f"Load test results saved to {base_folder}")
 
 
-def collect_metrics(collector, namespace, services, output_dir):
-    collector.start_collecting_data(
-        namespace=namespace,
-        services=services,
-        output_dir=output_dir,
-        restart_pods_flag=False,
-    )
+def collect_metrics(collector, services, output_dir, namespace=None):
+    """Collect metrics from the specified services and output directory.
+
+    Args:
+        collector: The metrics collector object.
+        services (list): A list of services to collect metrics from.
+        output_dir (str): The directory where metrics will be saved.
+        namespace (str, optional): The namespace for collecting metrics. Defaults to None.
+    """
+    if namespace:
+        # If namespace is provided, call with namespace
+        collector.start_collecting_data(
+            namespace=namespace,
+            services=services,
+            output_dir=output_dir,
+            restart_pods_flag=False,
+
+        )
+    else:
+        # If namespace is not provided, call without namespace
+        collector.start_collecting_data(
+            services=services,
+            output_dir=output_dir,
+        )
 
 
 def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, index):
@@ -154,20 +171,28 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
     print(f"Running test: {' '.join(cmd)}")
     namespace = runspec["namespace"]
 
-    if service_metric and runspec["deployment-type"] == "k8s":
-        from .metrics import MetricsCollector
-        from .metrics_util import export_metric
-
-        collector = MetricsCollector()
+    if service_metric:
         services = global_settings.get("service-list") or []
-        collect_metrics(collector, namespace, services, start_output_folder)
+        if runspec["deployment-type"] == "k8s":
+            from .metrics import MetricsCollector
+            collector = MetricsCollector()
+            collect_metrics(collector, services, start_output_folder, namespace)
+        elif runspec["deployment-type"] == "docker":
+            from .metrics_docker import DockerMetricsCollector
+            collector = DockerMetricsCollector()
+            collect_metrics(collector, services, start_output_folder)
 
     runspec["starttest_time"] = datetime.now().isoformat()
     result = subprocess.run(cmd, capture_output=True, text=True)
     runspec["endtest_time"] = datetime.now().isoformat()
 
-    if service_metric and runspec["deployment-type"] == "k8s":
-        collect_metrics(collector, namespace, services, end_output_folder)
+    if service_metric:
+        from .metrics_util import export_metric
+        services = global_settings.get("service-list") or []
+        if runspec["deployment-type"] == "k8s":
+            collect_metrics(collector, services, end_output_folder, namespace)
+        elif runspec["deployment-type"] == "docker":
+            collect_metrics(collector, services, end_output_folder)
         export_metric(start_output_folder, end_output_folder, metrics_output_folder, metrics_output, services)
 
     with open(json_output, "w") as json_file:
