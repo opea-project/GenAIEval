@@ -265,5 +265,3 @@ bash scripts/mmvet.sh
 
 
 ### Accuracy Result
-
-

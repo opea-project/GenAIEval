@@ -29,4 +29,3 @@ python3 scripts/convert_gqa_for_eval.py --src $output_file --dst $GQADIR/$SPLIT/
 cd $GQADIR
 python3 eval/eval_gqa.py --tier $SPLIT/${CKPT_NAME}/testdev_balanced \
                          --questions ${EVAL}/gqa/data/questions1.2/testdev_balanced_questions.json
-

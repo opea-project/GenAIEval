@@ -23,4 +23,3 @@ output_file=${EVAL}/vqav2/answers/$SPLIT/${CKPT_NAME}/merge.jsonl
 cat ${EVAL}/vqav2/answers/$SPLIT/${CKPT_NAME}/llava_evaljsonl >> "$output_file"
 
 python3 scripts/convert_vqav2_for_submission.py --split $SPLIT --ckpt ${CKPT_NAME} --dir ${EVAL}/vqav2
-

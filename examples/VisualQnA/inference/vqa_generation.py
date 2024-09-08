@@ -2,20 +2,20 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
-import requests
-import os
 import json
-from tqdm import tqdm
-import shortuuid
-
-from PIL import Image
 import math
+import os
+
+import requests
+import shortuuid
+from PIL import Image
+from tqdm import tqdm
 
 
 def split_list(lst, n):
-    """Split a list into n (roughly) equal-sized chunks"""
+    """Split a list into n (roughly) equal-sized chunks."""
     chunk_size = math.ceil(len(lst) / n)  # integer division
-    return [lst[i:i+chunk_size] for i in range(0, len(lst), chunk_size)]
+    return [lst[i : i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
 
 def get_chunk(lst, n, k):
@@ -36,49 +36,49 @@ def eval_model(args):
         idx = line["question_id"]
         cur_prompt = line["text"]
         image_file = line["image"]
-        
+
         # Construct the payload for the HTTP request
         payload = {
             "messages": [
                 {
                     "role": "user",
                     "content": [
-                        {
-                            "type": "text",
-                            "text": cur_prompt
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"http://{args.image_folder}/{image_file}"
-                            }
-                        }
-                    ]
+                        {"type": "text", "text": cur_prompt},
+                        {"type": "image_url", "image_url": {"url": f"http://{args.image_folder}/{image_file}"}},
+                    ],
                 }
             ],
-            "max_tokens": args.max_new_tokens
+            "max_tokens": args.max_new_tokens,
         }
 
         # Send the HTTP request to the VisualQnA service
-        response = requests.post(f"http://{args.host_ip}:8888/v1/visualqna",
-                                 headers={"Content-Type": "application/json"},
-                                 json=payload)
+        response = requests.post(
+            f"http://{args.host_ip}:8888/v1/visualqna", headers={"Content-Type": "application/json"}, json=payload
+        )
 
         if response.status_code == 200:
-            outputs = response.json()['choices'][0]['message']['content']
+            outputs = response.json()["choices"][0]["message"]["content"]
         else:
             print(f"Failed to get response from VisualQnA service: {response.status_code}")
             outputs = "Error in response"
 
         print(outputs)
         ans_id = shortuuid.uuid()
-        ans_file.write(json.dumps({"question_id": idx,
-                                   "prompt": cur_prompt,
-                                   "text": outputs,
-                                   "answer_id": ans_id,
-                                   "model_id": "visualqna_service",
-                                   "metadata": {}}) + "\n")
+        ans_file.write(
+            json.dumps(
+                {
+                    "question_id": idx,
+                    "prompt": cur_prompt,
+                    "text": outputs,
+                    "answer_id": ans_id,
+                    "model_id": "visualqna_service",
+                    "metadata": {},
+                }
+            )
+            + "\n"
+        )
     ans_file.close()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -92,4 +92,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     eval_model(args)
-

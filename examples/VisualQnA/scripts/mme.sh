@@ -19,4 +19,3 @@ python convert_answer_to_mme.py --experiment $CKPT_NAME
 cd eval_tool
 
 python calculation.py --results_dir answers/$CKPT_NAME
-

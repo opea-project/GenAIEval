@@ -17,20 +17,20 @@ class EvalAIAnswerProcessor:
 
     CONTRACTIONS = {
         "aint": "ain't",
-        "arent": "aren't",
-        "cant": "can't",
+        "aren't": "aren't",
+        "can't": "can't",
         "couldve": "could've",
-        "couldnt": "couldn't",
+        "couldn't": "couldn't",
         "couldn'tve": "couldn't've",
         "couldnt've": "couldn't've",
-        "didnt": "didn't",
+        "didn't": "didn't",
         "doesnt": "doesn't",
         "dont": "don't",
-        "hadnt": "hadn't",
+        "hadn't": "hadn't",
         "hadnt've": "hadn't've",
         "hadn'tve": "hadn't've",
-        "hasnt": "hasn't",
-        "havent": "haven't",
+        "hasn't": "hasn't",
+        "haven't": "haven't",
         "hed": "he'd",
         "hed've": "he'd've",
         "he'dve": "he'd've",
@@ -42,7 +42,7 @@ class EvalAIAnswerProcessor:
         "I'dve": "I'd've",
         "Im": "I'm",
         "Ive": "I've",
-        "isnt": "isn't",
+        "isn't": "isn't",
         "itd": "it'd",
         "itd've": "it'd've",
         "it'dve": "it'd've",
@@ -57,7 +57,7 @@ class EvalAIAnswerProcessor:
         "mustve": "must've",
         "neednt": "needn't",
         "notve": "not've",
-        "oclock": "o'clock",
+        "o'clock": "o'clock",
         "oughtnt": "oughtn't",
         "ow's'at": "'ow's'at",
         "'ows'at": "'ow's'at",
@@ -67,7 +67,7 @@ class EvalAIAnswerProcessor:
         "she'dve": "she'd've",
         "she's": "she's",
         "shouldve": "should've",
-        "shouldnt": "shouldn't",
+        "shouldn't": "shouldn't",
         "shouldnt've": "shouldn't've",
         "shouldn'tve": "shouldn't've",
         "somebody'd": "somebodyd",
@@ -84,12 +84,12 @@ class EvalAIAnswerProcessor:
         "somethingd've": "something'd've",
         "something'dve": "something'd've",
         "somethingll": "something'll",
-        "thats": "that's",
+        "that's": "that's",
         "thered": "there'd",
         "thered've": "there'd've",
         "there'dve": "there'd've",
         "therere": "there're",
-        "theres": "there's",
+        "there's": "there's",
         "theyd": "they'd",
         "theyd've": "they'd've",
         "they'dve": "they'd've",
@@ -97,14 +97,14 @@ class EvalAIAnswerProcessor:
         "theyre": "they're",
         "theyve": "they've",
         "twas": "'twas",
-        "wasnt": "wasn't",
+        "wasn't": "wasn't",
         "wed've": "we'd've",
         "we'dve": "we'd've",
         "weve": "we've",
-        "werent": "weren't",
+        "weren't": "weren't",
         "whatll": "what'll",
         "whatre": "what're",
-        "whats": "what's",
+        "what's": "what's",
         "whatve": "what've",
         "whens": "when's",
         "whered": "where'd",
@@ -119,9 +119,9 @@ class EvalAIAnswerProcessor:
         "whyll": "why'll",
         "whyre": "why're",
         "whys": "why's",
-        "wont": "won't",
+        "won't": "won't",
         "wouldve": "would've",
-        "wouldnt": "wouldn't",
+        "wouldn't": "wouldn't",
         "wouldnt've": "wouldn't've",
         "wouldn'tve": "wouldn't've",
         "yall": "y'all",
@@ -190,9 +190,7 @@ class EvalAIAnswerProcessor:
     def process_punctuation(self, in_text):
         out_text = in_text
         for p in self.PUNCTUATIONS:
-            if (p + " " in in_text or " " + p in in_text) or (
-                re.search(self.COMMA_STRIP, in_text) is not None
-            ):
+            if (p + " " in in_text or " " + p in in_text) or (re.search(self.COMMA_STRIP, in_text) is not None):
                 out_text = out_text.replace(p, "")
             else:
                 out_text = out_text.replace(p, " ")
@@ -227,9 +225,7 @@ class TextVQAAccuracyEvaluator:
         self.answer_processor = EvalAIAnswerProcessor()
 
     def _compute_answer_scores(self, raw_answers):
-        """
-        compute the accuracy (soft score) of human answers
-        """
+        """Compute the accuracy (soft score) of human answers."""
         answers = [self.answer_processor(a) for a in raw_answers]
         assert len(answers) == 10
         gt_answers = list(enumerate(answers))
@@ -240,9 +236,7 @@ class TextVQAAccuracyEvaluator:
             accs = []
             for gt_answer in gt_answers:
                 other_answers = [item for item in gt_answers if item != gt_answer]
-                matching_answers = [
-                    item for item in other_answers if item[1] == unique_answer
-                ]
+                matching_answers = [item for item in other_answers if item[1] == unique_answer]
                 acc = min(1, float(len(matching_answers)) / 3)
                 accs.append(acc)
             unique_answer_scores[unique_answer] = sum(accs) / len(accs)
@@ -293,9 +287,7 @@ class STVQAANLSEvaluator:
     def eval_pred_list(self, pred_list):
         pred_scores = []
         for entry in pred_list:
-            anls = max(
-                self.get_anls(entry["pred_answer"], gt) for gt in entry["gt_answers"]
-            )
+            anls = max(self.get_anls(entry["pred_answer"], gt) for gt in entry["gt_answers"])
             pred_scores.append(anls)
 
         accuracy = sum(pred_scores) / len(pred_scores)
@@ -336,4 +328,3 @@ class TextCapsBleu4Evaluator:
 
         bleu4 = score[3]  # score is (Bleu-1, Bleu-2, Bleu-3, Bleu-4)
         return bleu4
-

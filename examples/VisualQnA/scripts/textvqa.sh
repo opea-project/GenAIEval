@@ -16,4 +16,3 @@ python3 -m vqa_generation \
 python3 -m evals/evaluation/llava/eval_textvqa \
     --annotation-file ${EVAL}/textvqa/TextVQA_0.5.1_val.json \
     --result-file ${EVAL}/textvqa/answers/${CKPT_NAME}.jsonl
-

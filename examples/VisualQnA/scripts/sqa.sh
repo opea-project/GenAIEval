@@ -18,4 +18,3 @@ python3 evals/evaluation/llava/eval_science_qa.py \
     --result-file ${EVAL}/scienceqa/answers/${CKPT_NAME}.jsonl \
     --output-file ${EVAL}/scienceqa/answers/${CKPT_NAME}_output.jsonl \
     --output-result ${EVAL}/scienceqa/answers/${CKPT_NAME}_result.json
-
