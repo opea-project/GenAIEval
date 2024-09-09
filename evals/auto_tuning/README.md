@@ -162,7 +162,3 @@ For examples:
 ```
 
 The K8S manifests are generated in the current directory, alongside the strategy_files, which contain the deployment configurations. 
-
-
-
-

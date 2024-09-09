@@ -1,18 +1,21 @@
-import os
-import time
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 import argparse
-import subprocess
 import copy
-import logging
-import shutil
 import json
+import logging
+import os
+import shutil
+import subprocess
+import time
 
-from kubernetes.prepare_manifest import update_k8s_yaml
-from benchmark import send_concurrency_requests
 import tuning_utils
+from benchmark import send_concurrency_requests
+from kubernetes.prepare_manifest import update_k8s_yaml
 
-log_level = os.getenv('LOGLEVEL', 'INFO')
-logging.basicConfig(level=log_level.upper(), format='%(asctime)s - %(levelname)s - %(message)s')
+log_level = os.getenv("LOGLEVEL", "INFO")
+logging.basicConfig(level=log_level.upper(), format="%(asctime)s - %(levelname)s - %(message)s")
 
 
 def generate_base_config(megeservice_info, hardware_info, **kwargs):
@@ -25,27 +28,27 @@ def generate_base_config(megeservice_info, hardware_info, **kwargs):
         microservice_name = list(microservice_info.keys())[0]
         microservice_details = microservice_info[microservice_name]
         image_name = f"{microservice_name}:{microservice_details['tag']}"
-        type = microservice_details['type']
+        type = microservice_details["type"]
 
         def add_dependency(service_key, json_key):
-            if 'dependency' not in microservice_details:
+            if "dependency" not in microservice_details:
                 return
-            dependency = microservice_details['dependency']
+            dependency = microservice_details["dependency"]
 
             for key, value in dependency.items():
-                if hpu_exist and value['type'] == 'hpu':
+                if hpu_exist and value["type"] == "hpu":
                     image_name = f"{key}:{value['tag']}"
                     json_content[json_key] = {"type": "hpu", "image": image_name}
-                    if 'requirements' in value:
-                        json_content[json_key]["model_id"] = value['requirements']['model_id']
+                    if "requirements" in value:
+                        json_content[json_key]["model_id"] = value["requirements"]["model_id"]
                     return
 
             for key, value in dependency.items():
-                if value['type'] == 'cpu':
+                if value["type"] == "cpu":
                     image_name = f"{key}:{value['tag']}"
                     json_content[json_key] = {"type": "cpu", "image": image_name}
-                    if 'requirements' in value:
-                        json_content[json_key]["model_id"] = value['requirements']['model_id']
+                    if "requirements" in value:
+                        json_content[json_key]["model_id"] = value["requirements"]["model_id"]
                     break
 
         if service_name == "data_prep":
@@ -63,37 +66,37 @@ def generate_base_config(megeservice_info, hardware_info, **kwargs):
     for service_name, service_info in megeservice_info.get("opea_mega_service", {}).items():
         image_name = f"{service_name}:{service_info['tag']}"
         json_content["chatqna_mega_service"] = {"image": image_name}
-        if 'type' in service_info:
-            json_content["chatqna_mega_service"]["type"] = service_info['type']
+        if "type" in service_info:
+            json_content["chatqna_mega_service"]["type"] = service_info["type"]
 
     return json_content
 
 
 class ReplicaTuning:
-    llm_microservice_name = {'llm-microservice'}
-    llm_dependency_name = {'llm-dependency'}
+    llm_microservice_name = {"llm-microservice"}
+    llm_dependency_name = {"llm-dependency"}
 
-    guardrails_microservice_name = {'guardrails-microservice'}
-    guardrails_dependency_name = {'guardrails-dependency'}
+    guardrails_microservice_name = {"guardrails-microservice"}
+    guardrails_dependency_name = {"guardrails-dependency"}
 
     reranking_microservice_name = {"reranking-microservice"}
     reranking_dependency_name = {"reranking-dependency"}
 
-    embedding_dependency_name = {'embedding-dependency'}
-    embedding_microservice_name = {'embedding-microservice'}
+    embedding_dependency_name = {"embedding-dependency"}
+    embedding_microservice_name = {"embedding-microservice"}
 
-    tei_microservice_name = {'embedding-microservice'}
-    tei_dependency_name = {'embedding-dependency'}
+    tei_microservice_name = {"embedding-microservice"}
+    tei_dependency_name = {"embedding-dependency"}
 
-    vector_db_name = {'vector-db'}
-    dataprep_microservice_name = {'dataprep-microservice'}
+    vector_db_name = {"vector-db"}
+    dataprep_microservice_name = {"dataprep-microservice"}
 
-    retrieval_microservice_name = {'retrieval-microservice'}
-    chatqna_mega_service_name = {'chatqna_mega_service'}
+    retrieval_microservice_name = {"retrieval-microservice"}
+    chatqna_mega_service_name = {"chatqna_mega_service"}
 
     def _load_tuning_config(self, file_path):
         try:
-            with open(file_path, 'r') as f:
+            with open(file_path, "r") as f:
                 data = json.load(f)
         except FileNotFoundError:
             data = {}
@@ -146,13 +149,19 @@ class ReplicaTuning:
         self.strategy_version = 1
 
         self.embedding_replicas_list = [
-            i for i in range(self.embedding_replicas_min, self.embedding_replicas_max +
-                             1, self.embedding_replicas_granularity)
+            i
+            for i in range(
+                self.embedding_replicas_min, self.embedding_replicas_max + 1, self.embedding_replicas_granularity
+            )
         ]
 
         self.microservice_replicas_list = [
-            i for i in range(self.microservice_replicas_min, self.microservice_replicas_max +
-                             1, self.microservice_replicas_granularity)
+            i
+            for i in range(
+                self.microservice_replicas_min,
+                self.microservice_replicas_max + 1,
+                self.microservice_replicas_granularity,
+            )
         ]
 
         logging.info(f"embedding_replicas_list: {self.embedding_replicas_list}")
@@ -161,7 +170,8 @@ class ReplicaTuning:
     def _load_hardware_info(self):
         self.reserved_cores_by_default = 4
         self.total_cores, self.physcial_cores, self.max_cores_per_socket, self.total_sockets = self._get_cores_info(
-            self.hardware_info)
+            self.hardware_info
+        )
 
     def _load_tuning_parameters(self, tuning_config_data):
 
@@ -172,7 +182,7 @@ class ReplicaTuning:
 
         # Log all parameters
         log_info = {param: getattr(self, param) for param in param_names}
-        logging.info(f'Tuning Config Parameters: {log_info}')
+        logging.info(f"Tuning Config Parameters: {log_info}")
 
     def _get_cores_info(self, hardware_info):
         total_cores = 0
@@ -180,9 +190,9 @@ class ReplicaTuning:
         max_cores_per_socket = 0
         total_sockets = 0
         for device_key, device_info in hardware_info.items():
-            num_devices = len(device_info['ip'])
-            cores = device_info['cores_per_socket']
-            sockets = device_info['sockets']
+            num_devices = len(device_info["ip"])
+            cores = device_info["cores_per_socket"]
+            sockets = device_info["sockets"]
 
             total_sockets += sockets * num_devices
             total_cores += cores * sockets * num_devices
@@ -199,9 +209,9 @@ class ReplicaTuning:
     def _get_hpu_num_cards(self, hardware_info):
         num_cards = 0
         for device_key, device_info in hardware_info.items():
-            if device_info['type'] == 'hpu':
-                num_devices = len(device_info['ip'])
-                num_cards = device_info['num_cards'] * num_devices
+            if device_info["type"] == "hpu":
+                num_devices = len(device_info["ip"])
+                num_cards = device_info["num_cards"] * num_devices
 
         return num_cards
 
@@ -218,7 +228,7 @@ class ReplicaTuning:
         on_gaudi = False
         for service_name, service_config in config.items():
             if service_name in self.reranking_dependency_name:
-                if self.heterogeneous and service_config['type'] == 'hpu':
+                if self.heterogeneous and service_config["type"] == "hpu":
                     on_gaudi = True
                     break
 
@@ -234,7 +244,7 @@ class ReplicaTuning:
     def _is_heterogeneous(self, hardware_info):
         hpu_exist = False
         for _, device_info in hardware_info.items():
-            if device_info['type'] == 'hpu':
+            if device_info["type"] == "hpu":
                 hpu_exist = True
                 break
 
@@ -255,19 +265,19 @@ class ReplicaTuning:
     def _microservice_replicas_allocation_v1(self, config, num_replica=1):
         for service_name, service_config in config.items():
             if service_name in self.chatqna_mega_service_name:
-                service_config['replica'] = num_replica
+                service_config["replica"] = num_replica
 
         for service_name, service_config in config.items():
             if service_name in self.vector_db_name or service_name in self.dataprep_microservice_name:
-                service_config['replica'] = self.num_microservice_replca_by_default
+                service_config["replica"] = self.num_microservice_replca_by_default
 
             elif "microservice" in service_name:
                 if service_name in self.retrieval_microservice_name:
-                    service_config['replica'] = num_replica
+                    service_config["replica"] = num_replica
                     continue
                 else:
                     # the rest of microservice
-                    service_config['replica'] = num_replica
+                    service_config["replica"] = num_replica
 
     def _replicas_allocation_on_heterogeneous(self, config):
         output = []
@@ -277,33 +287,33 @@ class ReplicaTuning:
         num_cards = self.num_cards
         for service_name, service_config in config.items():
             if service_name in self.guardrails_dependency_name:
-                service_config['replica'] = 1
-                service_config['cards'] = 1
+                service_config["replica"] = 1
+                service_config["cards"] = 1
                 num_cards -= 1
 
         for service_name, service_config in config.items():
             if self.reranking_on_hpu and service_name in self.reranking_dependency_name:
-                service_config['replica'] = 1
-                service_config['cards'] = 1
+                service_config["replica"] = 1
+                service_config["cards"] = 1
                 num_cards -= 1
 
         for service_name, service_config in config.items():
             if service_name in self.llm_dependency_name:
-                if service_config['type'] == 'cpu':
-                    #TODO
-                    service_config['replica'] = 1
+                if service_config["type"] == "cpu":
+                    # TODO
+                    service_config["replica"] = 1
                     continue
                 else:
-                    service_config['replica'] = num_cards
-                    service_config['cards'] = max(num_cards // service_config['replica'], 1)
+                    service_config["replica"] = num_cards
+                    service_config["cards"] = max(num_cards // service_config["replica"], 1)
 
         for num_rag_replica in self.embedding_replicas_list:
             for service_name, service_config in config.items():
                 if service_name in self.embedding_dependency_name:
-                    service_config['replica'] = num_rag_replica
+                    service_config["replica"] = num_rag_replica
 
                 if service_name in self.reranking_dependency_name and not self.reranking_on_hpu:
-                    service_config['replica'] = num_rag_replica
+                    service_config["replica"] = num_rag_replica
 
             if num_rag_replica <= 0:
                 tuning_utils.print_strategy_config(config, "deprecated", self.platform)
@@ -357,23 +367,19 @@ def generate_strategy_files(config, strategy_executor, output_folder):
 
 def update_and_apply_kubernetes_manifest(strategy_file, manifest_dir, timeout=200):
     update_k8s_yaml(strategy_file, manifest_dir)
-    bash_script = 'kubernetes/prepare_k8s_pods.sh'
+    bash_script = "kubernetes/prepare_k8s_pods.sh"
 
     # Ensure script is executable
-    subprocess.run(['chmod', '+x', bash_script], check=True)
+    subprocess.run(["chmod", "+x", bash_script], check=True)
 
     # Delete previous deployment
-    subprocess.run(['bash', bash_script, "delete", strategy_file, manifest_dir],
-                   check=True,
-                   text=True,
-                   capture_output=False)
+    subprocess.run(
+        ["bash", bash_script, "delete", strategy_file, manifest_dir], check=True, text=True, capture_output=False
+    )
 
     time.sleep(100)
     while 0:
-        result = subprocess.run(['kubectl', 'get', 'pods'],
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE,
-                                text=True)
+        result = subprocess.run(["kubectl", "get", "pods"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if "No resources found in default namespace." in result.stderr:
             print("No resources found in default namespace.")
             break
@@ -382,10 +388,9 @@ def update_and_apply_kubernetes_manifest(strategy_file, manifest_dir, timeout=20
             time.sleep(20)
 
     # Apply updated deployment
-    result = subprocess.run(['bash', bash_script, "apply", strategy_file, manifest_dir],
-                            check=True,
-                            text=True,
-                            capture_output=False)
+    result = subprocess.run(
+        ["bash", bash_script, "apply", strategy_file, manifest_dir], check=True, text=True, capture_output=False
+    )
 
     tuning_utils.print_strategy_config(strategy_file)
     # Sleep to allow deployment to stabilize
@@ -394,8 +399,8 @@ def update_and_apply_kubernetes_manifest(strategy_file, manifest_dir, timeout=20
 
 def find_best_strategy(perf_data):
     best_strategy = None
-    best_p50 = float('inf')
-    best_p99 = float('inf')
+    best_p50 = float("inf")
+    best_p99 = float("inf")
 
     for strategy, metrics in perf_data.items():
         if (metrics["p50"] < best_p50) or (metrics["p50"] == best_p50 and metrics["p99"] < best_p99):
@@ -407,7 +412,7 @@ def find_best_strategy(perf_data):
 
 
 def config_only_print(output_folder, strategy_files_dict, mode="k8s", remove_dir=False):
-    log_file = output_folder + '/all_results.txt'
+    log_file = output_folder + "/all_results.txt"
     for _, strategy_file in strategy_files_dict.items():
         tuning_utils.print_strategy_config(strategy_file, platform=mode)
         tuning_utils.print_strategy_config(strategy_file, log_file=log_file)
@@ -422,22 +427,21 @@ def config_only_print(output_folder, strategy_files_dict, mode="k8s", remove_dir
 def main():
     parser = argparse.ArgumentParser(description="Read and parse JSON/YAML files and output JSON file")
     parser.add_argument("--hardware_info", help="Path to input JSON file", default="./hardware_info_gaudi.json")
-    parser.add_argument("--service_info",
-                        help="Path to input YAML file",
-                        default="./chatqna_neuralchat_rerank_latest.yaml")
-    parser.add_argument("--tuning_config",
-                        help="Path to input tuning config file",
-                        default="./replica_tuning_config.json")
+    parser.add_argument(
+        "--service_info", help="Path to input YAML file", default="./chatqna_neuralchat_rerank_latest.yaml"
+    )
+    parser.add_argument(
+        "--tuning_config", help="Path to input tuning config file", default="./replica_tuning_config.json"
+    )
     parser.add_argument("--output_file", help="Path to output JSON file", default="./strategy.json")
     parser.add_argument("--config_only", help="Generate all strategies", action="store_true")
 
     parser.add_argument("--benchmark", help="Benchmark", action="store_true")
     parser.add_argument("--task", type=str, default="rag", help="Task to perform")
     parser.add_argument("--mode", help="Deployment mode", default="k8s")
-    parser.add_argument("--request_url",
-                        type=str,
-                        default="http://100.83.111.232:30888/v1/chatqna",
-                        help="ChatQnA Service URL")
+    parser.add_argument(
+        "--request_url", type=str, default="http://100.83.111.232:30888/v1/chatqna", help="ChatQnA Service URL"
+    )
     parser.add_argument("--num_queries", type=int, default=640, help="Number of queries to be sent")
 
     parser.add_argument("--strategy_file", help="Given the strategy file")
@@ -450,7 +454,7 @@ def main():
 
     if args.benchmark:
         request_url = tuning_utils.get_chatqna_url()
-        logging.info(f'request_url: {request_url}')
+        logging.info(f"request_url: {request_url}")
         p50, p99 = send_concurrency_requests(task=args.task, request_url=request_url, num_queries=args.num_queries)
         return
 
@@ -462,9 +466,9 @@ def main():
     # create output folder
     local_time = time.localtime(time.time())
     output_folder = "result_" + time.strftime("%Y_%m_%d_%H_%M_%S", local_time)
-    result_file = os.path.join(output_folder, f"all_results.txt")
+    result_file = os.path.join(output_folder, "all_results.txt")
     os.makedirs(output_folder, exist_ok=True)
-    with open(result_file, 'a') as file:
+    with open(result_file, "a") as file:
         file.write(
             f"Benchmark num_queries: {args.num_queries}, mode: {args.mode}, \n\nhardware_info: {hardware_info} \n\n"
         )
@@ -489,17 +493,17 @@ def main():
         request_url = tuning_utils.get_chatqna_url()
 
         # Warmup step
-        logging.info(f'Performing warmup with 8 queries...')
+        logging.info("Performing warmup with 8 queries...")
         try:
             send_concurrency_requests(task="rag", request_url=request_url, num_queries=2)
             send_concurrency_requests(task="rag", request_url=request_url, num_queries=8)
         except Exception as e:
-            with open(result_file, 'a') as file:
+            with open(result_file, "a") as file:
                 file.write(f"Recording the {strategy_file} tuning result: \n")
-                file.write(f'Warmup Error: {e}\n')
-            logging.info(f'Warmup Error: {e}')
+                file.write(f"Warmup Error: {e}\n")
+            logging.info(f"Warmup Error: {e}")
             continue
-        logging.info('Warmup completed.')
+        logging.info("Warmup completed.")
 
         try:
             p50_0, p99_0 = send_concurrency_requests(
@@ -518,24 +522,23 @@ def main():
                 num_queries=args.num_queries * 2,
             )
         except Exception as e:
-            with open(result_file, 'a') as file:
+            with open(result_file, "a") as file:
                 file.write(f"Recording the {strategy_file} tuning result: \n")
-                file.write(f'Exception Error: {e}\n')
+                file.write(f"Exception Error: {e}\n")
             continue
 
-        logging.info(
-            f"num_queries: {num_queries}, request_url: {request_url}, {strategy_file} benchmarking result: ")
+        logging.info(f"num_queries: {num_queries}, request_url: {request_url}, {strategy_file} benchmarking result: ")
         tuning_utils.print_strategy_config(strategy_file)
         perf_data[strategy_file] = {"p50": p50, "p99": p99}
 
-        with open(result_file, 'a') as file:
+        with open(result_file, "a") as file:
             file.write(f"Recording the {strategy_file} tuning result: \n")
-            file.write(f'p50_0 = {p50_0}, p99_0 = {p99_0}\n')
-            file.write(json.dumps(perf_data[strategy_file]) + '\n')
-            file.write(f'p50_2 = {p50_2}, p99_2 = {p99_2}\n')
+            file.write(f"p50_0 = {p50_0}, p99_0 = {p99_0}\n")
+            file.write(json.dumps(perf_data[strategy_file]) + "\n")
+            file.write(f"p50_2 = {p50_2}, p99_2 = {p99_2}\n")
         tuning_utils.print_strategy_config(strategy_file, log_file=result_file)
 
-    logging.info(f'Please check the {result_file} in the local directory.')
+    logging.info(f"Please check the {result_file} in the local directory.")
 
     # find the best strategy
     best_p50, best_p99, best_strategy = find_best_strategy(perf_data)
@@ -543,10 +546,10 @@ def main():
         best_strategy_data = {"best_strategy": best_strategy, "p50": best_p50, "p99": best_p99}
         logging.info(f"Best strategy: {best_strategy_data}")
         update_k8s_yaml(json_file=strategy_file, manifest_directory=args.manifest_dir)
-        with open(result_file, 'a') as file:
+        with open(result_file, "a") as file:
             file.write(f"The best strategy file: {best_strategy} \n")
-            file.write(json.dumps(best_strategy_data["best_strategy"]) + '\n')
-        print(f"Updated the best manifest Done.")
+            file.write(json.dumps(best_strategy_data["best_strategy"]) + "\n")
+        print("Updated the best manifest Done.")
     else:
         logging.info("The best strategy is None.")
 
