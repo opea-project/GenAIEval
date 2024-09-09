@@ -36,13 +36,14 @@ class RagasMetric:
         self.embeddings = embeddings
         self.metrics = metrics
         self.validated_list = [
-            "answer_relevancy",
-            "faithfulness",
             "answer_correctness",
+            "answer_relevancy",
             "answer_similarity",
             "context_precision",
-            "context_relevancy",
             "context_recall",
+            "faithfulness",
+            "context_utilization",
+            "reference_free_rubrics_score",
         ]
 
         try:
@@ -52,11 +53,28 @@ class RagasMetric:
                 answer_similarity,
                 context_precision,
                 context_recall,
-                context_relevancy,
+                context_utilization,
                 faithfulness,
+                reference_free_rubrics_score,
             )
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
+
+        try:
+            from datasets import Dataset
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError("Please install dataset")
+            
+        self.metrics_instance = {
+            "answer_correctness": answer_correctness,
+            "answer_relevancy": answer_relevancy,
+            "answer_similarity": answer_similarity,
+            "context_precision": context_precision,
+            "context_recall": context_recall,
+            "faithfulness": faithfulness,
+            "context_utilization": context_utilization,
+            "reference_free_rubrics_score": reference_free_rubrics_score,
+        }
 
         # Set LLM model
         openai_key = os.getenv("OPENAI_API_KEY", None)
@@ -91,8 +109,10 @@ class RagasMetric:
                 else:
                     if metric == "answer_relevancy" and self.embeddings is None:
                         raise ValueError("answer_relevancy metric need provide embeddings model.")
-                    tmp_metrics.append(self.get_metric(metric))
+                    tmp_metrics.append(self.metrics_instance[metric])
+                    
             self.metrics = tmp_metrics
+            
         else:  # default metrics
             self.metrics = [
                 answer_relevancy,
@@ -100,34 +120,8 @@ class RagasMetric:
                 answer_correctness,
                 answer_similarity,
                 context_precision,
-                context_relevancy,
                 context_recall,
             ]
-
-    def get_metric(name: str):
-        if name == "answer_relevancy":
-            from ragas.metrics import answer_relevancy
-            return answer_relevancy
-        elif name == "faithfulness":
-            from ragas.metrics import faithfulness
-            return faithfulness
-        elif name == "answer_correctness":
-            from ragas.metrics import answer_correctness
-            return answer_correctness
-        elif name == "answer_similarity":
-            from ragas.metrics import answer_similarity
-            return answer_similarity
-        elif name == "context_precision":
-            from ragas.metrics import context_precision
-            return context_precision
-        elif name == "context_relevancy":
-            from ragas.metrics import context_relevancy
-            return context_relevancy
-        elif name == "context_recall":
-            from ragas.metrics import context_recall
-            return context_recall
-        else:
-            raise ValueError(f"The {name} metric has not been validated.")
     
 
     async def a_measure(self, test_case: Dict):
@@ -144,10 +138,10 @@ class RagasMetric:
         # Create a dataset from the test case
         # Convert the Dict to a format compatible with Dataset
         data = {
-            "question": test_case["input"],
-            "contexts": test_case["retrieval_context"],
-            "answer": test_case["actual_output"],
-            "ground_truth": test_case["expected_output"],
+            "question": test_case["question"],
+            "contexts": test_case["contexts"],
+            "answer": test_case["answer"],
+            "ground_truth": test_case["ground_truth"],
         }
         dataset = Dataset.from_dict(data)
 

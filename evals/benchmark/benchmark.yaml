@@ -56,11 +56,16 @@ test_cases:
     e2e:
       run_test: true
       service_name: "chatqna-backend-server-svc"  # Replace with your service name
+      service_list:  # Replace with your k8s service names if deploy with k8s
+                     # or container names if deploy with Docker for metrics collection,
+                     # activate if collect_service_metric is true
+        - "chatqna-tei"
+        - "chatqna-teirerank"
 
   codegen:
     llm:
       run_test: true
-      service_name: "llm-svc"  # Replace with your service name
+      service_name: "llm-dependency-svc"  # Replace with your service name
       parameters:
         model_name: "Qwen/CodeQwen1.5-7B-Chat"
         max_new_tokens: 128
@@ -71,10 +76,10 @@ test_cases:
         streaming: true
     llmserve:
       run_test: true
-      service_name: "llm-serving-svc"  # Replace with your service name
+      service_name: "llm-svc"  # Replace with your service name
     e2e:
       run_test: true
-      service_name: "codegen-backend-server-svc"  # Replace with your service name
+      service_name: "codegen-backend-svc"  # Replace with your service name
 
   codetrans:
     llm:
@@ -107,7 +112,7 @@ test_cases:
         top_p: 0.95
         repetition_penalty: 1.03
         streaming: true
-    llm_serving:
+    llmserve:
       run_test: false
       service_name: "faq-micro-svc"  # Replace with your service name
     e2e:

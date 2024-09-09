@@ -14,12 +14,14 @@ query_rerank_2 = """Deep learning is a powerful tool in the field of artificial 
 
 
 def getReqData():
-    return ({"query": my_query, "texts": [query_rerank_1, query_rerank_2]},)
+    return {"query": my_query, "texts": [query_rerank_1, query_rerank_2]}
 
 
-def respStatics(environment, resp):
-    return token.respStatics(environment, resp)
+def respStatics(environment, reqData, resp):
+    return {
+        "total_latency": resp["total_latency"] * 1000,
+    }
 
 
 def staticsOutput(environment, reqlist):
-    token.staticsOutput(environment, reqlist)
+    token.staticsOutputForMicroservice(environment, reqlist)

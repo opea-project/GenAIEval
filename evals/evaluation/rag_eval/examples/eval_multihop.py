@@ -137,17 +137,18 @@ class MultiHop_Evaluator(Evaluator):
         return overall
 
     def get_ragas_metrics(self, all_queries, arguments):
-        from langchain_community.embeddings import HuggingFaceHubEmbeddings
+        from langchain_huggingface import HuggingFaceEndpointEmbeddings
 
-        embeddings = HuggingFaceHubEmbeddings(model=arguments.embedding_endpoint)
+        embeddings = HuggingFaceEndpointEmbeddings(model=arguments.tei_embedding_endpoint)
+
         metric = RagasMetric(threshold=0.5, model=arguments.llm_endpoint, embeddings=embeddings)
         all_answer_relevancy = 0
         all_faithfulness = 0
         ragas_inputs = {
-            "input": [],
-            "actual_output": [],
-            "expected_output": [],
-            "retrieval_context": [],
+            "question": [],
+            "answer": [],
+            "ground_truth": [],
+            "contexts": [],
         }
 
         for data in tqdm(all_queries):
@@ -157,10 +158,13 @@ class MultiHop_Evaluator(Evaluator):
             generated_text = self.send_request(data, arguments)
             data["generated_text"] = generated_text
 
-            ragas_inputs["input"].append(data["query"])
-            ragas_inputs["actual_output"].append(generated_text)
-            ragas_inputs["expected_output"].append(data["answer"])
-            ragas_inputs["retrieval_context"].append(retrieved_documents[:3])
+            ragas_inputs["question"].append(data["query"])
+            ragas_inputs["answer"].append(generated_text)
+            ragas_inputs["ground_truth"].append(data["answer"])
+            ragas_inputs["contexts"].append(retrieved_documents[:3])
+
+            if len(ragas_inputs["question"]) >= arguments.limits:
+                break
 
         ragas_metrics = metric.measure(ragas_inputs)
         return ragas_metrics
@@ -207,11 +211,18 @@ def args_parser():
     parser.add_argument("--ingest_docs", action="store_true", help="Whether to ingest documents to vector database")
     parser.add_argument("--retrieval_metrics", action="store_true", help="Whether to compute retrieval metrics.")
     parser.add_argument("--ragas_metrics", action="store_true", help="Whether to compute ragas metrics.")
+    parser.add_argument("--limits", type=int, default=100, help="Number of examples to be evaluated by llm-as-judge")
     parser.add_argument(
         "--database_endpoint", type=str, default="http://localhost:6007/v1/dataprep", help="Service URL address."
     )
     parser.add_argument(
         "--embedding_endpoint", type=str, default="http://localhost:6000/v1/embeddings", help="Service URL address."
+    )
+    parser.add_argument(
+        "--tei_embedding_endpoint",
+        type=str,
+        default="http://localhost:8090",
+        help="Service URL address of tei embedding.",
     )
     parser.add_argument(
         "--retrieval_endpoint", type=str, default="http://localhost:7000/v1/retrieval", help="Service URL address."

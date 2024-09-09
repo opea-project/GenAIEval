@@ -35,7 +35,7 @@ pip install -r requirements.txt
 ### Usage
 
 ```
-$ ./stresscli.py --help
+./stresscli.py --help
 Usage: stresscli.py [OPTIONS] COMMAND [ARGS]...
 
   StressCLI - A command line tool for stress testing OPEA workloads.
@@ -60,7 +60,7 @@ Commands:
 
 More detail options:
 ```
-$ ./stresscli.py load-test --help
+./stresscli.py load-test --help
 Usage: stresscli.py load-test [OPTIONS]
 
   Do load test
@@ -74,12 +74,12 @@ Options:
 
 You can generate the report for test cases by:
 ```
-$ ./stresscli.py report --folder /home/sdp/test_reports/20240710_004105 --format csv -o data.csv
+./stresscli.py report --folder /home/sdp/test_reports/20240710_004105 --format csv -o data.csv
 ```
 
 More detail options:
 ```
-$ ./stresscli.py report --help
+./stresscli.py report --help
 Usage: stresscli.py report [OPTIONS]
 
   Print the test report
@@ -101,7 +101,7 @@ You can dump the current testing profile by
 ```
 More detail options:
 ```
-$ ./stresscli.py dump --help
+./stresscli.py dump --help
 Usage: stresscli.py dump [OPTIONS]
 
   Dump the test spec
@@ -115,12 +115,12 @@ Options:
 
 You can validate if the current K8s and workloads deployment comply with the test spec by:
 ```
-$ ./stresscli.py validate --file testspec.yaml
+./stresscli.py validate --file testspec.yaml
 ```
 
 More detail options:
 ```
-$ ./stresscli.py validate --help
+./stresscli.py validate --help
 Usage: stresscli.py validate [OPTIONS]
 
   Validate against the test spec
