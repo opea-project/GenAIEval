@@ -11,30 +11,24 @@ from evals.metrics.ragas import RagasMetric
 
 
 def convert_data_format_for_ragas(data):
-    # data: pandas dataframe
-    # columns: ['query', 'answer', 'ref_answer']
-    # return: a dict with keys: 'input', 'actual_output', 'expected_output'
     output = {
-        "input": data["query"].tolist(),
-        "actual_output": data["answer"].tolist(),
-        "expected_output": data["ref_answer"].tolist(),
-        "retrieval_context": [["dummy_context"] for _ in range(data["query"].shape[0])],
+        "question": data["query"].tolist(),
+        "answer": data["answer"].tolist(),
+        "ground_truth": data["ref_answer"].tolist(),
+        "contexts": [["dummy_context"] for _ in range(data["query"].shape[0])],
     }
     return output
 
 
 def make_list_of_test_cases(data):
-    # data: pandas dataframe
-    # columns: ['query', 'answer', 'ref_answer']
-    # return: a list of dicts with keys: 'input', 'actual_output', 'expected_output'
     output = []
     for _, row in data.iterrows():
         output.append(
             {
-                "input": [row["query"]],
-                "actual_output": [row["answer"]],
-                "expected_output": [row["ref_answer"]],
-                "retrieval_context": [["dummy_context"]],
+                "question": [row["query"]],
+                "answer": [row["answer"]],
+                "ground_truth": [row["ref_answer"]],
+                "contexts": [["dummy_context"]],
             }
         )
     return output

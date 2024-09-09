@@ -5,13 +5,14 @@
 
 
 import unittest
-
+import os
 from evals.metrics.ragas import RagasMetric
 
-
+host_ip = os.getenv("host_ip", "localhost")
+port = os.getenv("port", "8008")
 class TestRagasMetric(unittest.TestCase):
 
-    @unittest.skip("need pass localhost id")
+    # @unittest.skip("need pass localhost id")
     def test_ragas(self):
         # Replace this with the actual output from your LLM application
         actual_output = "We offer a 30-day full refund at no extra cost."
@@ -24,7 +25,7 @@ class TestRagasMetric(unittest.TestCase):
         from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 
         embeddings = HuggingFaceBgeEmbeddings(model_name="BAAI/bge-base-en-v1.5")
-        metric = RagasMetric(threshold=0.5, model="http://localhost:8008", embeddings=embeddings)
+        metric = RagasMetric(threshold=0.5, model=f"http://{host_ip}:{port}", embeddings=embeddings)
         test_case = {
             "question": ["What if these shoes don't fit?"],
             "answer": [actual_output],
