@@ -11,7 +11,7 @@ git clone https://github.com/opea-project/GenAIEval.git
 ```
 2. Build docker image
 ```
-cd $WORKDIR/GenAIEval/evals/evaluation/crag_eval/docker/
+cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/crag_eval/docker/
 bash build_image.sh
 ```
 3. Set environment vars for downloading models from Huggingface
@@ -42,7 +42,7 @@ tar -xf crag_task_3_dev_v4.tar.bz2
 2. Preprocess the CRAG data
 Data preprocessing directly relates to the quality of retrieval corpus and thus can have significant impact on the agent QnA system. Here, we provide one way of preprocessing the data where we simply extracts all the web search snippets as-is from the dataset per domain. We also extract all the query-answer pairs along with other meta data per domain. You can run the command below to use our method. The data processing will take some time to finish.
 ```
-cd $WORKDIR/GenAIEval/evals/evaluation/crag_eval/preprocess_data
+cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/crag_eval/preprocess_data
 bash run_data_preprocess.sh
 ```
 **Note**: This is an example of data processing. You can develop and optimize your own data processing for this benchmark.
@@ -91,7 +91,7 @@ bash 4_launch_and_validate_agent.sh
 Once you have your agent system up and running, the next step is to generate answers with agent. Change the variables in the script below and run the script. By default, it will run a sampled set of queries in music domain.
 ```
 # Come back to the interactive crag-eval docker container
-cd $WORKDIR/GenAIEval/evals/evaluation/crag_eval/run_benchmark
+cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/crag_eval/run_benchmark
 bash run_generate_answer.sh
 ```
 
@@ -112,12 +112,12 @@ curl ${host_ip}:8085/generate_stream \
 And then go back to the interactive crag-eval docker, run command below.
 ```
 # Inside the crag-eval container
-cd $WORKDIR/GenAIEval/evals/evaluation/crag_eval/run_benchmark/llm_judge/
+cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/crag_eval/run_benchmark/llm_judge/
 python3 test_llm_endpoint.py
 ```
 3. Grade the answer correctness using LLM judge. We use `answer_correctness` metrics from [ragas](https://github.com/explodinggradients/ragas/blob/main/src/ragas/metrics/_answer_correctness.py).
 ```
 # Inside the crag-eval container
-cd $WORKDIR/GenAIEval/evals/evaluation/crag_eval/run_benchmark/
+cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/crag_eval/run_benchmark/
 bash run_grading.sh
 ```
