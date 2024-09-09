@@ -85,7 +85,7 @@ class MetricsCollector:
                 pod_port = self.get_pod_port(pod_info)
                 metrics = self.collect_metrics(pod_ip, pod_port, metrics_path)
                 if metrics:
-                    pod_output_path = os.path.join(output_dir, f"{service_name}_{pod_name}_{timestamp}.txt")
+                    pod_output_path = os.path.join(output_dir, f"{service_name}@{pod_name}_{timestamp}.txt")
                     logging.debug(f"Writing metrics to {pod_output_path}")
                     with open(pod_output_path, "w") as f:
                         f.write(metrics)
