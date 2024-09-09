@@ -16,10 +16,6 @@ def format_ragas_metric_name(name: str):
     return f"{name} (ragas)"
 
 
-
-    
-
-
 class RagasMetric:
     """This metric checks if the output is more than 3 letters."""
 
@@ -64,7 +60,7 @@ class RagasMetric:
             from datasets import Dataset
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install dataset")
-            
+
         self.metrics_instance = {
             "answer_correctness": answer_correctness,
             "answer_relevancy": answer_relevancy,
@@ -110,9 +106,9 @@ class RagasMetric:
                     if metric == "answer_relevancy" and self.embeddings is None:
                         raise ValueError("answer_relevancy metric need provide embeddings model.")
                     tmp_metrics.append(self.metrics_instance[metric])
-                    
+
             self.metrics = tmp_metrics
-            
+
         else:  # default metrics
             self.metrics = [
                 answer_relevancy,
@@ -122,7 +118,6 @@ class RagasMetric:
                 context_precision,
                 context_recall,
             ]
-    
 
     async def a_measure(self, test_case: Dict):
         return self.measure(test_case)
