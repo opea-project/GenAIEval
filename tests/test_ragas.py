@@ -4,12 +4,15 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-import unittest
 import os
+import unittest
+
 from evals.metrics.ragas import RagasMetric
 
 host_ip = os.getenv("host_ip", "localhost")
 port = os.getenv("port", "8008")
+
+
 class TestRagasMetric(unittest.TestCase):
 
     # @unittest.skip("need pass localhost id")
