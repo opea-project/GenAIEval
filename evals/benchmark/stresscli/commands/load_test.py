@@ -6,12 +6,15 @@
 import os
 import subprocess
 from datetime import datetime
-
+import logging
 import click
 import yaml
 
 from .report import export_testdata
 from .utils import dump_k8s_config, generate_lua_script, generate_random_suffix
+
+# Default load shape
+DEFAULT_LOADSHAPE = "constant"
 
 # Define default values
 locust_defaults = {
@@ -26,8 +29,10 @@ locust_defaults = {
     "users": 10,
     "max-request": 100,
     "namespace": "default",
+    "load-shape": DEFAULT_LOADSHAPE,
 }
 
+console_logger = logging.getLogger("opea.eval")
 
 @click.command()
 # @click.option('--dataset', type=click.Path(), help='Dataset path')
@@ -118,6 +123,30 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
     runspec["namespace"] = run_settings.get("namespace", global_settings.get("namespace", locust_defaults["namespace"]))
 
     runspec["run_name"] = run_settings["name"]
+
+    # Specify load shape to adjust user distribution in the test
+    load_shape = run_settings.get(
+        "load-shape", global_settings.get("load-shape", locust_defaults["load-shape"])
+    )
+    if load_shape == DEFAULT_LOADSHAPE:
+        # constant load is Locust's default load shape, do nothing.
+        console_logger.info("Use default load shape.")
+    else:
+        # load a custom load shape
+        f_custom_load_shape = os.path.join(
+            os.getcwd(), 
+            f"stresscli/locust/loadshape/{load_shape}.py"
+        )
+        if os.path.isfile(f_custom_load_shape):
+            runspec["locustfile"] += f",{f_custom_load_shape}"
+            console_logger.info("Use custom load shape: {load_shape}")
+        else:
+            console_logger.error(
+                f"Unsupported load shape: {load_shape}." \
+                f"The Locust file of custom shape not found: {f_custom_load_shape}. Aborted."
+            )
+            exit()
+     
     # csv_output = os.path.join(output_folder, runspec['run_name'])
     # json_output = os.path.join(output_folder, f"{runspec['run_name']}_output.log")
     csv_output = os.path.join(output_folder, f"{index}")
@@ -135,7 +164,7 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
 
     spawn_rate = 100 if runspec["users"] > 100 else runspec["users"]
     processes = 10 if runspec["max_requests"] > 2000 else 5 if runspec["max_requests"] > 1000 else 2
-
+    
     cmd = [
         "locust",
         "--locustfile",

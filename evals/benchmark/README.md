@@ -63,6 +63,7 @@ test_suite_config:
   deployment_type: "k8s"  # Default is "k8s", can also be "docker"
   service_ip: None  # Leave as None for k8s, specify for Docker
   service_port: None  # Leave as None for k8s, specify for Docker
+  load_shape: constant  # Tenant concurrency pattern: poisson or constant(locust default load shape)
   concurrent_level: 4  # The concurrency level
   user_queries: [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]  # Number of test requests
   random_prompt: false  # Use random prompts if true, fixed prompts if false

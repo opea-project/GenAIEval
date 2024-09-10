@@ -14,6 +14,7 @@ test_suite_config: # Overall configuration settings for the test suite
   data_visualization: false # Generate data visualization if true, do not generate data visualization if false
   llm_model: "Intel/neural-chat-7b-v3-3"  # The LLM model used for the test
   test_output_dir: "/home/sdp/benchmark_output"  # The directory to store the test output
+  load_shape: constant  # Tenant concurrency pattern: poisson or constant(locust default load shape)
 
 test_cases:
   chatqna:

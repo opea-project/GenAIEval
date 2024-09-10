@@ -50,6 +50,7 @@ def extract_test_case_data(content):
         "deployment_type": test_suite_config.get("deployment_type"),
         "service_ip": test_suite_config.get("service_ip"),
         "service_port": test_suite_config.get("service_port"),
+        "load_shape": test_suite_config.get("load_shape"),
         "all_case_data": {
             example: content["test_cases"].get(example, {}) for example in test_suite_config.get("examples", [])
         },
@@ -74,6 +75,7 @@ def create_run_yaml_content(service, base_url, bench_target, concurrency, user_q
                 "service-list": service.get("service_list", []),
                 "llm-model": test_suite_config["llm_model"],
                 "deployment-type": test_suite_config["deployment_type"],
+                "load-shape": test_suite_config["load_shape"],
             },
             "runs": [{"name": "benchmark", "users": concurrency, "max-request": user_queries}],
         }
@@ -194,6 +196,7 @@ if __name__ == "__main__":
         "service_ip": parsed_data["service_ip"],
         "service_port": parsed_data["service_port"],
         "test_output_dir": parsed_data["test_output_dir"],
+        "load_shape": parsed_data["load_shape"]
     }
 
     # Mapping of example names to service types
