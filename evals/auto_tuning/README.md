@@ -149,4 +149,3 @@ Example of a strategy file:
 Both the K8S manifests and strategy files are generated in the current directory, providing everything needed for deployment.
 
 Deployment methods: simply run `kubectl apply -f` on the newly generated *_run.yaml files and the chatqna_config_map.
-
