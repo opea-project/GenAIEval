@@ -149,15 +149,12 @@ class ReplicaTuning:
         self.strategy_version = 1
 
         self.embedding_replicas_list = [
-            i
-            for i in range(
-                self.embedding_replicas_min, self.embedding_replicas_max + 1, self.embedding_replicas_granularity
-            )
+            i for i in range(self.embedding_replicas_min, self.embedding_replicas_max +
+                             1, self.embedding_replicas_granularity)
         ]
 
         self.microservice_replicas_list = [
-            i
-            for i in range(
+            i for i in range(
                 self.microservice_replicas_min,
                 self.microservice_replicas_max + 1,
                 self.microservice_replicas_granularity,
@@ -170,8 +167,7 @@ class ReplicaTuning:
     def _load_hardware_info(self):
         self.reserved_cores_by_default = 4
         self.total_cores, self.physcial_cores, self.max_cores_per_socket, self.total_sockets = self._get_cores_info(
-            self.hardware_info
-        )
+            self.hardware_info)
 
     def _load_tuning_parameters(self, tuning_config_data):
 
@@ -373,13 +369,17 @@ def update_and_apply_kubernetes_manifest(strategy_file, manifest_dir, timeout=20
     subprocess.run(["chmod", "+x", bash_script], check=True)
 
     # Delete previous deployment
-    subprocess.run(
-        ["bash", bash_script, "delete", strategy_file, manifest_dir], check=True, text=True, capture_output=False
-    )
+    subprocess.run(["bash", bash_script, "delete", strategy_file, manifest_dir],
+                   check=True,
+                   text=True,
+                   capture_output=False)
 
     time.sleep(100)
     while 0:
-        result = subprocess.run(["kubectl", "get", "pods"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        result = subprocess.run(["kubectl", "get", "pods"],
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                text=True)
         if "No resources found in default namespace." in result.stderr:
             print("No resources found in default namespace.")
             break
@@ -388,9 +388,10 @@ def update_and_apply_kubernetes_manifest(strategy_file, manifest_dir, timeout=20
             time.sleep(20)
 
     # Apply updated deployment
-    result = subprocess.run(
-        ["bash", bash_script, "apply", strategy_file, manifest_dir], check=True, text=True, capture_output=False
-    )
+    result = subprocess.run(["bash", bash_script, "apply", strategy_file, manifest_dir],
+                            check=True,
+                            text=True,
+                            capture_output=False)
 
     tuning_utils.print_strategy_config(strategy_file)
     # Sleep to allow deployment to stabilize
@@ -427,21 +428,22 @@ def config_only_print(output_folder, strategy_files_dict, mode="k8s", remove_dir
 def main():
     parser = argparse.ArgumentParser(description="Read and parse JSON/YAML files and output JSON file")
     parser.add_argument("--hardware_info", help="Path to input JSON file", default="./hardware_info_gaudi.json")
-    parser.add_argument(
-        "--service_info", help="Path to input YAML file", default="./chatqna_neuralchat_rerank_latest.yaml"
-    )
-    parser.add_argument(
-        "--tuning_config", help="Path to input tuning config file", default="./replica_tuning_config.json"
-    )
+    parser.add_argument("--service_info",
+                        help="Path to input YAML file",
+                        default="./chatqna_neuralchat_rerank_latest.yaml")
+    parser.add_argument("--tuning_config",
+                        help="Path to input tuning config file",
+                        default="./replica_tuning_config.json")
     parser.add_argument("--output_file", help="Path to output JSON file", default="./strategy.json")
     parser.add_argument("--config_only", help="Generate all strategies", action="store_true")
 
     parser.add_argument("--benchmark", help="Benchmark", action="store_true")
     parser.add_argument("--task", type=str, default="rag", help="Task to perform")
     parser.add_argument("--mode", help="Deployment mode", default="k8s")
-    parser.add_argument(
-        "--request_url", type=str, default="http://100.83.111.232:30888/v1/chatqna", help="ChatQnA Service URL"
-    )
+    parser.add_argument("--request_url",
+                        type=str,
+                        default="http://100.83.111.232:30888/v1/chatqna",
+                        help="ChatQnA Service URL")
     parser.add_argument("--num_queries", type=int, default=640, help="Number of queries to be sent")
 
     parser.add_argument("--strategy_file", help="Given the strategy file")
@@ -527,7 +529,8 @@ def main():
                 file.write(f"Exception Error: {e}\n")
             continue
 
-        logging.info(f"num_queries: {num_queries}, request_url: {request_url}, {strategy_file} benchmarking result: ")
+        logging.info(
+            f"num_queries: {num_queries}, request_url: {request_url}, {strategy_file} benchmarking result: ")
         tuning_utils.print_strategy_config(strategy_file)
         perf_data[strategy_file] = {"p50": p50, "p99": p99}
 
@@ -542,7 +545,7 @@ def main():
 
     # find the best strategy
     best_p50, best_p99, best_strategy = find_best_strategy(perf_data)
-    if best_strategy != None:
+    if best_strategy is not None:
         best_strategy_data = {"best_strategy": best_strategy, "p50": best_p50, "p99": best_p99}
         logging.info(f"Best strategy: {best_strategy_data}")
         update_k8s_yaml(json_file=strategy_file, manifest_directory=args.manifest_dir)

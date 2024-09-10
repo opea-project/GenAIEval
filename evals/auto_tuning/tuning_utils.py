@@ -80,34 +80,37 @@ def print_strategy_config(config, tag=None, log_file=None, platform=None):
 
     embedding_cores, embedding_replica, embedding_memory = get_service_config(embedding_dependency_name, config)
     embedding_svc_cores, embedding_msvc_replica, embedding_svc_memory = get_service_config(
-        embedding_microservice_name, config
-    )
+        embedding_microservice_name, config)
 
     reranking_cores, reranking_cards, reranking_replica, reranking_memory = get_hpu_service_config(
-        reranking_dependency_name, config
-    )
+        reranking_dependency_name, config)
     reranking_svc_cores, reranking_svc_replica, reranking_svc_memory = get_service_config(
-        reranking_microservice_name, config
-    )
+        reranking_microservice_name, config)
 
     guardrails_cores, guardrails_cards, guardrails_replica, guardrails_memory = get_hpu_service_config(
-        guardrails_dependency_name, config
-    )
+        guardrails_dependency_name, config)
     guardrails_svc_cores, guardrails_svc_replica, guardrails_svc_memory = get_service_config(
-        guardrails_microservice_name, config
-    )
+        guardrails_microservice_name, config)
 
     vector_db_cores, vector_db_replica, vector_db_memory = get_service_config(vector_db_name, config)
 
     dataprep_svc_cores, dataprep_svc_replica, dataprep_svc_memory = get_service_config(
-        dataprep_microservice_name, config
-    )
+        dataprep_microservice_name, config)
     retrieval_cores, retrieval_replica, retrieval_memory = get_service_config(retrieval_microservice_name, config)
     chatqna_cores, chatqna_replica, chatqna_memory = get_service_config(chatqna_mega_service_name, config)
 
     services = {
-        "llm": {"cores": llm_cores, "cards": llm_cards, "replica": num_llm_replica, "memory": llm_memory},
-        "llm_svc": {"cores": llm_svc_cores, "replica": llm_svc_replica, "memory": llm_svc_memory},
+        "llm": {
+            "cores": llm_cores,
+            "cards": llm_cards,
+            "replica": num_llm_replica,
+            "memory": llm_memory
+        },
+        "llm_svc": {
+            "cores": llm_svc_cores,
+            "replica": llm_svc_replica,
+            "memory": llm_svc_memory
+        },
         "guardrails": {
             "cores": guardrails_cores,
             "cards": guardrails_cards,
@@ -119,7 +122,11 @@ def print_strategy_config(config, tag=None, log_file=None, platform=None):
             "replica": guardrails_svc_replica,
             "memory": guardrails_svc_memory,
         },
-        "embedding": {"cores": embedding_cores, "replica": embedding_replica, "memory": embedding_memory},
+        "embedding": {
+            "cores": embedding_cores,
+            "replica": embedding_replica,
+            "memory": embedding_memory
+        },
         "embedding-svc": {
             "cores": embedding_svc_cores,
             "replica": embedding_msvc_replica,
@@ -136,20 +143,34 @@ def print_strategy_config(config, tag=None, log_file=None, platform=None):
             "replica": reranking_svc_replica,
             "memory": reranking_svc_memory,
         },
-        "vector_db": {"cores": vector_db_cores, "replica": vector_db_replica, "memory": vector_db_memory},
-        "dataprep_svc": {"cores": dataprep_svc_cores, "replica": dataprep_svc_replica, "memory": dataprep_svc_memory},
-        "retrieval": {"cores": retrieval_cores, "replica": retrieval_replica, "memory": retrieval_memory},
-        "chatqna": {"cores": chatqna_cores, "replica": chatqna_replica, "memory": chatqna_memory},
+        "vector_db": {
+            "cores": vector_db_cores,
+            "replica": vector_db_replica,
+            "memory": vector_db_memory
+        },
+        "dataprep_svc": {
+            "cores": dataprep_svc_cores,
+            "replica": dataprep_svc_replica,
+            "memory": dataprep_svc_memory
+        },
+        "retrieval": {
+            "cores": retrieval_cores,
+            "replica": retrieval_replica,
+            "memory": retrieval_memory
+        },
+        "chatqna": {
+            "cores": chatqna_cores,
+            "replica": chatqna_replica,
+            "memory": chatqna_memory
+        },
     }
 
     if log_file:
         with open(log_file, "a") as f:
             if tag == "deprecated":
-                f.write(
-                    f"Removed llm cores: {llm_cores:2}, llm cards: {llm_cards:2}, replica: {num_llm_replica}, "
-                    f"embedding cores: {embedding_cores:2}, replica: {embedding_replica:2},"
-                    f"reranking cores: {reranking_cores:2}, replica: {reranking_replica:2}\n"
-                )
+                f.write(f"Removed llm cores: {llm_cores:2}, llm cards: {llm_cards:2}, replica: {num_llm_replica}, "
+                        f"embedding cores: {embedding_cores:2}, replica: {embedding_replica:2},"
+                        f"reranking cores: {reranking_cores:2}, replica: {reranking_replica:2}\n")
             else:
                 count = 0
                 for service_name, service_info in services.items():
@@ -177,8 +198,7 @@ def print_strategy_config(config, tag=None, log_file=None, platform=None):
             logging.debug(
                 f"Removed llm cores: {llm_cores:2}, llm cards: {llm_cards:2}, replica: {num_llm_replica}, "
                 f"embedding cores: {embedding_cores:2}, replica: {embedding_replica:2}, "
-                f"reranking cores: {reranking_cores:2}, replica: {reranking_replica:2}\n"
-            )
+                f"reranking cores: {reranking_cores:2}, replica: {reranking_replica:2}\n")
         else:
             count = 0
             log_message = []
@@ -207,7 +227,8 @@ def check_hpu_device(hardware_info):
     for device_key, device_info in hardware_info.items():
         # Check for 'cpu' type with 'num_cards' present
         if device_info["type"] == "cpu" and "num_cards" in device_info:
-            raise ValueError(f"Error in {device_key}: 'type' is 'cpu' and 'num_cards' is present in the configuration.")
+            raise ValueError(
+                f"Error in {device_key}: 'type' is 'cpu' and 'num_cards' is present in the configuration.")
 
         if device_info["type"] == "hpu":
             hpu_exist = True
@@ -285,18 +306,20 @@ def test_embedding_svc_perf(num_queries_list):
 
 def test_reranking_svc_perf(num_queries_list):
 
-    results = test_service_performance(
-        service_name="reranking-svc", endpoint="/v1/reranking", task="reranking", num_queries_list=num_queries_list
-    )
+    results = test_service_performance(service_name="reranking-svc",
+                                       endpoint="/v1/reranking",
+                                       task="reranking",
+                                       num_queries_list=num_queries_list)
 
     return results[0][0], results[0][1]
 
 
 def test_llm_svc_perf(num_queries_list):
 
-    results = test_service_performance(
-        service_name="llm-svc", endpoint="/v1/chat/completions", task="llm", num_queries_list=num_queries_list
-    )
+    results = test_service_performance(service_name="llm-svc",
+                                       endpoint="/v1/chat/completions",
+                                       task="llm",
+                                       num_queries_list=num_queries_list)
 
     return results[0][0], results[0][1]
 

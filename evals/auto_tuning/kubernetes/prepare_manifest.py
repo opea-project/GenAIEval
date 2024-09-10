@@ -33,11 +33,26 @@ def update_model_id(service_name, chatqna_config_map, service_info):
 def update_hpu_env(manifest_content, service_info, service_name, chatqna_config_map):
 
     env_list = [
-        {"name": "OMPI_MCA_btl_vader_single_copy_mechanism", "value": "none"},
-        {"name": "PT_HPU_ENABLE_LAZY_COLLECTIVES", "value": "true"},
-        {"name": "runtime", "value": "habana"},
-        {"name": "HABANA_VISIBLE_DEVICES", "value": "all"},
-        {"name": "HF_TOKEN", "value": chatqna_config_map["data"]["HUGGINGFACEHUB_API_TOKEN"]},
+        {
+            "name": "OMPI_MCA_btl_vader_single_copy_mechanism",
+            "value": "none"
+        },
+        {
+            "name": "PT_HPU_ENABLE_LAZY_COLLECTIVES",
+            "value": "true"
+        },
+        {
+            "name": "runtime",
+            "value": "habana"
+        },
+        {
+            "name": "HABANA_VISIBLE_DEVICES",
+            "value": "all"
+        },
+        {
+            "name": "HF_TOKEN",
+            "value": chatqna_config_map["data"]["HUGGINGFACEHUB_API_TOKEN"]
+        },
     ]
 
     if service_name == "reranking-dependency":
@@ -49,17 +64,15 @@ def update_hpu_env(manifest_content, service_info, service_name, chatqna_config_
         if service_info.get("cards") and service_info["cards"] > 1:
             manifest_content["spec"]["template"]["spec"]["containers"][0]["args"] = []
             manifest_content["spec"]["template"]["spec"]["containers"][0]["args"].extend(
-                ["--sharded", "true", "--num-shard", str(service_info["cards"])]
-            )
+                ["--sharded", "true", "--num-shard",
+                 str(service_info["cards"])])
     else:
-        if (
-            service_info.get("cards")
-            and "--sharded" not in manifest_content["spec"]["template"]["spec"]["containers"][0]["args"]
-            and service_info["cards"] > 1
-        ):
+        if (service_info.get("cards")
+                and "--sharded" not in manifest_content["spec"]["template"]["spec"]["containers"][0]["args"]
+                and service_info["cards"] > 1):
             manifest_content["spec"]["template"]["spec"]["containers"][0]["args"].extend(
-                ["--sharded", "true", "--num-shard", str(service_info["cards"])]
-            )
+                ["--sharded", "true", "--num-shard",
+                 str(service_info["cards"])])
 
 
 def update_deployment_resources(manifest_content, service_info):
@@ -87,7 +100,7 @@ def update_deployment_resources(manifest_content, service_info):
         manifest_content["spec"]["template"]["spec"]["containers"][0]["resources"] = resources
 
 
-def update_k8s_yaml(json_file, manifest_directory="./manifest/general", output_manifest_dir=None):
+def update_k8s_yaml(json_file, manifest_directory="./manifest/general"):
 
     # read json file
     with open(json_file, "r") as file:
@@ -101,18 +114,14 @@ def update_k8s_yaml(json_file, manifest_directory="./manifest/general", output_m
     for service_name, service_info in services.items():
 
         # update model_id in config_map.yaml
-        if service_name in ["embedding-dependency", "reranking-dependency", "llm-dependency", "guardrails-dependency"]:
+        if service_name in [
+                "embedding-dependency", "reranking-dependency", "llm-dependency", "guardrails-dependency"
+        ]:
             update_model_id(service_name, chatqna_config_map, service_info)
 
-    if output_manifest_dir == None:
-        with open(config_filepath, "w") as file:
-            yaml.dump(chatqna_config_map, file, default_flow_style=False, sort_keys=False)
-            logging.info(f"YAML file for {config_filepath} has been updated successfully.")
-    else:
-        new_config_filepath = Path(output_manifest_dir) / "chatqna_config_map.yaml"
-        with open(new_config_filepath, "w") as file:
-            yaml.dump(chatqna_config_map, file, default_flow_style=False, sort_keys=False)
-            logging.info(f"YAML file for {config_filepath} has been updated successfully.")
+    with open(config_filepath, "w") as file:
+        yaml.dump(chatqna_config_map, file, default_flow_style=False, sort_keys=False)
+        logging.info(f"YAML file for {config_filepath} has been updated successfully.")
 
     # 02. Updating the manifest
     for service_name, service_info in services.items():
