@@ -135,7 +135,7 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         # load a custom load shape
         f_custom_load_shape = os.path.join(
             os.getcwd(), 
-            f"stresscli/locust/loadshape/{load_shape}.py"
+            f"stresscli/locust/{load_shape}_load_shape.py"
         )
         if os.path.isfile(f_custom_load_shape):
             runspec["locustfile"] += f",{f_custom_load_shape}"
