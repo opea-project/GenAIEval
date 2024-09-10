@@ -394,6 +394,7 @@ def generate_acc_strategy_files(tuning_config, strategy, output_folder):
 
     return strategy_files_dict, strategy_dict
 
+
 def update_and_apply_kubernetes_manifest(strategy_file, manifest_dir, timeout=200):
     update_k8s_yaml(strategy_file, manifest_dir)
     bash_script = "kubernetes/prepare_k8s_pods.sh"
@@ -512,13 +513,13 @@ def main():
 
     perf_data = dict()
     strategy_files_dict, strategy_dict = generate_strategy_files(config, strategy_executor, output_folder)
-    print("=="*20)
+    print("==" * 20)
     print(strategy_files_dict)
     print(strategy_dict)
 
     # for acc tuning
     strategy_files_dict, strategy_dict = generate_acc_strategy_files(tuning_config, strategy_dict[0], output_folder)
-    print("=="*20)
+    print("==" * 20)
     print(strategy_files_dict)
     print(strategy_dict)
 
@@ -529,9 +530,9 @@ def main():
     # collect the perf info
     for _, strategy_file in strategy_files_dict.items():
         # start services with different deployment modes
-        """
-        if args.mode == "k8s":
-            update_and_apply_kubernetes_manifest(strategy_file, args.manifest_dir, timeout=200)
+        """If args.mode == "k8s":
+
+        update_and_apply_kubernetes_manifest(strategy_file, args.manifest_dir, timeout=200)
         """
 
         logging.info(f"{strategy_file} evaluation......")
@@ -541,10 +542,9 @@ def main():
         for chunk_size in tuning_config["dataprep_space"]["chunk_size"]:
             for chunk_overlap in tuning_config["dataprep_space"]["chunk_overlap"]:
                 # evaluate
-                subprocess.run(["bash", bash_script, chunk_size, chunk_overlap],
-                    check=True, text=True, capture_output=False
+                subprocess.run(
+                    ["bash", bash_script, chunk_size, chunk_overlap], check=True, text=True, capture_output=False
                 )
-
 
     logging.info("Tuning Done.")
 
