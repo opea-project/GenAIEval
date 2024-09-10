@@ -325,3 +325,11 @@ def test_service_performance(service_name, endpoint, task, num_queries_list):
 
     print(f"task = {task} Finished! Bye!")
     return results
+
+def load_tuning_config(file_path):
+    try:
+        with open(file_path, 'r') as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        data = {}
+    return data
