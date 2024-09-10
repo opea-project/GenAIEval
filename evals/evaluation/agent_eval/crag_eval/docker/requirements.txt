@@ -1,0 +1,8 @@
+datasets
+evaluate
+jieba
+langchain-community
+langchain-huggingface
+pandas
+ragas
+sentence_transformers
