@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 CKPT_NAME="llava-v1.6-mistral-7b-hf"
 CKPT="checkpoints/${CKPT_NAME}"
 EVAL="vqa_eval"
@@ -20,4 +23,3 @@ python3 evals/evaluation/llava/eval_gpt_review_bench.py \
     --output ${EVAL}/llava-bench-in-the-wild/reviews/${CKPT_NAME}.jsonl
 
 python3 evals/evaluation/llava/summarize_gpt_review.py -f ${EVAL}/llava-bench-in-the-wild/reviews/${CKPT_NAME}.jsonl
-
