@@ -394,7 +394,6 @@ def generate_acc_strategy_files(tuning_config, strategy, output_folder):
 
     return strategy_files_dict, strategy_dict
 
-
 def update_and_apply_kubernetes_manifest(strategy_file, manifest_dir, timeout=200):
     update_k8s_yaml(strategy_file, manifest_dir)
     bash_script = "kubernetes/prepare_k8s_pods.sh"
@@ -513,13 +512,13 @@ def main():
 
     perf_data = dict()
     strategy_files_dict, strategy_dict = generate_strategy_files(config, strategy_executor, output_folder)
-    print("==" * 20)
+    print("=="*20)
     print(strategy_files_dict)
     print(strategy_dict)
 
     # for acc tuning
     strategy_files_dict, strategy_dict = generate_acc_strategy_files(tuning_config, strategy_dict[0], output_folder)
-    print("==" * 20)
+    print("=="*20)
     print(strategy_files_dict)
     print(strategy_dict)
 
@@ -527,12 +526,21 @@ def main():
         config_only_print(output_folder, strategy_files_dict, mode=args.mode, remove_dir=True)
         return
 
+    svc_ip, port = tuning_utils.get_service_cluster_ip("chaqna-backend-server-svc")
+    service_url = f'http://{svc_ip}:{port}/v1/chatqna'
+    svc_ip, port = tuning_utils.get_service_cluster_ip("dataprep-svc")
+    database_endpoint = f'http://{svc_ip}:{port}/v1/dataprep'
+    svc_ip, port = tuning_utils.get_service_cluster_ip("embedding-svc")
+    embedding_endpoint = f'http://{svc_ip}:{port}/v1/embeddings'
+    svc_ip, port = tuning_utils.get_service_cluster_ip("retriever-svc")
+    retrieval_endpoint = f'http://{svc_ip}:{port}/v1/retrieval'
+
     # collect the perf info
     for _, strategy_file in strategy_files_dict.items():
         # start services with different deployment modes
-        """If args.mode == "k8s":
-
-        update_and_apply_kubernetes_manifest(strategy_file, args.manifest_dir, timeout=200)
+        """
+        if args.mode == "k8s":
+            update_and_apply_kubernetes_manifest(strategy_file, args.manifest_dir, timeout=200)
         """
 
         logging.info(f"{strategy_file} evaluation......")
@@ -542,9 +550,11 @@ def main():
         for chunk_size in tuning_config["dataprep_space"]["chunk_size"]:
             for chunk_overlap in tuning_config["dataprep_space"]["chunk_overlap"]:
                 # evaluate
-                subprocess.run(
-                    ["bash", bash_script, chunk_size, chunk_overlap], check=True, text=True, capture_output=False
+                subprocess.run(["bash", bash_script, chunk_size, chunk_overlap,
+                    service_url, database_endpoint, embedding_endpoint, retrieval_endpoint],
+                    check=True, text=True, capture_output=False
                 )
+
 
     logging.info("Tuning Done.")
 

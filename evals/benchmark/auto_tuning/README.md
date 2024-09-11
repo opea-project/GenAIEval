@@ -149,3 +149,44 @@ Example of a strategy file:
 Both the K8S manifests and strategy files are generated in the current directory, providing everything needed for deployment.
 
 Deployment methods: simply run `kubectl apply -f` on the newly generated *_run.yaml files and the chatqna_config_map.
+
+# Auto-Tuning for ChatQnA: Optimizing Accuracy by Tuning Model Related Parameters
+
+The ChatQnA pipeline contains many components, such as `data_prep/embedding/retrieval/reranking/llm`, and each component has some hyper-parameters that have an impact on accuracy. So, we can create a tuning script to search the best accuracy config.
+
+Most of the hyper-parameters listed below:
+- embedding models
+- reranking models
+- large language models (llms)
+- data_prep hyper-parameters
+    - chunk_size
+    - chunk_overlap
+- retrieval hyper-parameters
+    - search_types
+    - top-k
+    - fetch-k
+- llms hyper-parameters
+    - top_k
+    - top-p
+    - temperature
+
+## Prepare Dataset
+
+We use the evaluation dataset from [CRUD-RAG](https://github.com/IAAR-Shanghai/CRUD_RAG) repo, use the below command to prepare the dataset.
+
+```
+git clone https://github.com/IAAR-Shanghai/CRUD_RAG
+mkdir data/
+cp CRUD_RAG/data/crud_split/split_merged.json data/
+cp -r CRUD_RAG/data/80000_docs/ data/
+python ../../evaluation/rag_eval/examples/process_crud_dataset.py
+```
+
+## Run the Tuning script
+
+```
+python3 acc_tuning.py --tuning_config acc_tuning_config.json --hardware_info hardware_info_gaudi.json --service_info chatqna_neuralchat_rerank_latest.yaml
+
+```
+
+
