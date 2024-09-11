@@ -103,7 +103,7 @@ vqa_eval/
 
 ## Evaluate VisualQnA
 
-Our evaluation code comes from LLaVA, thanks for their contribution!
+Our evaluation code comes from [LLaVA project](https://github.com/haotian-liu/LLaVA), thanks for their contribution!
 
 ### Launch VisualQnA Service
 Please refer to [VisualQnA](https://github.com/opea-project/GenAIExamples/blob/main/VisualQnA/README.md) to deploy VisualQnA Service.
@@ -111,7 +111,7 @@ Please refer to [VisualQnA](https://github.com/opea-project/GenAIExamples/blob/m
 
 Use cURL command to test VisualQnA service and ensure that it has started properly.
 ```bash
-curl http://${host_ip}:8888/v1/visualqna -H "Content-Type: application/json" -d '{
+curl http://${host_ip}:80/v1/visualqna -H "Content-Type: application/json" -d '{
      "messages": [
       {
         "role": "user",
