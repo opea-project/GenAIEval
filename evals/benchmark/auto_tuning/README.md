@@ -188,5 +188,3 @@ python ../../evaluation/rag_eval/examples/process_crud_dataset.py
 python3 acc_tuning.py --tuning_config acc_tuning_config.json --hardware_info hardware_info_gaudi.json --service_info chatqna_neuralchat_rerank_latest.yaml
 
 ```
-
-
