@@ -163,11 +163,11 @@ Most of the hyper-parameters listed below:
     - chunk_overlap
 - retrieval hyper-parameters
     - search_types
-    - top-k
-    - fetch-k
+    - top_k
+    - fetch_k
 - llms hyper-parameters
     - top_k
-    - top-p
+    - top_p
     - temperature
 
 ## Prepare Dataset
