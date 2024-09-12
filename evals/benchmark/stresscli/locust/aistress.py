@@ -43,8 +43,14 @@ def _(parser):
         default="Intel/neural-chat-7b-v3-3",
         help="LLM model name",
     )
-
-
+    parser.add_argument(
+        "--load-shape",
+        type=str,
+        env_var="OPEA_EVAL_LOAD_SHAPE",
+        default="constant",
+        help="load shape to adjust conccurency at runtime",
+    )
+ 
 reqlist = []
 start_ts = 0
 end_ts = 0
@@ -145,6 +151,11 @@ class AiStressUser(HttpUser):
             self.environment.runner.stats.log_request("POST", url, time.perf_counter() - start_ts, 0)
             self.environment.runner.stats.log_error("POST", url, "Locust Request error")
 
+        # For poisson load shape, a user only sends single request before it stops.
+        # TODO: user shoud not care about load shape
+        if self.environment.parsed_options.load_shape == "poisson":
+            self.stop(force=True)
+
     # def on_stop(self) -> None:
 
 
@@ -155,6 +166,7 @@ def on_test_start(environment, **kwargs):
         console_logger.info(f"Max request count : {environment.parsed_options.max_request}")
         console_logger.info(f"Http timeout      : {environment.parsed_options.http_timeout}\n")
         console_logger.info(f"Benchmark target  : {environment.parsed_options.bench_target}\n")
+        console_logger.info(f"Load shape        : {environment.parsed_options.load_shape}")
 
 
 @events.init.add_listener

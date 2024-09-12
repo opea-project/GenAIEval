@@ -29,7 +29,7 @@ locust_defaults = {
     "users": 10,
     "max-request": 100,
     "namespace": "default",
-    "load-shape": DEFAULT_LOADSHAPE,
+    "load-shape": {'name': DEFAULT_LOADSHAPE},
 }
 
 console_logger = logging.getLogger("opea.eval")
@@ -124,10 +124,16 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
 
     runspec["run_name"] = run_settings["name"]
 
-    # Specify load shape to adjust user distribution in the test
-    load_shape = run_settings.get(
+    # Specify load shape to adjust user distribution
+    load_shape_conf = run_settings.get(
         "load-shape", global_settings.get("load-shape", locust_defaults["load-shape"])
     )
+    try:
+        load_shape = load_shape_conf['name']
+    except KeyError:
+        load_shape = DEFAULT_LOADSHAPE
+    
+    runspec["load-shape"] = load_shape
     if load_shape == DEFAULT_LOADSHAPE:
         # constant load is Locust's default load shape, do nothing.
         console_logger.info("Use default load shape.")
@@ -138,14 +144,16 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
             f"stresscli/locust/{load_shape}_load_shape.py"
         )
         if os.path.isfile(f_custom_load_shape):
+            # Add the locust file of the custom load shape into classpath
             runspec["locustfile"] += f",{f_custom_load_shape}"
             console_logger.info("Use custom load shape: {load_shape}")
         else:
             console_logger.error(
                 f"Unsupported load shape: {load_shape}." \
-                f"The Locust file of custom shape not found: {f_custom_load_shape}. Aborted."
+                f"The Locust file of custom load shape not found: {f_custom_load_shape}. Aborted."
             )
             exit()
+
      
     # csv_output = os.path.join(output_folder, runspec['run_name'])
     # json_output = os.path.join(output_folder, f"{runspec['run_name']}_output.log")
@@ -173,6 +181,8 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         runspec["host"],
         "--run-time",
         runspec["runtime"],
+        "--load-shape",
+        runspec["load-shape"],
         "--users",
         str(runspec["users"]),
         "--spawn-rate",
@@ -195,6 +205,19 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         "WARNING",
         "--json",
     ]
+
+    # Get loadshape specific parameters
+    load_shape_params = None
+    try:
+        load_shape_params = load_shape_conf['params'][load_shape]
+    except KeyError:
+        console_logger.info(f"The parameters of load shape {load_shape} not found.")
+
+    # Add loadshape-specific parameters to locust parameters
+    if load_shape_params is not None:
+        for key, value in load_shape_params.items():
+            cmd.append(f"--{key}")
+            cmd.append(str(value))
 
     print(f"Running test: {' '.join(cmd)}")
     namespace = runspec["namespace"]

@@ -196,7 +196,7 @@ if __name__ == "__main__":
         "service_ip": parsed_data["service_ip"],
         "service_port": parsed_data["service_port"],
         "test_output_dir": parsed_data["test_output_dir"],
-        "load_shape": parsed_data["load_shape"]
+        "load_shape": parsed_data["load_shape"],
     }
 
     # Mapping of example names to service types
