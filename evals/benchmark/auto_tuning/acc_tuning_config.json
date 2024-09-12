@@ -1,0 +1,17 @@
+{
+    "embedding_replicas_granularity": 1,
+    "embedding_replicas_min": 1,
+    "embedding_replicas_max": 1,
+
+    "microservice_replicas_granularity": 1,
+    "microservice_replicas_min": 1,
+    "microservice_replicas_max": 1,
+
+    "embedding_models": ["BAAI/bge-base-zh-v1.5", "BAAI/bge-large-zh-v1.5"],
+    "reranking_models": ["BAAI/bge-reranker-base", "BAAI/bge-reranker-large"],
+    "llm_models": ["Qwen/Qwen2-7B-Instruct"],
+
+    "dataprep_space": {"chunk_size": [64, 128, 256, 512], "chunk_overlap": [0, 0.1, 0.3, 0.5, 0.7]},
+    "retrieval_space": {"search_types": ["similarity", "mmr"], "k": [10, 20], "fetch_k": [20], "lambda_mult": [0.5]},
+    "llm_space": {"top_k": [10], "top_p": [0.95], "typical_p": [0.95], "temperature": [0.1], "repetition_penalty": [1.03]}
+}

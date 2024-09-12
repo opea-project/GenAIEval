@@ -7,9 +7,9 @@
 import os
 from typing import Dict, Optional, Union
 
-from langchain_community.llms import HuggingFaceEndpoint
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseLanguageModel
+from langchain_huggingface import HuggingFaceEndpoint
 
 
 def format_ragas_metric_name(name: str):
@@ -42,14 +42,7 @@ class RagasMetric:
             "reference_free_rubrics_score",
         ]
 
-    async def a_measure(self, test_case: Dict):
-        return self.measure(test_case)
-
-    def measure(self, test_case: Dict):
-
-        # sends to server
         try:
-            from ragas import evaluate
             from ragas.metrics import (
                 answer_correctness,
                 answer_relevancy,
@@ -60,7 +53,6 @@ class RagasMetric:
                 faithfulness,
                 reference_free_rubrics_score,
             )
-
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
 
@@ -68,6 +60,7 @@ class RagasMetric:
             from datasets import Dataset
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install dataset")
+
         self.metrics_instance = {
             "answer_correctness": answer_correctness,
             "answer_relevancy": answer_relevancy,
@@ -85,14 +78,17 @@ class RagasMetric:
             print("OPENAI_API_KEY is provided, ragas initializes the model by OpenAI.")
             self.model = None
         if isinstance(self.model, str):
-            chat_model = HuggingFaceEndpoint(
+            print("LLM endpoint: ", self.model)
+            self.chat_model = HuggingFaceEndpoint(
                 endpoint_url=self.model,
-                timeout=600,
+                task="text-generation",
+                max_new_tokens=1024,
+                do_sample=False,
             )
         else:
-            chat_model = self.model
-        # Create a dataset from the test case
-        # Convert the Dict to a format compatible with Dataset
+            self.chat_model = self.model
+
+        # initialize metrics
         if self.metrics is not None:
             tmp_metrics = []
             # check supported list
@@ -110,8 +106,10 @@ class RagasMetric:
                     if metric == "answer_relevancy" and self.embeddings is None:
                         raise ValueError("answer_relevancy metric need provide embeddings model.")
                     tmp_metrics.append(self.metrics_instance[metric])
+
             self.metrics = tmp_metrics
-        else:
+
+        else:  # default metrics
             self.metrics = [
                 answer_relevancy,
                 faithfulness,
@@ -121,6 +119,19 @@ class RagasMetric:
                 context_recall,
             ]
 
+    async def a_measure(self, test_case: Dict):
+        return self.measure(test_case)
+
+    def measure(self, test_case: Dict):
+        from ragas import evaluate
+
+        try:
+            from datasets import Dataset
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError("Please install dataset")
+
+        # Create a dataset from the test case
+        # Convert the Dict to a format compatible with Dataset
         data = {
             "question": test_case["question"],
             "contexts": test_case["contexts"],
@@ -132,7 +143,7 @@ class RagasMetric:
         self.score = evaluate(
             dataset,
             metrics=self.metrics,
-            llm=chat_model,
+            llm=self.chat_model,
             embeddings=self.embeddings,
         )
         return self.score
