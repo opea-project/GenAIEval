@@ -41,6 +41,7 @@ def extract_test_case_data(content):
     return {
         "examples": test_suite_config.get("examples", []),
         "concurrent_level": test_suite_config.get("concurrent_level"),
+        "warm_ups": test_suite_config.get("warm_ups", 0),
         "user_queries": test_suite_config.get("user_queries", []),
         "random_prompt": test_suite_config.get("random_prompt"),
         "test_output_dir": test_suite_config.get("test_output_dir"),
@@ -58,7 +59,9 @@ def extract_test_case_data(content):
     }
 
 
-def create_run_yaml_content(service, base_url, bench_target, concurrency, user_queries, test_suite_config):
+def create_run_yaml_content(service, base_url, bench_target, 
+                            test_phase, concurrency, user_queries, 
+                            test_suite_config):
     """Create content for the run.yaml file."""
     return {
         "profile": {
@@ -78,35 +81,89 @@ def create_run_yaml_content(service, base_url, bench_target, concurrency, user_q
                 "deployment-type": test_suite_config["deployment_type"],
                 "load-shape": test_suite_config["load_shape"],
             },
-            "runs": [{"name": "benchmark", "users": concurrency, "max-request": user_queries}],
+            "runs": [{"name": test_phase, "users": concurrency, "max-request": user_queries}],
         }
     }
 
+def generate_stresscli_run_yaml(example, case_type, case_params, 
+                                test_params, test_phase, num_queries, 
+                                base_url, ts) -> str:
+    """
+    Create a stresscli configuration file and persist it on disk
+
+    Parameters
+    ----------
+        example : str 
+            The name of the example.
+        case_type : str
+            The type of the test case
+        case_params : dict
+            The parameters of single test case.
+        test_phase : str [warmup|benchmark]
+            Current phase of the test.
+        num_queries : int
+            The number of test requests sent to SUT
+        base_url : str
+            The root endpoint of SUT
+        test_params : dict
+            The parameters of the test
+        ts : str
+            Timestamp
+
+    Returns
+    -------
+        run_yaml_path : str
+            The path of the generated YAML file.
+
+    """
+    # Get the number of simulated users
+    concurrency = max(1, num_queries // test_params["concurrent_level"])
+
+    # Get the workload
+    if case_type == "e2e":
+        bench_target = f"{example}{'bench' if test_params['random_prompt'] else 'fixed'}"
+    else:
+        bench_target = f"{case_type}{'bench' if test_params['random_prompt'] else 'fixed'}"
+
+    # Generate the content of stresscli configuraiton file
+    stresscli_yaml = create_run_yaml_content(
+        case_params, base_url, bench_target, test_phase,
+        concurrency, num_queries, test_params
+    )
+
+    # Dump the stresscli configuration file
+    service_name = case_params.get("service_name")
+    run_yaml_path = os.path.join(
+        test_params["test_output_dir"], 
+        f"run_{service_name}_{ts}_{test_phase}_{num_queries}.yaml"
+    )
+    with open(run_yaml_path, "w") as yaml_file:
+        yaml.dump(stresscli_yaml, yaml_file) 
+
+    return run_yaml_path 
 
 def create_and_save_run_yaml(example, deployment_type, service_type, service, base_url, test_suite_config, index):
     """Create and save the run.yaml file for the service being tested."""
     os.makedirs(test_suite_config["test_output_dir"], exist_ok=True)
 
-    service_name = service.get("service_name")
     run_yaml_paths = []
+
+    # Add YAML configuration of stresscli for warm-ups
+    warm_ups = test_suite_config["warm_ups"]
+    if warm_ups is not None and warm_ups > 0: 
+        run_yaml_paths.append(
+            generate_stresscli_run_yaml(example, service_type, service, 
+                                        test_suite_config, "warmup", 
+                                        warm_ups, base_url, index)
+        )
+
+    # Add YAML configuration of stresscli for benchmark
     for user_queries in test_suite_config["user_queries"]:
-        concurrency = max(1, user_queries // test_suite_config["concurrent_level"])
-
-        if service_type == "e2e":
-            bench_target = f"{example}{'bench' if test_suite_config['random_prompt'] else 'fixed'}"
-        else:
-            bench_target = f"{service_type}{'bench' if test_suite_config['random_prompt'] else 'fixed'}"
-        run_yaml_content = create_run_yaml_content(
-            service, base_url, bench_target, concurrency, user_queries, test_suite_config
+        run_yaml_paths.append(
+            generate_stresscli_run_yaml(example, service_type, service, 
+                                        test_suite_config, "benchmark", 
+                                        user_queries, base_url, index)            
         )
-
-        run_yaml_path = os.path.join(
-            test_suite_config["test_output_dir"], f"run_{service_name}_{index}_users_{user_queries}.yaml"
-        )
-        with open(run_yaml_path, "w") as yaml_file:
-            yaml.dump(run_yaml_content, yaml_file)
-
-        run_yaml_paths.append(run_yaml_path)
 
     return run_yaml_paths
 
@@ -199,6 +256,7 @@ if __name__ == "__main__":
         "test_output_dir": parsed_data["test_output_dir"],
         "load_shape": parsed_data["load_shape"],
         "query_timeout": parsed_data["query_timeout"],
+        "warm_ups": parsed_data["warm_ups"],
     }
 
     # Mapping of example names to service types
