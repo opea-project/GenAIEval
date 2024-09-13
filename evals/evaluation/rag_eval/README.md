@@ -42,7 +42,10 @@ For evaluating the accuracy of a RAG pipeline, we use 2 latest published dataset
 
 ### Environment
 ```bash
+git clone https://github.com/opea-project/GenAIEval
+cd GenAIEval
 pip install -r requirements.txt
+pip install -e .
 ```
 
 ## MultiHop (English dataset)
@@ -65,7 +68,7 @@ docker run -p {your_llm_port}:80 --runtime=habana -e HABANA_VISIBLE_DEVICES=all 
 ### Prepare Dataset
 We use the evaluation dataset from [MultiHop-RAG](https://github.com/yixuantt/MultiHop-RAG) repo, use the below command to prepare the dataset.
 ```bash
-cd examples
+cd evals/evaluation/rag_eval/examples
 git clone https://github.com/yixuantt/MultiHop-RAG.git
 ```
 
@@ -73,17 +76,51 @@ git clone https://github.com/yixuantt/MultiHop-RAG.git
 
 Use below command to run the evaluation, please note that for the first run, argument `--ingest_docs` should be added in the command to ingest the documents into the vector database, while for the subsequent run, this argument should be omitted. Set `--retrieval_metrics` to get retrieval related metrics (MRR@10/MAP@10/Hits@10/Hits@4). Set `--ragas_metrics` and `--llm_endpoint` to get end-to-end rag pipeline metrics (faithfulness/answer_relevancy/...), which are judged by LLMs. We set `--limits` is 100 as default, which means only 100 examples are evaluated by llm-as-judge as it is very time consuming.
 
+If you are using docker compose to deploy RAG system, you can simply run the evaluation as following:
 ```bash
-python eval_multihop.py --docs_path MultiHop-RAG/dataset/corpus.json  --dataset_path MultiHop-RAG/dataset/MultiHopRAG.json --ingest_docs --retrieval_metrics --ragas_metrics --llm_endpoint http://{your_ip}:{your_llm_port}/generate
+python eval_multihop.py --docs_path MultiHop-RAG/dataset/corpus.json  --dataset_path MultiHop-RAG/dataset/MultiHopRAG.json --ingest_docs --retrieval_metrics --ragas_metrics --llm_endpoint http://{llm_as_judge_ip}:{llm_as_judge_port}/generate
+```
+
+If you are using Kubernetes manifest/helm to deploy RAG system, you must specify more arguments as following:
+```bash
+python eval_multihop.py --docs_path MultiHop-RAG/dataset/corpus.json  --dataset_path MultiHop-RAG/dataset/MultiHopRAG.json --ingest_docs --retrieval_metrics --ragas_metrics --llm_endpoint http://{llm_as_judge_ip}:{llm_as_judge_port}/generate --database_endpoint http://{your_dataprep_ip}:{your_dataprep_port}/v1/dataprep --embedding_endpoint http://{your_embedding_ip}:{your_embedding_port}/v1/embeddings --tei_embedding_endpoint http://{your_tei_embedding_ip}:{your_tei_embedding_port} --retrieval_endpoint http://{your_retrieval_ip}:{your_retrieval_port}/v1/retrieval --service_url http://{your_chatqna_ip}:{your_chatqna_port}/v1/chatqna
+```
+
+The default values for arguments are:
+|Argument|Default value|
+|--------|-------------|
+|service_url|http://localhost:8888/v1/chatqna|
+|database_endpoint|http://localhost:6007/v1/dataprep|
+|embedding_endpoint|http://localhost:6000/v1/embeddings|
+|tei_embedding_endpoint|http://localhost:8090|
+|retrieval_endpoint|http://localhost:7000/v1/retrieval|
+|reranking_endpoint|http://localhost:8000/v1/reranking|
+|output_dir|./output|
+|temperature|0.1|
+|max_new_tokens|1280|
+|chunk_size|256|
+|chunk_overlap|100|
+|search_type|similarity|
+|retrival_k|10|
+|fetch_k|20|
+|lambda_mult|0.5|
+|dataset_path|../data/split_merged.json|
+|docs_path|../data/80000_docs|
+|tasks|["question_answering"]|
+|limits|100|
+
+You can check arguments details use below command:
+```bash
+python eval_multihop.py --help
 ```
 
 ## CRUD (Chinese dataset)
 [CRUD-RAG](https://arxiv.org/abs/2401.17043) is a Chinese benchmark for RAG (Retrieval-Augmented Generation) system. This example utilize CRUD-RAG for evaluating the RAG system.
 
-
 ### Prepare Dataset
 We use the evaluation dataset from [CRUD-RAG](https://github.com/IAAR-Shanghai/CRUD_RAG) repo, use the below command to prepare the dataset.
 ```bash
+cd evals/evaluation/rag_eval
 git clone https://github.com/IAAR-Shanghai/CRUD_RAG
 mkdir data/
 cp CRUD_RAG/data/crud_split/split_merged.json data/
@@ -96,9 +133,39 @@ Please refer to this [guide](https://github.com/opea-project/GenAIExamples/blob/
 
 ### Evaluation
 Use below command to run the evaluation, please note that for the first run, argument `--ingest_docs` should be added in the command to ingest the documents into the vector database, while for the subsequent run, this argument should be omitted.
+
+If you are using docker compose to deploy RAG system, you can simply run the evaluation as following:
 ```bash
 cd examples
 python eval_crud.py --dataset_path ../data/split_merged.json --docs_path ../data/80000_docs --ingest_docs
+```
+
+If you are using Kubernetes manifest/helm to deploy RAG system, you must specify more arguments as following:
+```bash
+cd examples
+python eval_crud.py --dataset_path ../data/split_merged.json --docs_path ../data/80000_docs --ingest_docs --database_endpoint http://{your_dataprep_ip}:{your_dataprep_port}/v1/dataprep --embedding_endpoint http://{your_embedding_ip}:{your_embedding_port}/v1/embeddings --retrieval_endpoint http://{your_retrieval_ip}:{your_retrieval_port}/v1/retrieval --service_url http://{your_chatqna_ip}:{your_chatqna_port}/v1/chatqna
+```
+
+The default values for arguments are:
+|Argument|Default value|
+|--------|-------------|
+|service_url|http://localhost:8888/v1/chatqna|
+|database_endpoint|http://localhost:6007/v1/dataprep|
+|embedding_endpoint|http://localhost:6000/v1/embeddings|
+|retrieval_endpoint|http://localhost:7000/v1/retrieval|
+|reranking_endpoint|http://localhost:8000/v1/reranking|
+|output_dir|./output|
+|temperature|0.1|
+|max_new_tokens|1280|
+|chunk_size|256|
+|chunk_overlap|100|
+|dataset_path|../data/split_merged.json|
+|docs_path|../data/80000_docs|
+|tasks|["question_answering"]|
+
+You can check arguments details use below command:
+```bash
+python eval_crud.py --help
 ```
 
 ## Acknowledgements

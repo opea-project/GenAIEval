@@ -129,8 +129,6 @@ Example of a strategy file:
         "image": "opea/llm-tgi:latest",
         "replica": 4
     },
-
-    ... ...
     "reranking-dependency": {
         "type": "hpu",
         "image": "opea/tei-gaudi:latest",
