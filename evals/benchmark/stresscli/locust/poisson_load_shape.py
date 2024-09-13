@@ -38,5 +38,5 @@ class PoissonLoadShape(LoadTestShape):
             )
         )
         # Avoid illegal spawn_rate value of 0
-        spawn_rate = max(1, new_users)
+        spawn_rate = max(0.01, new_users)
         return (user_count, spawn_rate)
