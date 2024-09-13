@@ -1,4 +1,4 @@
-bigcode-eval@git+https://github.com/bigcode-project/bigcode-evaluation-harness.git@e5c2f31625223431d7987f43b70b75b9d26ba118
+bigcode-eval@git+https://github.com/bigcode-project/bigcode-evaluation-harness.git
 click
 deepdiff
 evaluate
@@ -12,7 +12,7 @@ locust
 numpy
 pytest
 pyyaml
-ragas
+ragas==v0.1.16
 requests
 rouge_score
 sseclient-py

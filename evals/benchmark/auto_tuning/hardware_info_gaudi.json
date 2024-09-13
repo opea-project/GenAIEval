@@ -1,0 +1,9 @@
+{
+    "device_0": {
+        "ip": ["100.83.111.232"],
+        "type": "hpu",
+        "sockets": 2,
+        "cores_per_socket": 80,
+        "num_cards": 8
+    }
+}

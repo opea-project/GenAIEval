@@ -1,0 +1,9 @@
+{
+    "embedding_replicas_granularity": 1,
+    "embedding_replicas_min": 1,
+    "embedding_replicas_max": 2,
+
+    "microservice_replicas_granularity": 1,
+    "microservice_replicas_min": 1,
+    "microservice_replicas_max": 4
+}

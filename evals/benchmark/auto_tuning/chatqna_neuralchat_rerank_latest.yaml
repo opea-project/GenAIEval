@@ -1,0 +1,67 @@
+
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+opea_micro_services:
+  embedding:
+    opea/embedding-tei:
+      tag: latest
+      type: cpu
+      dependency:
+        ghcr.io/huggingface/text-embeddings-inference:
+          tag: cpu-1.5
+          type: cpu
+          requirements:
+            model_id: "BAAI/bge-base-en-v1.5"
+
+  llm:
+    opea/llm-tgi:
+      tag: latest
+      type: cpu
+      dependency:
+        ghcr.io/huggingface/tgi-gaudi:
+          tag: 2.0.4
+          type: hpu
+          requirements:
+            model_id: "Intel/neural-chat-7b-v3-3"
+        ghcr.io/huggingface/text-generation-inference:
+          tag: 1.4
+          type: cpu
+          requirements:
+            model_id: "Intel/neural-chat-7b-v3-3"
+
+  data_prep:
+    opea/dataprep-redis:
+      tag: latest
+      type: cpu
+      dependency:
+        redis/redis-stack:
+          tag: 7.2.0-v9
+          type: cpu
+
+
+  reranking:
+    opea/reranking-tei:
+      tag: latest
+      type: cpu
+      dependency:
+        ghcr.io/huggingface/text-embeddings-inference:
+          tag: cpu-1.5
+          type: cpu
+          requirements:
+            model_id: "BAAI/bge-reranker-base"
+        opea/tei-gaudi:
+          tag: latest
+          type: hpu
+          requirements:
+            model_id: "BAAI/bge-reranker-base"
+
+  retrieval:
+    opea/retriever-redis:
+      tag: latest
+      type: cpu
+
+opea_mega_service:
+  opea/chatqna:
+    tag: latest
+    type: cpu
