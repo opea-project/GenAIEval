@@ -127,6 +127,46 @@ isolation on Kubernetes nodes. See [Platform
 optimization](doc/platform-optimization/README.md).
 
 
+## Benchmark
+
+We provide a OPEA microservice benchmarking tool which is designed for microservice performance testing and benchmarking. It allows you to define test cases for various services based on YAML configurations, run load tests using `stresscli`, built on top of [locust](https://github.com/locustio/locust), and analyze the results for performance insights.
+
+### Features
+
+- **Services load testing**: Simulates high concurrency levels to test services like LLM, reranking, ASR, E2E and more.
+- **YAML-based configuration**: Easily define test cases, service endpoints, and parameters.
+- **Service metrics collection**: Optionally collect service metrics to analyze performance bottlenecks.
+- **Flexible testing**: Supports a variety of tests like chatqna, codegen, codetrans, faqgen, audioqna, and visualqna.
+- **Data analysis and visualization**: Visualize test results to uncover performance trends and bottlenecks.
+
+### How to use
+
+**Define Test Cases**: Configure your tests in the [benchmark.yaml](./evals/benchmark/benchmark.py) file.
+
+**Increase File Descriptor Limit (if running large-scale tests)**:
+
+```bash
+ulimit -n 100000
+```
+
+This ensures the system can handle high concurrency by allowing more open files and connections.
+
+**Run the benchmark script**:
+
+```bash
+python evals/benchmark/benchmark.py
+```
+
+Results will be saved in the directory specified by `test_output_dir` in the configuration.
+
+
+For more details on configuring test cases, refer to the [README](./evals/benchmark/README.md).
+
+
+### Grafana Dashboards
+Prometheus metrics collected during the tests can be used to create Grafana dashboards for visualizing performance trends and monitoring bottlenecks. For more information, refer to the [Grafana README](./evals/benchmark/grafana/README.md)
+
+
 ## Additional Content
 - [Code of Conduct](https://github.com/opea-project/docs/tree/main/community/CODE_OF_CONDUCT.md)
 - [Contribution](https://github.com/opea-project/docs/tree/main/community/CONTRIBUTING.md)
