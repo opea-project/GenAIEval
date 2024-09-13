@@ -166,6 +166,7 @@ For more details on configuring test cases, refer to the [README](./evals/benchm
 ### Grafana Dashboards
 Prometheus metrics collected during the tests can be used to create Grafana dashboards for visualizing performance trends and monitoring bottlenecks. For more information, refer to the [Grafana README](./evals/benchmark/grafana/README.md)
 
+![tgi microservice dashboard](./assets/grafana_dashboard.png)
 
 ## Additional Content
 - [Code of Conduct](https://github.com/opea-project/docs/tree/main/community/CODE_OF_CONDUCT.md)
