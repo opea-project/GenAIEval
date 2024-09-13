@@ -51,6 +51,7 @@ def extract_test_case_data(content):
         "service_ip": test_suite_config.get("service_ip"),
         "service_port": test_suite_config.get("service_port"),
         "load_shape": test_suite_config.get("load_shape"),
+        "query_timeout": test_suite_config.get("query_timeout", 120),
         "all_case_data": {
             example: content["test_cases"].get(example, {}) for example in test_suite_config.get("examples", [])
         },
@@ -66,7 +67,7 @@ def create_run_yaml_content(service, base_url, bench_target, concurrency, user_q
                 "tool": "locust",
                 "locustfile": os.path.join(os.getcwd(), "stresscli/locust/aistress.py"),
                 "host": base_url,
-                "stop-timeout": 120,
+                "stop-timeout": test_suite_config["query_timeout"],
                 "processes": 2,
                 "namespace": "default",
                 "bench-target": bench_target,
@@ -197,6 +198,7 @@ if __name__ == "__main__":
         "service_port": parsed_data["service_port"],
         "test_output_dir": parsed_data["test_output_dir"],
         "load_shape": parsed_data["load_shape"],
+        "query_timeout": parsed_data["query_timeout"],
     }
 
     # Mapping of example names to service types

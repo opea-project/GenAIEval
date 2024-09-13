@@ -112,6 +112,7 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
     runspec["stop_timeout"] = run_settings.get(
         "stop-timeout", global_settings.get("stop-timeout", locust_defaults["stop-timeout"])
     )
+    runspec["stop_timeout"] = locust_defaults["stop-timeout"] if runspec["stop_timeout"] is None else runspec["stop_timeout"]
     runspec["processes"] = run_settings.get("processes", global_settings.get("processes", locust_defaults["processes"]))
     runspec["bench-target"] = run_settings.get(
         "bench-target", global_settings.get("bench-target", locust_defaults["bench-target"])

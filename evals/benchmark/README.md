@@ -70,6 +70,7 @@ test_suite_config:
         arrival-rate: 1.0        # Request arrival rate
   concurrent_level: 4  # The concurrency level
   user_queries: [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]  # Number of test requests
+  query_timeout: 120  # Number of seconds to wait for a simulated user to complete any executing task before exiting. 120 sec by defeult.
   random_prompt: false  # Use random prompts if true, fixed prompts if false
   run_time: 60m  # Total runtime for the test suite
   collect_service_metric: false  # Enable service metrics collection
