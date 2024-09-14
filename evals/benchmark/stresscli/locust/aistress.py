@@ -23,7 +23,7 @@ def _(parser):
         "--max-request",
         type=int,
         env_var="MAX_REQUEST",
-        default=10000,
+        default=-1,
         help="Stop the benchmark If exceed this request",
     )
     parser.add_argument(
@@ -70,8 +70,8 @@ class AiStressUser(HttpUser):
 
     @task
     def bench_main(self):
-
-        if AiStressUser.request >= self.environment.parsed_options.max_request:
+        max_request = self.environment.parsed_options.max_request
+        if max_request >= 0 and AiStressUser.request >= max_request:
             time.sleep(1)
             return
         with AiStressUser._lock:
@@ -214,7 +214,8 @@ def on_reqcount(msg, **kwargs):
 def checker(environment):
     while environment.runner.state not in [STATE_STOPPING, STATE_STOPPED, STATE_CLEANUP]:
         time.sleep(1)
-        if environment.runner.stats.num_requests >= environment.parsed_options.max_request:
+        max_request = environment.parsed_options.max_request
+        if max_request >= 0 and environment.runner.stats.num_requests >= max_request:
             logging.info(f"Exceed the max-request number:{environment.runner.stats.num_requests}, Exit...")
             #            while environment.runner.user_count > 0:
             time.sleep(5)

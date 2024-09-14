@@ -40,12 +40,11 @@ def extract_test_case_data(content):
 
     return {
         "examples": test_suite_config.get("examples", []),
-        "concurrent_level": test_suite_config.get("concurrent_level"),
         "warm_ups": test_suite_config.get("warm_ups", 0),
         "user_queries": test_suite_config.get("user_queries", []),
         "random_prompt": test_suite_config.get("random_prompt"),
         "test_output_dir": test_suite_config.get("test_output_dir"),
-        "run_time": test_suite_config.get("run_time"),
+        "run_time": test_suite_config.get("run_time", None),
         "collect_service_metric": test_suite_config.get("collect_service_metric"),
         "llm_model": test_suite_config.get("llm_model"),
         "deployment_type": test_suite_config.get("deployment_type"),
@@ -60,30 +59,56 @@ def extract_test_case_data(content):
 
 
 def create_run_yaml_content(service, base_url, bench_target, 
-                            test_phase, concurrency, user_queries, 
-                            test_suite_config):
+                            test_phase, num_queries, test_params):
     """Create content for the run.yaml file."""
-    return {
+
+    # If a load shape includes the parameter concurrent_level, 
+    # the parameter will be passed to Locust to launch fixed
+    # number of simulated users.
+    concurrency = 1
+    try:
+        load_shape = test_params["load_shape"]["name"]
+        load_shape_params = test_params["load_shape"]["params"][load_shape]
+        if load_shape_params and load_shape_params["concurrent_level"]:
+            if num_queries >= 0:
+                concurrency = max(1, num_queries // load_shape_params["concurrent_level"])
+            else:
+                concurrency = load_shape_params["concurrent_level"]
+    except KeyError as e:
+        # If the concurrent_level is not specified, load shapes should 
+        # manage concurrency and user spawn rate by themselves.
+        pass
+
+    yaml_content = {
         "profile": {
-            "storage": {"hostpath": test_suite_config["test_output_dir"]},
+            "storage": {"hostpath": test_params["test_output_dir"]},
             "global-settings": {
                 "tool": "locust",
                 "locustfile": os.path.join(os.getcwd(), "stresscli/locust/aistress.py"),
                 "host": base_url,
-                "stop-timeout": test_suite_config["query_timeout"],
+                "stop-timeout": test_params["query_timeout"],
                 "processes": 2,
                 "namespace": "default",
                 "bench-target": bench_target,
-                "run-time": test_suite_config["run_time"],
-                "service-metric-collect": test_suite_config["collect_service_metric"],
+                "service-metric-collect": test_params["collect_service_metric"],
                 "service-list": service.get("service_list", []),
-                "llm-model": test_suite_config["llm_model"],
-                "deployment-type": test_suite_config["deployment_type"],
-                "load-shape": test_suite_config["load_shape"],
+                "llm-model": test_params["llm_model"],
+                "deployment-type": test_params["deployment_type"],
+                "load-shape": test_params["load_shape"],
             },
-            "runs": [{"name": test_phase, "users": concurrency, "max-request": user_queries}],
+            "runs": [{"name": test_phase, "users": concurrency, "max-request": num_queries}],
         }
     }
+
+    # For the following scenarios, test will stop after the specified run-time
+    # 1) run_time is not specified in benchmark.yaml
+    # 2) Not a warm-up run
+    # TODO: According to Locust's doc, run-time should default to run forever, 
+    # however the default is 48 hours.
+    if test_params["run_time"] is not None and test_phase != "warmup":
+        yaml_content["profile"]["global-settings"]["run-time"] = test_params["run_time"]
+
+    return yaml_content
 
 def generate_stresscli_run_yaml(example, case_type, case_params, 
                                 test_params, test_phase, num_queries, 
@@ -116,9 +141,6 @@ def generate_stresscli_run_yaml(example, case_type, case_params,
             The path of the generated YAML file.
 
     """
-    # Get the number of simulated users
-    concurrency = max(1, num_queries // test_params["concurrent_level"])
-
     # Get the workload
     if case_type == "e2e":
         bench_target = f"{example}{'bench' if test_params['random_prompt'] else 'fixed'}"
@@ -127,8 +149,8 @@ def generate_stresscli_run_yaml(example, case_type, case_params,
 
     # Generate the content of stresscli configuraiton file
     stresscli_yaml = create_run_yaml_content(
-        case_params, base_url, bench_target, test_phase,
-        concurrency, num_queries, test_params
+        case_params, base_url, bench_target, 
+        test_phase, num_queries, test_params
     )
 
     # Dump the stresscli configuration file
@@ -158,12 +180,22 @@ def create_and_save_run_yaml(example, deployment_type, service_type, service, ba
         )
 
     # Add YAML configuration of stresscli for benchmark
-    for user_queries in test_suite_config["user_queries"]:
+    user_queries_lst = test_suite_config["user_queries"]
+    if user_queries_lst is None or len(user_queries_lst) == 0:
+        # Test stop is controlled by run time
         run_yaml_paths.append(
             generate_stresscli_run_yaml(example, service_type, service, 
                                         test_suite_config, "benchmark", 
-                                        user_queries, base_url, index)            
-        )
+                                        -1, base_url, index)
+        )      
+    else:
+        # Test stop is controlled by request count
+        for user_queries in user_queries_lst:
+            run_yaml_paths.append(
+                generate_stresscli_run_yaml(example, service_type, service, 
+                                            test_suite_config, "benchmark", 
+                                            user_queries, base_url, index)            
+            )
 
     return run_yaml_paths
 
@@ -237,6 +269,27 @@ def process_service(example, service_type, case_data, test_suite_config):
         print(f"[OPEA BENCHMARK] 🚀 Example: {example} Service: {service.get('service_name')}, Running test...")
         run_service_test(example, service_type, service, test_suite_config)
 
+def check_test_suite_config(test_suite_config):
+    """
+    Check the configuration of test suite
+
+    Parameters
+    ----------
+        test_suite_config : dict 
+            The name of the example.
+
+    Raises
+    -------
+        ValueError
+            If incorrect configuration detects
+
+    """
+
+    # User must specify either run_time or user_queries.
+    if test_suite_config["run_time"] is None and \
+            len(test_suite_config["user_queries"]) == 0:
+        raise ValueError("Must specify either run_time or user_queries.")
+
 
 if __name__ == "__main__":
     # Load test suit configuration
@@ -244,7 +297,6 @@ if __name__ == "__main__":
     # Extract data
     parsed_data = extract_test_case_data(yaml_content)
     test_suite_config = {
-        "concurrent_level": parsed_data["concurrent_level"],
         "user_queries": parsed_data["user_queries"],
         "random_prompt": parsed_data["random_prompt"],
         "run_time": parsed_data["run_time"],
@@ -258,6 +310,7 @@ if __name__ == "__main__":
         "query_timeout": parsed_data["query_timeout"],
         "warm_ups": parsed_data["warm_ups"],
     }
+    check_test_suite_config(test_suite_config)
 
     # Mapping of example names to service types
     example_service_map = {

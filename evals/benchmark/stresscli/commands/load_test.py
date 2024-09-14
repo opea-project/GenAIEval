@@ -211,6 +211,8 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
     load_shape_params = None
     try:
         load_shape_params = load_shape_conf['params'][load_shape]
+        if load_shape_params and "concurrent_level" in load_shape_params:
+            del load_shape_params["concurrent_level"]
     except KeyError:
         console_logger.info(f"The parameters of load shape {load_shape} not found.")
 
