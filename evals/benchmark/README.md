@@ -1,6 +1,6 @@
 # OPEA Benchmark Tool
 
-This Tool provides a microservices benchmarking framework that uses YAML configurations to define test cases for different services. It executes these tests using `stresscli`, built on top of [locust](https://github.com/locustio/locust), a performance/load testing tool for HTTP and other protocols and logs the results for performance analysis and data visualization.
+This Tool provides a microservice benchmarking framework that uses YAML configurations to define test cases for different services. It executes these tests using `stresscli`, built on top of [locust](https://github.com/locustio/locust), a performance/load testing tool for HTTP and other protocols and logs the results for performance analysis and data visualization.
 
 ## Features
 
