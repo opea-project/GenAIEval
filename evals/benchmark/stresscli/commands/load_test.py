@@ -190,8 +190,6 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         str(spawn_rate),
         "--max-request",
         str(runspec["max_requests"]),
-        "--processes",
-        str(processes),
         "--bench-target",
         str(runspec["bench-target"]),
         "--llm-model",
@@ -206,6 +204,14 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         "WARNING",
         "--json",
     ]
+
+    # Poisson load shape only supports single Locust process 
+    # for Locust issues.
+    if load_shape == "poisson":
+        console_logger.info("Use 1 Locust process for poisson load shape.")
+    else:
+        cmd.append("--processes")
+        cmd.append(str(processes))            
 
     # Get loadshape specific parameters
     load_shape_params = None

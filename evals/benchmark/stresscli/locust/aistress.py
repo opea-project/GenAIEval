@@ -72,6 +72,11 @@ class AiStressUser(HttpUser):
     def bench_main(self):
         max_request = self.environment.parsed_options.max_request
         if max_request >= 0 and AiStressUser.request >= max_request:
+            # For poisson load shape, a user only sends single request before it stops.
+            # TODO: user shoud not care about load shape
+            if self.environment.parsed_options.load_shape == "poisson":
+                self.stop(force=True)
+                
             time.sleep(1)
             return
         with AiStressUser._lock:
