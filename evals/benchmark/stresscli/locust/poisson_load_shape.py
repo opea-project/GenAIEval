@@ -1,9 +1,14 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 import logging
-import numpy as np
+
 import locust
+import numpy as np
 from locust import LoadTestShape, events
 
 logger = logging.getLogger(__name__)
+
 
 @events.init_command_line_parser.add_listener
 def _(parser):
@@ -12,6 +17,7 @@ def _(parser):
         type=float,
         default=1.0,
     )
+
 
 class PoissonLoadShape(LoadTestShape):
     use_common_options = True
@@ -31,7 +37,7 @@ class PoissonLoadShape(LoadTestShape):
             self.last_tick = run_time
 
             new_users = np.random.poisson(lam=self.arrival_rate * time_diff)
-            current_users=self.get_current_user_count()
+            current_users = self.get_current_user_count()
             user_count = current_users + new_users
             logger.debug(
                 "Current users: {current_users}, New users: {new_users}, Target users: {target_users}".format(

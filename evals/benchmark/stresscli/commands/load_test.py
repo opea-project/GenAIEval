@@ -3,10 +3,11 @@
 
 # stresscli/load_test.py
 
+import logging
 import os
 import subprocess
 from datetime import datetime
-import logging
+
 import click
 import yaml
 
@@ -29,10 +30,11 @@ locust_defaults = {
     "users": 10,
     "max-request": 100,
     "namespace": "default",
-    "load-shape": {'name': DEFAULT_LOADSHAPE},
+    "load-shape": {"name": DEFAULT_LOADSHAPE},
 }
 
 console_logger = logging.getLogger("opea.eval")
+
 
 @click.command()
 # @click.option('--dataset', type=click.Path(), help='Dataset path')
@@ -112,7 +114,9 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
     runspec["stop_timeout"] = run_settings.get(
         "stop-timeout", global_settings.get("stop-timeout", locust_defaults["stop-timeout"])
     )
-    runspec["stop_timeout"] = locust_defaults["stop-timeout"] if runspec["stop_timeout"] is None else runspec["stop_timeout"]
+    runspec["stop_timeout"] = (
+        locust_defaults["stop-timeout"] if runspec["stop_timeout"] is None else runspec["stop_timeout"]
+    )
     runspec["processes"] = run_settings.get("processes", global_settings.get("processes", locust_defaults["processes"]))
     runspec["bench-target"] = run_settings.get(
         "bench-target", global_settings.get("bench-target", locust_defaults["bench-target"])
@@ -126,36 +130,30 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
     runspec["run_name"] = run_settings["name"]
 
     # Specify load shape to adjust user distribution
-    load_shape_conf = run_settings.get(
-        "load-shape", global_settings.get("load-shape", locust_defaults["load-shape"])
-    )
+    load_shape_conf = run_settings.get("load-shape", global_settings.get("load-shape", locust_defaults["load-shape"]))
     try:
-        load_shape = load_shape_conf['name']
+        load_shape = load_shape_conf["name"]
     except KeyError:
         load_shape = DEFAULT_LOADSHAPE
-    
+
     runspec["load-shape"] = load_shape
     if load_shape == DEFAULT_LOADSHAPE:
         # constant load is Locust's default load shape, do nothing.
         console_logger.info("Use default load shape.")
     else:
         # load a custom load shape
-        f_custom_load_shape = os.path.join(
-            os.getcwd(), 
-            f"stresscli/locust/{load_shape}_load_shape.py"
-        )
+        f_custom_load_shape = os.path.join(os.getcwd(), f"stresscli/locust/{load_shape}_load_shape.py")
         if os.path.isfile(f_custom_load_shape):
             # Add the locust file of the custom load shape into classpath
             runspec["locustfile"] += f",{f_custom_load_shape}"
             console_logger.info("Use custom load shape: {load_shape}")
         else:
             console_logger.error(
-                f"Unsupported load shape: {load_shape}." \
+                f"Unsupported load shape: {load_shape}."
                 f"The Locust file of custom load shape not found: {f_custom_load_shape}. Aborted."
             )
             exit()
 
-     
     # csv_output = os.path.join(output_folder, runspec['run_name'])
     # json_output = os.path.join(output_folder, f"{runspec['run_name']}_output.log")
     csv_output = os.path.join(output_folder, f"{index}")
@@ -173,7 +171,7 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
 
     spawn_rate = 100 if runspec["users"] > 100 else runspec["users"]
     processes = 10 if runspec["max_requests"] > 2000 else 5 if runspec["max_requests"] > 1000 else 2
-    
+
     cmd = [
         "locust",
         "--locustfile",
@@ -205,18 +203,18 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         "--json",
     ]
 
-    # Poisson load shape only supports single Locust process 
+    # Poisson load shape only supports single Locust process
     # for Locust issues.
     if load_shape == "poisson":
         console_logger.info("Use 1 Locust process for poisson load shape.")
     else:
         cmd.append("--processes")
-        cmd.append(str(processes))            
+        cmd.append(str(processes))
 
     # Get loadshape specific parameters
     load_shape_params = None
     try:
-        load_shape_params = load_shape_conf['params'][load_shape]
+        load_shape_params = load_shape_conf["params"][load_shape]
         if load_shape_params and "concurrent_level" in load_shape_params:
             del load_shape_params["concurrent_level"]
     except KeyError:

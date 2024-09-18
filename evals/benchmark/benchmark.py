@@ -58,11 +58,10 @@ def extract_test_case_data(content):
     }
 
 
-def create_run_yaml_content(service, base_url, bench_target, 
-                            test_phase, num_queries, test_params):
+def create_run_yaml_content(service, base_url, bench_target, test_phase, num_queries, test_params):
     """Create content for the run.yaml file."""
 
-    # If a load shape includes the parameter concurrent_level, 
+    # If a load shape includes the parameter concurrent_level,
     # the parameter will be passed to Locust to launch fixed
     # number of simulated users.
     concurrency = 1
@@ -75,7 +74,7 @@ def create_run_yaml_content(service, base_url, bench_target,
             else:
                 concurrency = load_shape_params["concurrent_level"]
     except KeyError as e:
-        # If the concurrent_level is not specified, load shapes should 
+        # If the concurrent_level is not specified, load shapes should
         # manage concurrency and user spawn rate by themselves.
         pass
 
@@ -103,22 +102,22 @@ def create_run_yaml_content(service, base_url, bench_target,
     # For the following scenarios, test will stop after the specified run-time
     # 1) run_time is not specified in benchmark.yaml
     # 2) Not a warm-up run
-    # TODO: According to Locust's doc, run-time should default to run forever, 
+    # TODO: According to Locust's doc, run-time should default to run forever,
     # however the default is 48 hours.
     if test_params["run_time"] is not None and test_phase != "warmup":
         yaml_content["profile"]["global-settings"]["run-time"] = test_params["run_time"]
 
     return yaml_content
 
-def generate_stresscli_run_yaml(example, case_type, case_params, 
-                                test_params, test_phase, num_queries, 
-                                base_url, ts) -> str:
-    """
-    Create a stresscli configuration file and persist it on disk
+
+def generate_stresscli_run_yaml(
+    example, case_type, case_params, test_params, test_phase, num_queries, base_url, ts
+) -> str:
+    """Create a stresscli configuration file and persist it on disk.
 
     Parameters
     ----------
-        example : str 
+        example : str
             The name of the example.
         case_type : str
             The type of the test case
@@ -139,7 +138,6 @@ def generate_stresscli_run_yaml(example, case_type, case_params,
     -------
         run_yaml_path : str
             The path of the generated YAML file.
-
     """
     # Get the workload
     if case_type == "e2e":
@@ -147,22 +145,19 @@ def generate_stresscli_run_yaml(example, case_type, case_params,
     else:
         bench_target = f"{case_type}{'bench' if test_params['random_prompt'] else 'fixed'}"
 
-    # Generate the content of stresscli configuraiton file
-    stresscli_yaml = create_run_yaml_content(
-        case_params, base_url, bench_target, 
-        test_phase, num_queries, test_params
-    )
+    # Generate the content of stresscli configuration file
+    stresscli_yaml = create_run_yaml_content(case_params, base_url, bench_target, test_phase, num_queries, test_params)
 
     # Dump the stresscli configuration file
     service_name = case_params.get("service_name")
     run_yaml_path = os.path.join(
-        test_params["test_output_dir"], 
-        f"run_{service_name}_{ts}_{test_phase}_{num_queries}.yaml"
+        test_params["test_output_dir"], f"run_{service_name}_{ts}_{test_phase}_{num_queries}.yaml"
     )
     with open(run_yaml_path, "w") as yaml_file:
-        yaml.dump(stresscli_yaml, yaml_file) 
+        yaml.dump(stresscli_yaml, yaml_file)
 
-    return run_yaml_path 
+    return run_yaml_path
+
 
 def create_and_save_run_yaml(example, deployment_type, service_type, service, base_url, test_suite_config, index):
     """Create and save the run.yaml file for the service being tested."""
@@ -172,11 +167,11 @@ def create_and_save_run_yaml(example, deployment_type, service_type, service, ba
 
     # Add YAML configuration of stresscli for warm-ups
     warm_ups = test_suite_config["warm_ups"]
-    if warm_ups is not None and warm_ups > 0: 
+    if warm_ups is not None and warm_ups > 0:
         run_yaml_paths.append(
-            generate_stresscli_run_yaml(example, service_type, service, 
-                                        test_suite_config, "warmup", 
-                                        warm_ups, base_url, index)
+            generate_stresscli_run_yaml(
+                example, service_type, service, test_suite_config, "warmup", warm_ups, base_url, index
+            )
         )
 
     # Add YAML configuration of stresscli for benchmark
@@ -184,17 +179,17 @@ def create_and_save_run_yaml(example, deployment_type, service_type, service, ba
     if user_queries_lst is None or len(user_queries_lst) == 0:
         # Test stop is controlled by run time
         run_yaml_paths.append(
-            generate_stresscli_run_yaml(example, service_type, service, 
-                                        test_suite_config, "benchmark", 
-                                        -1, base_url, index)
-        )      
+            generate_stresscli_run_yaml(
+                example, service_type, service, test_suite_config, "benchmark", -1, base_url, index
+            )
+        )
     else:
         # Test stop is controlled by request count
         for user_queries in user_queries_lst:
             run_yaml_paths.append(
-                generate_stresscli_run_yaml(example, service_type, service, 
-                                            test_suite_config, "benchmark", 
-                                            user_queries, base_url, index)            
+                generate_stresscli_run_yaml(
+                    example, service_type, service, test_suite_config, "benchmark", user_queries, base_url, index
+                )
             )
 
     return run_yaml_paths
@@ -269,25 +264,23 @@ def process_service(example, service_type, case_data, test_suite_config):
         print(f"[OPEA BENCHMARK] 🚀 Example: {example} Service: {service.get('service_name')}, Running test...")
         run_service_test(example, service_type, service, test_suite_config)
 
+
 def check_test_suite_config(test_suite_config):
-    """
-    Check the configuration of test suite
+    """Check the configuration of test suite.
 
     Parameters
     ----------
-        test_suite_config : dict 
+        test_suite_config : dict
             The name of the example.
 
     Raises
     -------
         ValueError
             If incorrect configuration detects
-
     """
 
     # User must specify either run_time or user_queries.
-    if test_suite_config["run_time"] is None and \
-            len(test_suite_config["user_queries"]) == 0:
+    if test_suite_config["run_time"] is None and len(test_suite_config["user_queries"]) == 0:
         raise ValueError("Must specify either run_time or user_queries.")
 
 
