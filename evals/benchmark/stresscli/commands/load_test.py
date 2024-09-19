@@ -46,16 +46,17 @@ def locust_runtests(kubeconfig, profile):
         with open(profile, "r") as file:
             profile_data = yaml.safe_load(file)
 
-        # create test log folder
-        hostpath = profile_data["profile"]["storage"]["hostpath"]
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        base_folder = os.path.join(hostpath, f"{timestamp}")
-        os.makedirs(base_folder, exist_ok=True)
-
-        # Extract storage path and run details from profile
         global_settings = profile_data["profile"]["global-settings"]
         runs = profile_data["profile"]["runs"]
 
+        # create test log folder
+        hostpath = profile_data["profile"]["storage"]["hostpath"]
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        testtarget = global_settings.get("bench-target", locust_defaults["bench-target"])
+        base_folder = os.path.join(hostpath, f"{testtarget}_{timestamp}")
+        os.makedirs(base_folder, exist_ok=True)
+
+        # Extract storage path and run details from profile
         index = 1
         for run in runs:
             print(f"===Starting test: {run['name']}")
