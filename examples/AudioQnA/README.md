@@ -3,7 +3,7 @@
 ## Dataset 
 
 
-We evaluate the ASR accuracy on the test set of librispeech [dataset](andreagasparini/librispeech_test_only), which contains 2620 records of audio and texts.
+We evaluate the ASR accuracy on the test set of librispeech [dataset](https://huggingface.co/datasets/andreagasparini/librispeech_test_only), which contains 2620 records of audio and texts.
 
 ## Metrics
 
