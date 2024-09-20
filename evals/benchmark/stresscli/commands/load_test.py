@@ -7,6 +7,7 @@ import logging
 import os
 import subprocess
 from datetime import datetime
+import math
 
 import click
 import yaml
@@ -170,7 +171,31 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         metrics_output = os.path.join(output_folder, f"{index}_metrics.json")
 
     spawn_rate = 100 if runspec["users"] > 100 else runspec["users"]
-    processes = 10 if runspec["max_requests"] > 2000 else 5 if runspec["max_requests"] > 1000 else 2
+
+
+    load_shape_params = None
+    try:
+        load_shape_params = load_shape_conf["params"][load_shape]
+    except KeyError:
+        console_logger.info(f"The specified load shape not found: {load_shape}")
+
+    # Dynamically allocate Locust processes to fit different loads
+    processes = 2
+    if load_shape == "constant":
+        if runspec["max_requests"] > 0:
+            processes = 10 if runspec["max_requests"] > 2000 \
+                else 5 if runspec["max_requests"] > 1000 \
+                else processes
+        else:
+            concurrent_level = 2
+            if load_shape_params and "concurrent_level" in load_shape_params:
+                concurrent_level = int(load_shape_params["concurrent_level"])
+            processes = 10 if concurrent_level > 400 \
+                else 5 if concurrent_level > 200 \
+                else processes
+    elif load_shape == "poisson":
+        if load_shape_params and "arrival-rate" in load_shape_params:
+            processes = max(2, math.ceil(int(load_shape_params["arrival-rate"]) / 10))
 
     cmd = [
         "locust",
@@ -182,6 +207,8 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         runspec["runtime"],
         "--load-shape",
         runspec["load-shape"],
+        "--processes",
+        str(processes),        
         "--users",
         str(runspec["users"]),
         "--spawn-rate",
@@ -203,22 +230,10 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         "--json",
     ]
 
-    # Poisson load shape only supports single Locust process
-    # for Locust issues.
-    if load_shape == "poisson":
-        console_logger.info("Use 1 Locust process for poisson load shape.")
-    else:
-        cmd.append("--processes")
-        cmd.append(str(processes))
-
     # Get loadshape specific parameters
-    load_shape_params = None
-    try:
-        load_shape_params = load_shape_conf["params"][load_shape]
-        if load_shape_params and "concurrent_level" in load_shape_params:
-            del load_shape_params["concurrent_level"]
-    except KeyError:
-        console_logger.info(f"The parameters of load shape {load_shape} not found.")
+    if load_shape_params and "concurrent_level" in load_shape_params:
+        del load_shape_params["concurrent_level"]
+
 
     # Add loadshape-specific parameters to locust parameters
     if load_shape_params is not None:
