@@ -46,4 +46,3 @@ Here is the tested result for your reference
 |whisper-large-v2| 2.87|
 |whisper-large| 2.7	|
 |whisper-medium| 3.45 |
-
