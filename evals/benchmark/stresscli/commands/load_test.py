@@ -4,10 +4,10 @@
 # stresscli/load_test.py
 
 import logging
+import math
 import os
 import subprocess
 from datetime import datetime
-import math
 
 import click
 import yaml
@@ -172,7 +172,6 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
 
     spawn_rate = 100 if runspec["users"] > 100 else runspec["users"]
 
-
     load_shape_params = None
     try:
         load_shape_params = load_shape_conf["params"][load_shape]
@@ -183,16 +182,12 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
     processes = 2
     if load_shape == "constant":
         if runspec["max_requests"] > 0:
-            processes = 10 if runspec["max_requests"] > 2000 \
-                else 5 if runspec["max_requests"] > 1000 \
-                else processes
+            processes = 10 if runspec["max_requests"] > 2000 else 5 if runspec["max_requests"] > 1000 else processes
         else:
             concurrent_level = 2
             if load_shape_params and "concurrent_level" in load_shape_params:
                 concurrent_level = int(load_shape_params["concurrent_level"])
-            processes = 10 if concurrent_level > 400 \
-                else 5 if concurrent_level > 200 \
-                else processes
+            processes = 10 if concurrent_level > 400 else 5 if concurrent_level > 200 else processes
     elif load_shape == "poisson":
         if load_shape_params and "arrival-rate" in load_shape_params:
             processes = max(2, math.ceil(int(load_shape_params["arrival-rate"]) / 10))
@@ -208,7 +203,7 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         "--load-shape",
         runspec["load-shape"],
         "--processes",
-        str(processes),        
+        str(processes),
         "--users",
         str(runspec["users"]),
         "--spawn-rate",
@@ -233,7 +228,6 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
     # Get loadshape specific parameters
     if load_shape_params and "concurrent_level" in load_shape_params:
         del load_shape_params["concurrent_level"]
-
 
     # Add loadshape-specific parameters to locust parameters
     if load_shape_params is not None:
