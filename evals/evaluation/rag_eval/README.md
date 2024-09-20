@@ -7,7 +7,7 @@
   - [Prerequisites](#prerequisites)
   - [MultiHop (English dataset)](#multihop)
     - [Launch Service of RAG System](#launch-service-of-rag-system)
-    - [Launch Service of LLM-as-a-Judge](launch-service-of-llm)
+    - [Launch Service of LLM-as-a-Judge](#launch-service-of-llm-as-a-judge)
     - [Prepare Dataset](#prepare-dataset)
     - [Evaluation](#evaluation)
   - [CRUD (Chinese dataset)](#crud)
