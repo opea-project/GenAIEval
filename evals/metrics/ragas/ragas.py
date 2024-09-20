@@ -10,9 +10,6 @@ from langchain_huggingface import HuggingFaceEndpoint
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseLanguageModel
 
-import sys
-sys.path.append('/home/akakne/miniforge3/envs/recsys/bin')
-
 def format_ragas_metric_name(name: str):
     return f"{name} (ragas)"
 
@@ -77,14 +74,14 @@ class RagasMetric:
             print("OPENAI_API_KEY is provided, ragas initializes the model by OpenAI.")
             self.model = None
         if isinstance(self.model, str):
-            print("Loading a HuggingFace Endpoint")
-            chat_model = HuggingFaceEndpoint(
+            print("LLM endpoint: ", self.model)
+            self.chat_model = HuggingFaceEndpoint(
                 endpoint_url=self.model,
                 timeout=600,
             )
         else:
             print("Accepting user-initialized model as we could not detect OpenAI key or HuggingFace Endpoint URL.")
-            chat_model = self.model
+            self.chat_model = self.model
         # Create a dataset from the test case
         # Convert the Dict to a format compatible with Dataset
         if self.metrics is not None:
@@ -133,7 +130,7 @@ class RagasMetric:
         self.score = evaluate(
             dataset,
             metrics=self.metrics,
-            llm=chat_model,
+            llm=self.chat_model,
             embeddings=self.embeddings,
         )
         return self.score
