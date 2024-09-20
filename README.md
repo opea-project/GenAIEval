@@ -67,7 +67,7 @@ results = evaluate(args)
 
 #### remote service usage
 
-1. setup a separate server with [GenAIComps](https://github.com/opea-project/GenAIComps/tree/main/comps/llms/lm-eval)
+1. setup a separate server with [GenAIComps](https://github.com/opea-project/GenAIComps/tree/main/comps/llms/utils/lm-eval)
 
    ```
    # build cpu docker
