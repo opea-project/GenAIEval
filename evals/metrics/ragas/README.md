@@ -3,7 +3,7 @@ OPEA's adaption of [ragas](https://github.com/explodinggradients/ragas) allows y
 
 ## User data
 Please wrap your input data in `datasets.Dataset` class.  
-```
+```python3
 from datasets import Dataset 
 example = {
     "question" : "Who is wife of Barak Obama",
@@ -21,7 +21,7 @@ dataset = Dataset.from_list([example])
 Please follow instructions mentioned in [TGI Gaudi repo](https://github.com/huggingface/tgi-gaudi) with your desired LLM such as `meta-llama/Meta-Llama-3.1-70B-Instruct`. 
 
 ## Run OPEA ragas pipeline using your desired list of metrics
-```
+```python3
 # note - if you wish to use answer relevancy metric, please set the embedding parameter
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 embeddings = HuggingFaceBgeEmbeddings(model_name="BAAI/bge-base-en-v1.5")
