@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Copyright (C) 2024 Intel Corporation
@@ -6,15 +5,19 @@
 #
 import os
 from typing import Dict, Optional, Union
-from langchain_huggingface import HuggingFaceEndpoint
+
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseLanguageModel
+from langchain_huggingface import HuggingFaceEndpoint
+
 
 def format_ragas_metric_name(name: str):
     return f"{name} (ragas)"
 
+
 class RagasMetric:
     """This metric checks if the output is more than 3 letters."""
+
     def __init__(
         self,
         threshold: float = 0.3,
@@ -36,13 +39,15 @@ class RagasMetric:
             "context_utilization",
             # "reference_free_rubrics_score",
         ]
+
     async def a_measure(self, test_case: Dict):
         return self.measure(test_case)
+
     def measure(self, test_case: Dict):
         # sends to server
         try:
             from ragas import evaluate
-            from ragas.metrics import (
+            from ragas.metrics import (  # reference_free_rubrics_score,
                 answer_correctness,
                 answer_relevancy,
                 answer_similarity,
@@ -50,7 +55,6 @@ class RagasMetric:
                 context_recall,
                 context_utilization,
                 faithfulness,
-                # reference_free_rubrics_score,
             )
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
@@ -117,13 +121,13 @@ class RagasMetric:
             for column in list(metric._required_columns.values())[0]:
                 _required_columns.add(column)
         column2field = {
-            "user_input" : "question",
-            "response" : "answer",
-            "reference" : "ground_truth",
-            "retrieved_contexts" : "contexts"
+            "user_input": "question",
+            "response": "answer",
+            "reference": "ground_truth",
+            "retrieved_contexts": "contexts",
         }
         _required_fields = [column2field[column] for column in _required_columns]
-        data = {field : test_case[field] for field in _required_fields}
+        data = {field: test_case[field] for field in _required_fields}
         dataset = Dataset.from_dict(data)
 
         # evaluate
@@ -134,8 +138,10 @@ class RagasMetric:
             embeddings=self.embeddings,
         )
         return self.score
+
     def is_successful(self):
         return self.success
+
     @property
     def __name__(self):
         return "RAGAS"
