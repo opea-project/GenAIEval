@@ -23,7 +23,7 @@ def _(parser):
         "--max-request",
         type=int,
         env_var="MAX_REQUEST",
-        default=10000,
+        default=-1,
         help="Stop the benchmark If exceed this request",
     )
     parser.add_argument(
@@ -42,6 +42,13 @@ def _(parser):
         env_var="LLM_MODEL",
         default="Intel/neural-chat-7b-v3-3",
         help="LLM model name",
+    )
+    parser.add_argument(
+        "--load-shape",
+        type=str,
+        env_var="OPEA_EVAL_LOAD_SHAPE",
+        default="constant",
+        help="load shape to adjust conccurency at runtime",
     )
 
 
@@ -64,8 +71,13 @@ class AiStressUser(HttpUser):
 
     @task
     def bench_main(self):
+        max_request = self.environment.parsed_options.max_request
+        if max_request >= 0 and AiStressUser.request >= max_request:
+            # For poisson load shape, a user only sends single request before it stops.
+            # TODO: user should not care about load shape
+            if self.environment.parsed_options.load_shape == "poisson":
+                self.stop(force=True)
 
-        if AiStressUser.request >= self.environment.parsed_options.max_request:
             time.sleep(1)
             return
         with AiStressUser._lock:
@@ -145,6 +157,11 @@ class AiStressUser(HttpUser):
             self.environment.runner.stats.log_request("POST", url, time.perf_counter() - start_ts, 0)
             self.environment.runner.stats.log_error("POST", url, "Locust Request error")
 
+        # For poisson load shape, a user only sends single request before it stops.
+        # TODO: user should not care about load shape
+        if self.environment.parsed_options.load_shape == "poisson":
+            self.stop(force=True)
+
     # def on_stop(self) -> None:
 
 
@@ -155,6 +172,7 @@ def on_test_start(environment, **kwargs):
         console_logger.info(f"Max request count : {environment.parsed_options.max_request}")
         console_logger.info(f"Http timeout      : {environment.parsed_options.http_timeout}\n")
         console_logger.info(f"Benchmark target  : {environment.parsed_options.bench_target}\n")
+        console_logger.info(f"Load shape        : {environment.parsed_options.load_shape}")
 
 
 @events.init.add_listener
@@ -202,7 +220,8 @@ def on_reqcount(msg, **kwargs):
 def checker(environment):
     while environment.runner.state not in [STATE_STOPPING, STATE_STOPPED, STATE_CLEANUP]:
         time.sleep(1)
-        if environment.runner.stats.num_requests >= environment.parsed_options.max_request:
+        max_request = environment.parsed_options.max_request
+        if max_request >= 0 and environment.runner.stats.num_requests >= max_request:
             logging.info(f"Exceed the max-request number:{environment.runner.stats.num_requests}, Exit...")
             #            while environment.runner.user_count > 0:
             time.sleep(5)
