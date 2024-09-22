@@ -53,8 +53,10 @@ bash run_sample_data.sh
 ```
 
 ## Launch agent QnA system
-Here we showcase a RAG agent in GenAIExample repo. Please refer to the README in the [AgentQnA example](https://github.com/opea-project/GenAIExamples/tree/main/AgentQnA) for more details. </br>
-**Please note**: This is an example. You can build your own agent systems using OPEA components, then expose your own systems as an endpoint for this benchmark.</br>
+Here we showcase a RAG agent in GenAIExample repo. Please refer to the README in the [AgentQnA example](https://github.com/opea-project/GenAIExamples/tree/main/AgentQnA/README.md) for more details.
+
+> **Please note**: This is an example. You can build your own agent systems using OPEA components, then expose your own systems as an endpoint for this benchmark.
+
 To launch the agent in our AgentQnA example, open another terminal and build images and launch agent system there.
 1. Build images
 ```
