@@ -14,7 +14,7 @@ from utils.helper import *
 
 GENERATION_CONFIG = {
     "openai" : {"temperature" : 0.1},
-    "endpoint" : {"max_new_tokens" : 500},
+    "endpoint" : {"max_tokens": 500},
     "local" : {"max_new_tokens" : 500}
 }
 
@@ -45,17 +45,17 @@ def get_args():
     )
     parser.add_argument(
         "--openai_key", type=str, 
-        default="add your OpenAI token", 
+        default="<add your OpenAI token>", 
         help="please provide your OpenAI key"
     )
     parser.add_argument(
         "--evaluation_mode", type=str, 
-        default="openai", 
+        default="endpoint", 
         help="evaluation mode can be openai / endpoint / local"
     )
     parser.add_argument(
         "--model_name", type=str, 
-        default="gpt-4o", 
+        default="http://localhost:8085", 
         help="the model to be used for evaluation"
     )
     parser.add_argument(

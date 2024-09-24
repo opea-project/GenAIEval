@@ -14,17 +14,19 @@ from huggingface_hub import InferenceClient
 
 class EndpointEvaluator:
     def __init__(self, model_name):
-        client = InferenceClient(base_url="{}/v1/".format(model_name))
+        self.client = InferenceClient(base_url="{}/v1/chat/completions".format(model_name))
     
     def generate(self, messages, **kwargs):
-        output = client.chat.completions.create(
+        output = self.client.chat.completions.create(
                                                 model="tgi",
                                                 messages=messages,
                                                 stream=True,
                                                 **kwargs,
                                             )
-        for chunk in output:
-            print(chunk.choices[0].delta.content)
+        response = [chunk.choices[0].delta.content for chunk in output]
+        response = [content for content in response if content]
+        response = ' '.join(response)
+        return response
 
 class HFEvaluator:
     def __init__(self, model_name):
