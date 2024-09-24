@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
-
 #
 import os
 from typing import Dict, Optional, Union
@@ -26,7 +25,6 @@ class RagasMetric:
         embeddings: Optional[Embeddings] = None,
         metrics: Optional[list[str]] = None,
     ):
-
         self.threshold = threshold
         self.model = model
         self.embeddings = embeddings
@@ -42,7 +40,13 @@ class RagasMetric:
             "reference_free_rubrics_score",
         ]
 
+    async def a_measure(self, test_case: Dict):
+        return self.measure(test_case)
+
+    def measure(self, test_case: Dict):
+        # sends to server
         try:
+            from ragas import evaluate
             from ragas.metrics import (
                 answer_correctness,
                 answer_relevancy,
@@ -55,12 +59,10 @@ class RagasMetric:
             )
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
-
         try:
             from datasets import Dataset
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install dataset")
-
         self.metrics_instance = {
             "answer_correctness": answer_correctness,
             "answer_relevancy": answer_relevancy,
@@ -71,7 +73,6 @@ class RagasMetric:
             "context_utilization": context_utilization,
             "reference_free_rubrics_score": reference_free_rubrics_score,
         }
-
         # Set LLM model
         openai_key = os.getenv("OPENAI_API_KEY", None)
         if openai_key is not None:
@@ -81,14 +82,13 @@ class RagasMetric:
             print("LLM endpoint: ", self.model)
             self.chat_model = HuggingFaceEndpoint(
                 endpoint_url=self.model,
-                task="text-generation",
-                max_new_tokens=1024,
-                do_sample=False,
+                timeout=600,
             )
         else:
+            print("Accepting user-initialized model as we could not detect OpenAI key or HuggingFace Endpoint URL.")
             self.chat_model = self.model
-
-        # initialize metrics
+        # Create a dataset from the test case
+        # Convert the Dict to a format compatible with Dataset
         if self.metrics is not None:
             tmp_metrics = []
             # check supported list
@@ -106,10 +106,8 @@ class RagasMetric:
                     if metric == "answer_relevancy" and self.embeddings is None:
                         raise ValueError("answer_relevancy metric need provide embeddings model.")
                     tmp_metrics.append(self.metrics_instance[metric])
-
             self.metrics = tmp_metrics
-
-        else:  # default metrics
+        else:
             self.metrics = [
                 answer_relevancy,
                 faithfulness,
@@ -118,28 +116,34 @@ class RagasMetric:
                 context_precision,
                 context_recall,
             ]
-
-    async def a_measure(self, test_case: Dict):
-        return self.measure(test_case)
-
-    def measure(self, test_case: Dict):
-        from ragas import evaluate
-
-        try:
-            from datasets import Dataset
-        except ModuleNotFoundError:
-            raise ModuleNotFoundError("Please install dataset")
-
-        # Create a dataset from the test case
-        # Convert the Dict to a format compatible with Dataset
-        data = {
-            "question": test_case["question"],
-            "contexts": test_case["contexts"],
-            "answer": test_case["answer"],
-            "ground_truth": test_case["ground_truth"],
+        # Find necessary input fields using the given metrics
+        _required_columns = set()
+        is_latest = faithfulness
+        column_map = {  # this column maps new naming style in ragas to their old naming style
+            "user_input": "question",
+            "response": "answer",
+            "reference": "ground_truth",
+            "retrieved_contexts": "contexts",
         }
+        for metric in self.metrics:
+            if hasattr(metric, "_required_columns"):
+                for column in list(metric._required_columns.values())[0]:
+                    _required_columns.add(column_map[column])
+            elif hasattr(metric, "evaluation_mode"):
+                from ragas.metrics.base import get_required_columns
+
+                for column in get_required_columns(metric.evaluation_mode):
+                    _required_columns.add(column)
+            else:
+                print("metric has no attribute denoting required columns")
+
+        print("Required columns for given list of metrics are = {}".format(_required_columns))
+
+        # get only necessary columns from test case
+        data = {column: test_case[column] for column in _required_columns}
         dataset = Dataset.from_dict(data)
 
+        # evaluate
         self.score = evaluate(
             dataset,
             metrics=self.metrics,
