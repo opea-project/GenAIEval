@@ -67,7 +67,7 @@
     "editable": true,
     "fiscalYearStartMonth": 0,
     "graphTooltip": 2,
-    "id": 551,
+    "id": 1,
     "links": [],
     "liveNow": false,
     "panels": [
@@ -124,7 +124,7 @@
           "textMode": "auto",
           "wideLayout": true
         },
-        "pluginVersion": "10.4.2",
+        "pluginVersion": "11.0.0",
         "targets": [
           {
             "datasource": {
@@ -132,7 +132,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "(histogram_quantile(0.5, sum by (le) (rate(tgi_request_queue_duration_bucket{container=\"$service\"}[10m]))) * 1000) > 0",
+            "expr": "(histogram_quantile(0.5, sum by (le) (rate(tgi_request_queue_duration_bucket{job=\"$job\"}[10m]))) * 1000) > 0",
             "hide": true,
             "instant": false,
             "legendFormat": "__auto",
@@ -145,7 +145,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "(histogram_quantile(0.5, sum by (le) (rate(tgi_batch_inference_duration_bucket{method=\"prefill\", container=\"$service\"}[10m]))) * 1000) > 0",
+            "expr": "(histogram_quantile(0.5, sum by (le) (rate(tgi_batch_inference_duration_bucket{method=\"prefill\", job=\"$job\"}[10m]))) * 1000) > 0",
             "hide": true,
             "instant": false,
             "legendFormat": "__auto",
@@ -219,7 +219,7 @@
           "textMode": "auto",
           "wideLayout": true
         },
-        "pluginVersion": "10.4.2",
+        "pluginVersion": "11.0.0",
         "targets": [
           {
             "datasource": {
@@ -227,7 +227,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "(histogram_quantile(0.5, sum by (le) (rate(tgi_batch_forward_duration_bucket{method=\"decode\", container=\"$service\"}[10m]))) * 1000)>0",
+            "expr": "(histogram_quantile(0.5, sum by (le) (rate(tgi_batch_forward_duration_bucket{method=\"decode\", job=\"$job\"}[10m]))) * 1000)>0",
             "instant": false,
             "range": true,
             "refId": "A"
@@ -284,7 +284,7 @@
           "textMode": "auto",
           "wideLayout": true
         },
-        "pluginVersion": "10.4.2",
+        "pluginVersion": "11.0.0",
         "targets": [
           {
             "datasource": {
@@ -292,7 +292,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "sum((rate(tgi_request_generated_tokens_sum{container=\"$service\"}[10m]) / rate(tgi_request_generated_tokens_count{container=\"$service\"}[10m]))>0)",
+            "expr": "sum((rate(tgi_request_generated_tokens_sum{job=\"$job\"}[10m]) / rate(tgi_request_generated_tokens_count{job=\"$job\"}[10m]))>0)",
             "instant": false,
             "range": true,
             "refId": "A"
@@ -425,6 +425,7 @@
             "showLegend": true
           },
           "tooltip": {
+            "maxHeight": 600,
             "mode": "single",
             "sort": "none"
           }
@@ -436,7 +437,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_request_input_length_bucket{container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_request_input_length_bucket{job=\"$job\"}[10m])))",
             "legendFormat": "p50",
             "range": true,
             "refId": "A"
@@ -447,7 +448,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_request_input_length_bucket{container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_request_input_length_bucket{job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p90",
             "range": true,
@@ -459,7 +460,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_request_input_length_bucket{container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_request_input_length_bucket{job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p99",
             "range": true,
@@ -593,6 +594,7 @@
             "showLegend": true
           },
           "tooltip": {
+            "maxHeight": 600,
             "mode": "single",
             "sort": "none"
           }
@@ -604,7 +606,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_request_generated_tokens_bucket{container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_request_generated_tokens_bucket{job=\"$job\"}[10m])))",
             "legendFormat": "p50",
             "range": true,
             "refId": "A"
@@ -615,7 +617,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_request_generated_tokens_bucket{container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_request_generated_tokens_bucket{job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p90",
             "range": true,
@@ -627,7 +629,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_request_generated_tokens_bucket{container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_request_generated_tokens_bucket{job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p99",
             "range": true,
@@ -728,6 +730,7 @@
             "showLegend": true
           },
           "tooltip": {
+            "maxHeight": 600,
             "mode": "single",
             "sort": "none"
           }
@@ -739,7 +742,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "sum(increase(tgi_request_success{container=\"$service\"}[1m]))",
+            "expr": "sum(increase(tgi_request_success{job=\"$job\"}[1m]))",
             "legendFormat": "Success",
             "range": true,
             "refId": "A"
@@ -750,7 +753,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "sum(increase(tgi_request_failure{container=\"$service\"}[1m])) by (err)",
+            "expr": "sum(increase(tgi_request_failure{job=\"$job\"}[1m])) by (err)",
             "hide": false,
             "legendFormat": "Error: {{err}}",
             "range": true,
@@ -884,6 +887,7 @@
             "showLegend": true
           },
           "tooltip": {
+            "maxHeight": 600,
             "mode": "single",
             "sort": "none"
           }
@@ -895,7 +899,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_request_mean_time_per_token_duration_bucket{container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_request_mean_time_per_token_duration_bucket{job=\"$job\"}[10m])))",
             "legendFormat": "p50",
             "range": true,
             "refId": "A"
@@ -906,7 +910,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_request_mean_time_per_token_duration_bucket{container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_request_mean_time_per_token_duration_bucket{job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p90",
             "range": true,
@@ -918,7 +922,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_request_mean_time_per_token_duration_bucket{container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_request_mean_time_per_token_duration_bucket{job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p99",
             "range": true,
@@ -1001,6 +1005,7 @@
           },
           "showValue": "never",
           "tooltip": {
+            "maxHeight": 600,
             "mode": "single",
             "showColorScale": false,
             "yHistogram": false
@@ -1012,7 +1017,7 @@
             "unit": "s"
           }
         },
-        "pluginVersion": "10.4.2",
+        "pluginVersion": "11.0.0",
         "reverseYBuckets": false,
         "targets": [
           {
@@ -1022,7 +1027,7 @@
             },
             "editorMode": "code",
             "exemplar": true,
-            "expr": "sum(increase(tgi_request_mean_time_per_token_duration_bucket{container=\"$service\"}[5m])) by (le)",
+            "expr": "sum(increase(tgi_request_mean_time_per_token_duration_bucket{job=\"$job\"}[5m])) by (le)",
             "format": "heatmap",
             "interval": "",
             "legendFormat": "{{ le }}",
@@ -1125,6 +1130,7 @@
             "showLegend": false
           },
           "tooltip": {
+            "maxHeight": 600,
             "mode": "single",
             "sort": "none"
           }
@@ -1137,7 +1143,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "count(tgi_request_count{container=\"$service\"})",
+            "expr": "count(tgi_request_count{job=\"$job\"})",
             "legendFormat": "Replicas",
             "range": true,
             "refId": "A"
@@ -1196,7 +1202,7 @@
           "showThresholdMarkers": true,
           "sizing": "auto"
         },
-        "pluginVersion": "10.4.2",
+        "pluginVersion": "11.0.0",
         "targets": [
           {
             "datasource": {
@@ -1204,7 +1210,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "sum(tgi_queue_size{container=\"$service\"})",
+            "expr": "sum(tgi_queue_size{job=\"$job\"})",
             "legendFormat": "__auto",
             "range": true,
             "refId": "A"
@@ -1301,6 +1307,7 @@
             "showLegend": false
           },
           "tooltip": {
+            "maxHeight": 600,
             "mode": "single",
             "sort": "none"
           }
@@ -1313,7 +1320,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "avg(tgi_batch_current_max_tokens{container=\"$service\"})",
+            "expr": "avg(tgi_batch_current_max_tokens{job=\"$job\"})",
             "legendFormat": "{{ pod }}",
             "range": true,
             "refId": "A"
@@ -1446,6 +1453,7 @@
             "showLegend": true
           },
           "tooltip": {
+            "maxHeight": 600,
             "mode": "single",
             "sort": "none"
           }
@@ -1457,7 +1465,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_request_skipped_tokens_bucket{container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_request_skipped_tokens_bucket{job=\"$job\"}[10m])))",
             "legendFormat": "p50",
             "range": true,
             "refId": "A"
@@ -1468,7 +1476,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_request_skipped_tokens_bucket{container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_request_skipped_tokens_bucket{job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p90",
             "range": true,
@@ -1480,7 +1488,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_request_skipped_tokens_bucket{container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_request_skipped_tokens_bucket{job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p99",
             "range": true,
@@ -1614,6 +1622,7 @@
             "showLegend": true
           },
           "tooltip": {
+            "maxHeight": 600,
             "mode": "single",
             "sort": "none"
           }
@@ -1625,7 +1634,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_request_input_length_bucket{container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_request_input_length_bucket{job=\"$job\"}[10m])))",
             "legendFormat": "p50",
             "range": true,
             "refId": "A"
@@ -1636,7 +1645,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_request_input_length_bucket{container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_request_input_length_bucket{job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p90",
             "range": true,
@@ -1648,7 +1657,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_request_input_length_bucket{container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_request_input_length_bucket{job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p99",
             "range": true,
@@ -1782,6 +1791,7 @@
             "showLegend": true
           },
           "tooltip": {
+            "maxHeight": 600,
             "mode": "single",
             "sort": "none"
           }
@@ -1793,7 +1803,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_request_duration_bucket{container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_request_duration_bucket{job=\"$job\"}[10m])))",
             "legendFormat": "p50",
             "range": true,
             "refId": "A"
@@ -1804,7 +1814,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_request_duration_bucket{container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_request_duration_bucket{job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p90",
             "range": true,
@@ -1816,7 +1826,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_request_duration_bucket{container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_request_duration_bucket{job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p99",
             "range": true,
@@ -1901,6 +1911,7 @@
             "showLegend": false
           },
           "tooltip": {
+            "maxHeight": 600,
             "mode": "single",
             "sort": "none"
           }
@@ -1913,7 +1924,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "avg(tgi_batch_current_size{container=\"$service\"})",
+            "expr": "avg(tgi_batch_current_size{job=\"$job\"})",
             "legendFormat": "{{ pod }}",
             "range": true,
             "refId": "A"
@@ -2000,6 +2011,7 @@
             "showLegend": true
           },
           "tooltip": {
+            "maxHeight": 600,
             "mode": "single",
             "sort": "none"
           }
@@ -2011,7 +2023,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "sum(increase(tgi_batch_concat{container=\"$service\"}[1m])) by (reason)",
+            "expr": "sum(increase(tgi_batch_concat{job=\"$job\"}[1m])) by (reason)",
             "hide": false,
             "legendFormat": "Reason: {{ reason }}",
             "range": true,
@@ -2145,6 +2157,7 @@
             "showLegend": true
           },
           "tooltip": {
+            "maxHeight": 600,
             "mode": "single",
             "sort": "none"
           }
@@ -2156,7 +2169,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_request_queue_duration_bucket{container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_request_queue_duration_bucket{job=\"$job\"}[10m])))",
             "legendFormat": "p50",
             "range": true,
             "refId": "A"
@@ -2167,7 +2180,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_request_queue_duration_bucket{container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_request_queue_duration_bucket{job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p90",
             "range": true,
@@ -2179,7 +2192,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_request_queue_duration_bucket{container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_request_queue_duration_bucket{job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p99",
             "range": true,
@@ -2249,8 +2262,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
-                  "value": null
+                  "color": "green"
                 },
                 {
                   "color": "red",
@@ -2337,7 +2349,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_batch_inference_duration_bucket{method=\"prefill\", container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_batch_inference_duration_bucket{method=\"prefill\", job=\"$job\"}[10m])))",
             "legendFormat": "p50",
             "range": true,
             "refId": "A"
@@ -2348,7 +2360,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_batch_inference_duration_bucket{method=\"prefill\", container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_batch_inference_duration_bucket{method=\"prefill\", job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p90",
             "range": true,
@@ -2360,7 +2372,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_batch_inference_duration_bucket{method=\"prefill\", container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_batch_inference_duration_bucket{method=\"prefill\", job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p99",
             "range": true,
@@ -2464,7 +2476,7 @@
             },
             "editorMode": "code",
             "exemplar": true,
-            "expr": "sum(increase(tgi_batch_inference_duration_bucket{method=\"prefill\", container=\"$service\"}[5m])) by (le)",
+            "expr": "sum(increase(tgi_batch_inference_duration_bucket{method=\"prefill\", job=\"$job\"}[5m])) by (le)",
             "format": "heatmap",
             "interval": "",
             "legendFormat": "{{ le }}",
@@ -2549,8 +2561,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
-                  "value": null
+                  "color": "green"
                 },
                 {
                   "color": "red",
@@ -2637,7 +2648,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_batch_inference_duration_bucket{method=\"decode\", container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_batch_inference_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
             "legendFormat": "p50",
             "range": true,
             "refId": "A"
@@ -2648,7 +2659,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_batch_inference_duration_bucket{method=\"decode\", container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_batch_inference_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p90",
             "range": true,
@@ -2660,7 +2671,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_batch_inference_duration_bucket{method=\"decode\", container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_batch_inference_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p99",
             "range": true,
@@ -2764,7 +2775,7 @@
             },
             "editorMode": "code",
             "exemplar": true,
-            "expr": "sum(increase(tgi_batch_inference_duration_bucket{method=\"decode\", container=\"$service\"}[5m])) by (le)",
+            "expr": "sum(increase(tgi_batch_inference_duration_bucket{method=\"decode\", job=\"$job\"}[5m])) by (le)",
             "format": "heatmap",
             "interval": "",
             "legendFormat": "{{ le }}",
@@ -2849,8 +2860,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
-                  "value": null
+                  "color": "green"
                 },
                 {
                   "color": "red",
@@ -2937,7 +2947,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_batch_forward_duration_bucket{method=\"decode\", container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_batch_forward_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
             "legendFormat": "p50",
             "range": true,
             "refId": "A"
@@ -2948,7 +2958,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_batch_forward_duration_bucket{method=\"decode\", container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_batch_forward_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p90",
             "range": true,
@@ -2960,7 +2970,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_batch_forward_duration_bucket{method=\"decode\", container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_batch_forward_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p99",
             "range": true,
@@ -3064,7 +3074,7 @@
             },
             "editorMode": "code",
             "exemplar": true,
-            "expr": "sum(increase(tgi_batch_forward_duration_bucket{method=\"decode\", container=\"$service\"}[5m])) by (le)",
+            "expr": "sum(increase(tgi_batch_forward_duration_bucket{method=\"decode\", job=\"$job\"}[5m])) by (le)",
             "format": "heatmap",
             "interval": "",
             "legendFormat": "{{ le }}",
@@ -3136,8 +3146,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
-                  "value": null
+                  "color": "green"
                 },
                 {
                   "color": "red",
@@ -3224,7 +3233,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_batch_decode_duration_bucket{method=\"decode\", container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_batch_decode_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
             "legendFormat": "p50",
             "range": true,
             "refId": "A"
@@ -3235,7 +3244,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_batch_decode_duration_bucket{method=\"decode\", container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_batch_decode_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p90",
             "range": true,
@@ -3247,7 +3256,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_batch_decode_duration_bucket{method=\"decode\", container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_batch_decode_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p99",
             "range": true,
@@ -3351,7 +3360,7 @@
             },
             "editorMode": "code",
             "exemplar": true,
-            "expr": "sum(increase(tgi_batch_decode_duration_bucket{method=\"decode\", container=\"$service\"}[5m])) by (le)",
+            "expr": "sum(increase(tgi_batch_decode_duration_bucket{method=\"decode\", job=\"$job\"}[5m])) by (le)",
             "format": "heatmap",
             "interval": "",
             "legendFormat": "{{ le }}",
@@ -3423,8 +3432,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
-                  "value": null
+                  "color": "green"
                 },
                 {
                   "color": "red",
@@ -3511,7 +3519,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_batch_filter_duration_bucket{method=\"decode\", container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_batch_filter_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
             "legendFormat": "p50",
             "range": true,
             "refId": "A"
@@ -3522,7 +3530,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_batch_filter_duration_bucket{method=\"decode\", container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_batch_filter_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p90",
             "range": true,
@@ -3534,7 +3542,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_batch_filter_duration_bucket{method=\"decode\", container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_batch_filter_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p99",
             "range": true,
@@ -3638,7 +3646,7 @@
             },
             "editorMode": "code",
             "exemplar": true,
-            "expr": "sum(increase(tgi_batch_filter_duration_bucket{method=\"decode\", container=\"$service\"}[5m])) by (le)",
+            "expr": "sum(increase(tgi_batch_filter_duration_bucket{method=\"decode\", job=\"$job\"}[5m])) by (le)",
             "format": "heatmap",
             "interval": "",
             "legendFormat": "{{ le }}",
@@ -3710,8 +3718,7 @@
               "mode": "absolute",
               "steps": [
                 {
-                  "color": "green",
-                  "value": null
+                  "color": "green"
                 },
                 {
                   "color": "red",
@@ -3798,7 +3805,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_batch_concat_duration_bucket{method=\"decode\", container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_batch_concat_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
             "legendFormat": "p50",
             "range": true,
             "refId": "A"
@@ -3809,7 +3816,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_batch_concat_duration_bucket{method=\"decode\", container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_batch_concat_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p90",
             "range": true,
@@ -3821,7 +3828,7 @@
               "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
             },
             "editorMode": "code",
-            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_batch_concat_duration_bucket{method=\"decode\", container=\"$service\"}[10m])))",
+            "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_batch_concat_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
             "hide": false,
             "legendFormat": "p99",
             "range": true,
@@ -3925,7 +3932,7 @@
             },
             "editorMode": "code",
             "exemplar": true,
-            "expr": "sum(increase(tgi_batch_concat_duration_bucket{method=\"decode\", container=\"$service\"}[5m])) by (le)",
+            "expr": "sum(increase(tgi_batch_concat_duration_bucket{method=\"decode\", job=\"$job\"}[5m])) by (le)",
             "format": "heatmap",
             "interval": "",
             "legendFormat": "{{ le }}",
@@ -3958,22 +3965,23 @@
       "list": [
         {
           "current": {
-            "selected": false,
-            "text": "gpu-txt-gen-cohereforai-c4ai-command-r-plu-ba7f1",
-            "value": "gpu-txt-gen-cohereforai-c4ai-command-r-plu-ba7f1"
+            "isNone": true,
+            "selected": true,
+            "text": "None",
+            "value": ""
           },
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
           },
-          "definition": "label_values(tgi_request_count, container)",
+          "definition": "label_values(tgi_request_count, job)",
           "hide": 0,
           "includeAll": false,
           "multi": false,
-          "name": "service",
+          "name": "job",
           "options": [],
           "query": {
-            "query": "label_values(tgi_request_count, container)",
+            "query": "label_values(tgi_request_count, job)",
             "refId": "StandardVariableQuery"
           },
           "refresh": 1,
@@ -3988,12 +3996,13 @@
       "from": "now-30m",
       "to": "now-30s"
     },
+    "timeRangeUpdatedDuringEditOrView": false,
     "timepicker": {
       "nowDelay": "30s"
     },
     "timezone": "",
     "title": "Text Generation Inference",
     "uid": "RHSk7EL4kdqsd",
-    "version": 12,
+    "version": 1,
     "weekStart": ""
-  }
+}
