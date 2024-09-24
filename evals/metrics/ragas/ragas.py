@@ -47,7 +47,7 @@ class RagasMetric:
         # sends to server
         try:
             from ragas import evaluate
-            from ragas.metrics import (  # reference_free_rubrics_score,
+            from ragas.metrics import (
                 answer_correctness,
                 answer_relevancy,
                 answer_similarity,
@@ -117,17 +117,28 @@ class RagasMetric:
             ]
         # Find necessary input fields using the given metrics
         _required_columns = set()
-        for metric in self.metrics:
-            for column in list(metric._required_columns.values())[0]:
-                _required_columns.add(column)
-        column2field = {
+        column_map = {  # this column maps new naming style in ragas to their old naming style
             "user_input": "question",
             "response": "answer",
             "reference": "ground_truth",
             "retrieved_contexts": "contexts",
         }
-        _required_fields = [column2field[column] for column in _required_columns]
-        data = {field: test_case[field] for field in _required_fields}
+        for metric in self.metrics:
+            if hasattr(metric, "_required_columns"):
+                for column in list(metric._required_columns.values())[0]:
+                    _required_columns.add(column_map[column])
+            elif hasattr(metric, "evaluation_mode"):
+                from ragas.metrics.base import get_required_columns
+
+                for column in get_required_columns(metric.evaluation_mode):
+                    _required_columns.add(column)
+            else:
+                print("metric has no attribute denoting required columns")
+
+        print("Required columns for given list of metrics are = {}".format(_required_columns))
+
+        # get only necessary columns from test case
+        data = {column: test_case[column] for column in _required_columns}
         dataset = Dataset.from_dict(data)
 
         # evaluate

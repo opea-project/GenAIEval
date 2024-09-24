@@ -3,6 +3,8 @@
 
 # stresscli/load_test.py
 
+import logging
+import math
 import os
 import subprocess
 from datetime import datetime
@@ -12,6 +14,9 @@ import yaml
 
 from .report import export_testdata
 from .utils import dump_k8s_config, generate_lua_script, generate_random_suffix
+
+# Default load shape
+DEFAULT_LOADSHAPE = "constant"
 
 # Define default values
 locust_defaults = {
@@ -26,7 +31,10 @@ locust_defaults = {
     "users": 10,
     "max-request": 100,
     "namespace": "default",
+    "load-shape": {"name": DEFAULT_LOADSHAPE},
 }
+
+console_logger = logging.getLogger("opea.eval")
 
 
 @click.command()
@@ -108,6 +116,9 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
     runspec["stop_timeout"] = run_settings.get(
         "stop-timeout", global_settings.get("stop-timeout", locust_defaults["stop-timeout"])
     )
+    runspec["stop_timeout"] = (
+        locust_defaults["stop-timeout"] if runspec["stop_timeout"] is None else runspec["stop_timeout"]
+    )
     runspec["processes"] = run_settings.get("processes", global_settings.get("processes", locust_defaults["processes"]))
     runspec["bench-target"] = run_settings.get(
         "bench-target", global_settings.get("bench-target", locust_defaults["bench-target"])
@@ -119,6 +130,32 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
     runspec["namespace"] = run_settings.get("namespace", global_settings.get("namespace", locust_defaults["namespace"]))
 
     runspec["run_name"] = run_settings["name"]
+
+    # Specify load shape to adjust user distribution
+    load_shape_conf = run_settings.get("load-shape", global_settings.get("load-shape", locust_defaults["load-shape"]))
+    try:
+        load_shape = load_shape_conf["name"]
+    except KeyError:
+        load_shape = DEFAULT_LOADSHAPE
+
+    runspec["load-shape"] = load_shape
+    if load_shape == DEFAULT_LOADSHAPE:
+        # constant load is Locust's default load shape, do nothing.
+        console_logger.info("Use default load shape.")
+    else:
+        # load a custom load shape
+        f_custom_load_shape = os.path.join(os.getcwd(), f"stresscli/locust/{load_shape}_load_shape.py")
+        if os.path.isfile(f_custom_load_shape):
+            # Add the locust file of the custom load shape into classpath
+            runspec["locustfile"] += f",{f_custom_load_shape}"
+            console_logger.info("Use custom load shape: {load_shape}")
+        else:
+            console_logger.error(
+                f"Unsupported load shape: {load_shape}."
+                f"The Locust file of custom load shape not found: {f_custom_load_shape}. Aborted."
+            )
+            exit()
+
     # csv_output = os.path.join(output_folder, runspec['run_name'])
     # json_output = os.path.join(output_folder, f"{runspec['run_name']}_output.log")
     csv_output = os.path.join(output_folder, f"{index}")
@@ -135,7 +172,26 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         metrics_output = os.path.join(output_folder, f"{index}_metrics.json")
 
     spawn_rate = 100 if runspec["users"] > 100 else runspec["users"]
-    processes = 10 if runspec["max_requests"] > 2000 else 5 if runspec["max_requests"] > 1000 else 2
+
+    load_shape_params = None
+    try:
+        load_shape_params = load_shape_conf["params"][load_shape]
+    except KeyError:
+        console_logger.info(f"The specified load shape not found: {load_shape}")
+
+    # Dynamically allocate Locust processes to fit different loads
+    processes = 2
+    if load_shape == "constant":
+        if runspec["max_requests"] > 0:
+            processes = 10 if runspec["max_requests"] > 2000 else 5 if runspec["max_requests"] > 1000 else processes
+        else:
+            concurrent_level = 2
+            if load_shape_params and "concurrent_level" in load_shape_params:
+                concurrent_level = int(load_shape_params["concurrent_level"])
+            processes = 10 if concurrent_level > 400 else 5 if concurrent_level > 200 else processes
+    elif load_shape == "poisson":
+        if load_shape_params and "arrival-rate" in load_shape_params:
+            processes = max(2, math.ceil(int(load_shape_params["arrival-rate"]) / 10))
 
     cmd = [
         "locust",
@@ -145,14 +201,16 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         runspec["host"],
         "--run-time",
         runspec["runtime"],
+        "--load-shape",
+        runspec["load-shape"],
+        "--processes",
+        str(processes),
         "--users",
         str(runspec["users"]),
         "--spawn-rate",
         str(spawn_rate),
         "--max-request",
         str(runspec["max_requests"]),
-        "--processes",
-        str(processes),
         "--bench-target",
         str(runspec["bench-target"]),
         "--llm-model",
@@ -167,6 +225,16 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         "WARNING",
         "--json",
     ]
+
+    # Get loadshape specific parameters
+    if load_shape_params and "concurrent_level" in load_shape_params:
+        del load_shape_params["concurrent_level"]
+
+    # Add loadshape-specific parameters to locust parameters
+    if load_shape_params is not None:
+        for key, value in load_shape_params.items():
+            cmd.append(f"--{key}")
+            cmd.append(str(value))
 
     print(f"Running test: {' '.join(cmd)}")
     namespace = runspec["namespace"]

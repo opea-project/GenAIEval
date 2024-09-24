@@ -67,7 +67,7 @@ results = evaluate(args)
 
 #### remote service usage
 
-1. setup a separate server with [GenAIComps](https://github.com/opea-project/GenAIComps/tree/main/comps/llms/utils/lm-eval)
+1. setup a separate server with [GenAIComps](https://github.com/opea-project/GenAIComps/tree/main/comps/llms/utils/lm-eval/README.md)
 
    ```
    # build cpu docker
@@ -172,4 +172,4 @@ Prometheus metrics collected during the tests can be used to create Grafana dash
 - [Code of Conduct](https://github.com/opea-project/docs/tree/main/community/CODE_OF_CONDUCT.md)
 - [Contribution](https://github.com/opea-project/docs/tree/main/community/CONTRIBUTING.md)
 - [Security Policy](https://github.com/opea-project/docs/tree/main/community/SECURITY.md)
-- [Legal Information](/LEGAL_INFORMATION.md)
+- [Legal Information](LEGAL_INFORMATION.md)

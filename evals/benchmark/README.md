@@ -63,10 +63,18 @@ test_suite_config:
   deployment_type: "k8s"  # Default is "k8s", can also be "docker"
   service_ip: None  # Leave as None for k8s, specify for Docker
   service_port: None  # Leave as None for k8s, specify for Docker
-  concurrent_level: 4  # The concurrency level
-  user_queries: [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]  # Number of test requests
-  random_prompt: false  # Use random prompts if true, fixed prompts if false
+  load_shape:              # Tenant concurrency pattern
+    name: constant           # poisson or constant(locust default load shape)
+    params:                  # Loadshape-specific parameters
+      constant:                # Poisson load shape specific parameters, activate only if load_shape is poisson
+        concurrent_level: 4      # If user_queries is specified, concurrent_level is target number of requests per user. If not, it is the number of simulated users
+      poisson:                 # Poisson load shape specific parameters, activate only if load_shape is poisson
+        arrival-rate: 1.0        # Request arrival rate
+  warm_ups: 0  # Number of test requests for warm-ups
   run_time: 60m  # Total runtime for the test suite
+  user_queries: [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]  # Number of test requests
+  query_timeout: 120  # Number of seconds to wait for a simulated user to complete any executing task before exiting. 120 sec by defeult.
+  random_prompt: false  # Use random prompts if true, fixed prompts if false
   collect_service_metric: false  # Enable service metrics collection
   data_visualization: false # Enable data visualization
   test_output_dir: "/home/sdp/benchmark_output"  # Directory for test outputs
