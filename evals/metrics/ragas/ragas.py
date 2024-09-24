@@ -47,7 +47,7 @@ class RagasMetric:
         # sends to server
         try:
             from ragas import evaluate
-            from ragas.metrics import (  reference_free_rubrics_score,
+            from ragas.metrics import (
                 answer_correctness,
                 answer_relevancy,
                 answer_similarity,
@@ -55,6 +55,7 @@ class RagasMetric:
                 context_recall,
                 context_utilization,
                 faithfulness,
+                reference_free_rubrics_score,
             )
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
@@ -118,7 +119,7 @@ class RagasMetric:
         # Find necessary input fields using the given metrics
         _required_columns = set()
         is_latest = faithfulness
-        column_map = { # this column maps new naming style in ragas to their old naming style
+        column_map = {  # this column maps new naming style in ragas to their old naming style
             "user_input": "question",
             "response": "answer",
             "reference": "ground_truth",
@@ -130,14 +131,15 @@ class RagasMetric:
                     _required_columns.add(column_map[column])
             elif hasattr(metric, "evaluation_mode"):
                 from ragas.metrics.base import get_required_columns
+
                 for column in get_required_columns(metric.evaluation_mode):
                     _required_columns.add(column)
             else:
                 print("metric has no attribute denoting required columns")
-        
+
         print("Required columns for given list of metrics are = {}".format(_required_columns))
 
-        # get only neccessary columns from test case
+        # get only necessary columns from test case
         data = {column: test_case[column] for column in _required_columns}
         dataset = Dataset.from_dict(data)
 
