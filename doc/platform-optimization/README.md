@@ -94,7 +94,7 @@ kubectl edit balloonspolicy default
 ```
 
 Let us consider isolating AI inference and reranking containers in
-[ChatQnA](https://github.com/opea-project/GenAIExamples/tree/main/ChatQnA)
+[ChatQnA](https://github.com/opea-project/GenAIExamples/tree/main/ChatQnA/README.md)
 application's Gaudi accelerated pipeline.
 
 In the
