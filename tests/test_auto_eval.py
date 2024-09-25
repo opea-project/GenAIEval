@@ -7,13 +7,10 @@
 import os
 import unittest
 
-# import sys 
-# sys.path.insert(0, "~/GenAIEval/evals")
-
 from evals.evaluation.auto_eval.run_eval import AutoEvaluate
 
 host_ip = os.getenv("host_ip", "localhost")
-port = os.getenv("port", "8085")
+port = os.getenv("port", "8008")
 
 class TestRagasMetric(unittest.TestCase):
 
@@ -31,7 +28,7 @@ class TestRagasMetric(unittest.TestCase):
         template_dir = "auto_eval_metrics"
 
         evaluation_mode = "endpoint"
-        model_name = "http://localhost:8085"
+        model_name = f"http://{host_ip}:{port}"
 
         evaluation_metrics = ["factualness", 
                             "relevance", 
