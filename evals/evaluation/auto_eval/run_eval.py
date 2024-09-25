@@ -25,7 +25,6 @@ class AutoEvaluate:
         dataset,
         data_mode,
         field_map,
-        template_dir,
         evaluation_mode,
         model_name,
         evaluation_metrics,
@@ -41,7 +40,7 @@ class AutoEvaluate:
         self.load_env()
         self.data = RAGDataset(dataset=dataset, field_map=field_map, mode=data_mode)
         self.evaluator = self.get_evaluator(evaluation_mode, model_name, openai_key, hf_token)
-        self.prompt_template = self.get_template(evaluation_metrics, field_map, template_dir)
+        self.prompt_template = self.get_template(evaluation_metrics, field_map)
         self.debug_mode = debug_mode
         self.generation_config = self.GENERATION_CONFIG[evaluation_mode]
 
@@ -67,9 +66,8 @@ class AutoEvaluate:
             evaluator = HFEvaluator(args.model_name)
         return evaluator
 
-    def get_template(self, evaluation_metrics, field_map, template_dir):
-
-        return Prompt(metrics=evaluation_metrics, input_fields=field_map, prompt_dir=template_dir).template
+    def get_template(self, evaluation_metrics, field_map):
+        return Prompt(metrics=evaluation_metrics, input_fields=field_map, prompt_dir="./auto_eval_metrics").template
 
     def measure(self):
         n_samples = 1 if self.debug_mode else len(self.data)
@@ -88,39 +86,3 @@ class AutoEvaluate:
         end = time.time()
         print("Generation of scores and reasoning took {:.2f} seconds for {:,} examples".format(end - start, n_samples))
         return responses
-
-
-# if __name__ == "__main__":
-
-#     dataset = "explodinggradients/ragas-wikiqa"
-#     data_mode = "benchmarking"
-#     field_map = {
-#                 'question' : 'question',
-#                 'answer' : 'generated_with_rag',
-#                 'context' : 'context'
-#                 }
-
-#     template_dir = "auto_eval_metrics"
-
-#     evaluation_mode = "endpoint"
-#     model_name = "http://localhost:8085"
-
-#     evaluation_metrics = ["factualness",
-#                             "relevance",
-#                                 "correctness",
-#                                 "readability"]
-
-#     evaluator = AutoEvaluate(dataset=dataset,
-#                             data_mode=data_mode,
-#                             field_map=field_map,
-#                             template_dir=template_dir,
-#                             evaluation_mode=evaluation_mode,
-#                             model_name=model_name,
-#                             evaluation_metrics=evaluation_metrics,
-#                             debug_mode=True)
-
-#     responses = evaluator.measure()
-
-#     for response in responses:
-#         print(response)
-#         print("-"*100)

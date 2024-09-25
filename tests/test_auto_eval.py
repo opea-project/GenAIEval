@@ -22,8 +22,6 @@ class TestRagasMetric(unittest.TestCase):
         data_mode = "benchmarking"
         field_map = {"question": "question", "answer": "generated_with_rag", "context": "context"}
 
-        template_dir = "auto_eval_metrics"
-
         evaluation_mode = "endpoint"
         model_name = f"http://{host_ip}:{port}"
 
@@ -33,7 +31,6 @@ class TestRagasMetric(unittest.TestCase):
             dataset=dataset,
             data_mode=data_mode,
             field_map=field_map,
-            template_dir=template_dir,
             evaluation_mode=evaluation_mode,
             model_name=model_name,
             evaluation_metrics=evaluation_metrics,
