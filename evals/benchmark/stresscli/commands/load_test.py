@@ -142,10 +142,10 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
     load_shape_conf = run_settings.get("load-shape", global_settings.get("load-shape", locust_defaults["load-shape"]))
     try:
         load_shape = load_shape_conf["name"]
+        runspec["load-shape"] = load_shape_conf
     except KeyError:
         load_shape = DEFAULT_LOADSHAPE
 
-    runspec["load-shape"] = load_shape
     if load_shape == DEFAULT_LOADSHAPE:
         # constant load is Locust's default load shape, do nothing.
         console_logger.info("Use default load shape.")
@@ -214,7 +214,7 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         "--run-time",
         runspec["runtime"],
         "--load-shape",
-        runspec["load-shape"],
+        load_shape,
         "--dataset",
         runspec["dataset"],
         "--seed",
