@@ -26,11 +26,7 @@ Please set generation parameters as per your requirement in `GENERATION_CONFIG` 
 ```python3
 dataset = "explodinggradients/ragas-wikiqa"
 data_mode = "benchmarking"
-field_map = {
-            'question' : 'question',
-            'answer' : 'generated_with_rag',
-            'context' : 'context'
-            }
+field_map = {"question": "question", "answer": "generated_with_rag", "context": "context"}
 
 template_dir = "auto_eval_metrics"
 
@@ -40,19 +36,18 @@ host_ip = os.getenv("host_ip", "localhost")
 port = os.getenv("port", "<add your port where your endpoint is running>")
 model_name = f"http://{host_ip}:{port}"
 
-evaluation_metrics = ["factualness", 
-                    "relevance", 
-                        "correctness", 
-                        "readability"]
+evaluation_metrics = ["factualness", "relevance", "correctness", "readability"]
 
-evaluator = AutoEvaluate(dataset=dataset,
-                        data_mode=data_mode,
-                        field_map=field_map,
-                        template_dir=template_dir,
-                        evaluation_mode=evaluation_mode,
-                        model_name=model_name,
-                        evaluation_metrics=evaluation_metrics,
-                        debug_mode=True)
+evaluator = AutoEvaluate(
+    dataset=dataset,
+    data_mode=data_mode,
+    field_map=field_map,
+    template_dir=template_dir,
+    evaluation_mode=evaluation_mode,
+    model_name=model_name,
+    evaluation_metrics=evaluation_metrics,
+    debug_mode=True,
+)
 
 responses = evaluator.measure()
 
