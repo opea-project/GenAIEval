@@ -37,7 +37,7 @@ class RagasMetric:
             "context_recall",
             "faithfulness",
             "context_utilization",
-            "reference_free_rubrics_score",
+            # "reference_free_rubrics_score",
         ]
 
     async def a_measure(self, test_case: Dict):
@@ -55,7 +55,6 @@ class RagasMetric:
                 context_recall,
                 context_utilization,
                 faithfulness,
-                reference_free_rubrics_score,
             )
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
@@ -71,7 +70,7 @@ class RagasMetric:
             "context_recall": context_recall,
             "faithfulness": faithfulness,
             "context_utilization": context_utilization,
-            "reference_free_rubrics_score": reference_free_rubrics_score,
+            # "reference_free_rubrics_score": reference_free_rubrics_score,
         }
         # Set LLM model
         openai_key = os.getenv("OPENAI_API_KEY", None)
@@ -118,7 +117,6 @@ class RagasMetric:
             ]
         # Find necessary input fields using the given metrics
         _required_columns = set()
-        is_latest = faithfulness
         column_map = {  # this column maps new naming style in ragas to their old naming style
             "user_input": "question",
             "response": "answer",
