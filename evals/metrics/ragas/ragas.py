@@ -47,11 +47,7 @@ class RagasMetric:
         # sends to server
         try:
             from ragas import evaluate
-<<<<<<< HEAD
-            from ragas.metrics import (  # reference_free_rubrics_score,
-=======
             from ragas.metrics import (
->>>>>>> upstream/main
                 answer_correctness,
                 answer_relevancy,
                 answer_similarity,
@@ -121,23 +117,12 @@ class RagasMetric:
             ]
         # Find necessary input fields using the given metrics
         _required_columns = set()
-<<<<<<< HEAD
-        for metric in self.metrics:
-            for column in list(metric._required_columns.values())[0]:
-                _required_columns.add(column)
-        column2field = {
-=======
         column_map = {  # this column maps new naming style in ragas to their old naming style
->>>>>>> upstream/main
             "user_input": "question",
             "response": "answer",
             "reference": "ground_truth",
             "retrieved_contexts": "contexts",
         }
-<<<<<<< HEAD
-        _required_fields = [column2field[column] for column in _required_columns]
-        data = {field: test_case[field] for field in _required_fields}
-=======
         for metric in self.metrics:
             if hasattr(metric, "_required_columns"):
                 for column in list(metric._required_columns.values())[0]:
@@ -154,7 +139,6 @@ class RagasMetric:
 
         # get only necessary columns from test case
         data = {column: test_case[column] for column in _required_columns}
->>>>>>> upstream/main
         dataset = Dataset.from_dict(data)
 
         # evaluate
