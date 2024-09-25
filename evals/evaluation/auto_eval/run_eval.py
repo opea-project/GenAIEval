@@ -12,61 +12,10 @@ from dotenv import load_dotenv
 from huggingface_hub import login
 from jinja2 import Environment, FileSystemLoader
 
-from evals.evaluation.auto_eval.prompt_engineering import Prompt
-from evals.evaluation.auto_eval.rag_dataset import RAGDataset
-from evals.evaluation.auto_eval.utils.helper import *
-from evals.evaluation.auto_eval.utils.model import *
-
-
-def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--input_data", type=str, default="explodinggradients/ragas-wikiqa", help="path of the input data"
-    )
-    parser.add_argument(
-        "--data_mode", type=str, default="benchmarking", help="mode of data can be local or benchmarking"
-    )
-    parser.add_argument(
-        "--field_map",
-        type=dict,
-        default={"question": "question", "answer": "generated_with_rag", "context": "context"},
-        help="field map that will be used while loading the dataset",
-    )
-    parser.add_argument("--template_dir", type=str, default="auto_eval_metrics", help="path to dir of prompt templates")
-    parser.add_argument("--hf_token", type=str, default="<add your HF token>", help="Please provide your HF token")
-    parser.add_argument(
-        "--openai_key", type=str, default="<add your OpenAI token>", help="please provide your OpenAI key"
-    )
-    parser.add_argument(
-        "--evaluation_mode", type=str, default="endpoint", help="evaluation mode can be openai / endpoint / local"
-    )
-    parser.add_argument(
-        "--model_name", type=str, default="http://localhost:8085", help="the model to be used for evaluation"
-    )
-    parser.add_argument(
-        "--evaluation_metrics",
-        type=list,
-        default=["factualness", "relevance", "correctness", "readability"],
-        help="metrics to be used for evaluation of RAG",
-    )
-    parser.add_argument("--log_path", type=str, default="./exp1.log", help="path of the log file")
-    args = parser.parse_args()
-    return args
-
-
-def load_template(template_path):
-    template = Environment(loader=FileSystemLoader(os.path.dirname(os.path.abspath(__file__)))).get_template(
-        template_path
-    )
-    return template
-
-
-def log_responses(responses, args):
-    sep = "\n" + "-" * 100 + "\n"
-    text = sep.join(responses)
-    with open(args.log_path, "w") as f:
-        f.write(text)
-
+from .prompt_engineering import Prompt
+from .rag_dataset import RAGDataset
+from .utils.helper import *
+from .utils.model import *
 
 class AutoEvaluate:
 
