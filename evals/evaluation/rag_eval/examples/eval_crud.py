@@ -84,8 +84,12 @@ class CRUD_Evaluator(Evaluator):
 
         embeddings = HuggingFaceEndpointEmbeddings(model=arguments.tei_embedding_endpoint)
 
-        metric = RagasMetric(threshold=0.5, model=arguments.llm_endpoint, embeddings=embeddings,
-            metrics=["faithfulness", "answer_relevancy"])
+        metric = RagasMetric(
+            threshold=0.5,
+            model=arguments.llm_endpoint,
+            embeddings=embeddings,
+            metrics=["faithfulness", "answer_relevancy"],
+        )
 
         all_answer_relevancy = 0
         all_faithfulness = 0
