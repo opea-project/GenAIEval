@@ -17,6 +17,7 @@ from .rag_dataset import RAGDataset
 from .utils.helper import *
 from .utils.model import *
 
+
 class AutoEvaluate:
 
     def __init__(
