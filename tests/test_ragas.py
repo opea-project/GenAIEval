@@ -30,15 +30,13 @@ class TestRagasMetric(unittest.TestCase):
 
         embeddings = HuggingFaceBgeEmbeddings(model_name="BAAI/bge-base-en-v1.5")
 
-        metric = RagasMetric(threshold=0.5, 
-                                model=f"http://{host_ip}:{port}", 
-                                embeddings=embeddings)
+        metric = RagasMetric(threshold=0.5, model=f"http://{host_ip}:{port}", embeddings=embeddings)
         test_case = {
             "question": ["What if these shoes don't fit?"],
             "answer": [actual_output],
             "ground_truth": [expected_output],
             "contexts": [retrieval_context],
-            "reference_contexts": [reference_context]
+            "reference_contexts": [reference_context],
         }
 
         metric.measure(test_case)

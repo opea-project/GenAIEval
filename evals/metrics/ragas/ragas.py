@@ -33,7 +33,7 @@ class RagasMetric:
         self.model = model
         self.embeddings = embeddings
         self.metrics = metrics
-        
+
         # self.validated_list = [
         #     "answer_correctness",
         #     "answer_relevancy",
@@ -53,11 +53,12 @@ class RagasMetric:
         try:
             from ragas import evaluate
             from ragas.metrics import ALL_METRICS
-            self.metric_names = [metric.__class__.__name__ for metric in ALL_METRICS] 
-            self.metric_names = [re.sub(r'(?<!^)(?=[A-Z])', '_', name).lower() for name in self.metric_names]
+
+            self.metric_names = [metric.__class__.__name__ for metric in ALL_METRICS]
+            self.metric_names = [re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower() for name in self.metric_names]
             self.metric_names = list(set(self.metric_names))
             # Note - summarization score metric is not working with best open-source LLMs
-            # Note - which is why we are removing it from our offering at the moment. 
+            # Note - which is why we are removing it from our offering at the moment.
             self.metric_names.remove("summarization_score")
             self.metric_instances = {}
             for metric in self.metric_names:
@@ -141,7 +142,7 @@ class RagasMetric:
             "response": "answer",
             "reference": "ground_truth",
             "retrieved_contexts": "contexts",
-            "reference_contexts": "reference_contexts"
+            "reference_contexts": "reference_contexts",
         }
         for metric in self.metrics:
             if hasattr(metric, "_required_columns"):
@@ -149,6 +150,7 @@ class RagasMetric:
                     _required_columns.add(column_map[column])
             elif hasattr(metric, "evaluation_mode"):
                 from ragas.metrics.base import get_required_columns
+
                 for column in get_required_columns(metric.evaluation_mode):
                     _required_columns.add(column)
             else:
