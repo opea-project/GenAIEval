@@ -13,7 +13,7 @@ AutoEval can run in 3 evaluation modes -
 - To launch HF endpoint on Gaudi2, please follow the 2-step instructions here - [tgi-gaudi](https://github.com/huggingface/tgi-gaudi). 
 - Pass your endpoint url as `model_name` argument. 
 2. `evaluation_mode="openai"` uses openai backend. 
-- Please set your `OPEN_API_KEY` and your choice of model as `model_name` argument.
+- Please set your `openai_key` and your choice of model as `model_name` argument.
 3. `evaluation_mode="local"` uses your local hardware. 
 - Set `hf_token` argument and set your favourite open-source model in `model_name` argument. 
 - GPU usage will be prioritized after checking it's availability. If GPU is unavailable, the model will run on CPU. 

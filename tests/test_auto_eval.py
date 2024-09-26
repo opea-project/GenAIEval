@@ -7,7 +7,7 @@
 import os
 import unittest
 
-from evals.evaluation.auto_eval import AutoEvaluate
+from evals.metrics.auto_eval import AutoEvaluate
 
 host_ip = os.getenv("host_ip", "localhost")
 port = os.getenv("port", "8008")
