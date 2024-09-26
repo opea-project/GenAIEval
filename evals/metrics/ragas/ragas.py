@@ -55,6 +55,10 @@ class RagasMetric:
             from ragas.metrics import ALL_METRICS
             self.metric_names = [metric.__class__.__name__ for metric in ALL_METRICS] 
             self.metric_names = [re.sub(r'(?<!^)(?=[A-Z])', '_', name).lower() for name in self.metric_names]
+            self.metric_names = list(set(self.metric_names))
+            # Note - summarization score metric is not working with best open-source LLMs
+            # Note - which is why we are removing it from our offering at the moment. 
+            self.metric_names.remove("summarization_score")
             self.metric_instances = {}
             for metric in self.metric_names:
                 try:
