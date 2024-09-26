@@ -194,9 +194,7 @@ def main():
                 "summarization, question_answering, continuation and hallucinated_modified."
             )
         output_save_path = os.path.join(args.output_dir, f"{task}.json")
-        evaluator = CRUD_Evaluator(
-            dataset=dataset, output_path=output_save_path, task=task
-        )
+        evaluator = CRUD_Evaluator(dataset=dataset, output_path=output_save_path, task=task)
         if args.ingest_docs:
             CRUD_Evaluator.ingest_docs(args.docs_path, args.database_endpoint, args.chunk_size, args.chunk_overlap)
         results = evaluator.evaluate(
