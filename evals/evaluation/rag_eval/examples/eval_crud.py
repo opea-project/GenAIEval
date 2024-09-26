@@ -11,6 +11,7 @@ import os
 from evals.evaluation.rag_eval import Evaluator
 from evals.evaluation.rag_eval.template import CRUDTemplate
 from evals.metrics.ragas import RagasMetric
+from tqdm import tqdm
 
 
 class CRUD_Evaluator(Evaluator):
@@ -100,7 +101,7 @@ class CRUD_Evaluator(Evaluator):
             "contexts": [],
         }
 
-        valid_results = self.remove_invalid(results)
+        valid_results = self.remove_invalid(results["results"])
 
         for data in tqdm(valid_results):
             data = data["original_data"]
@@ -200,6 +201,10 @@ def main():
         results = evaluator.evaluate(
             args, show_progress_bar=args.show_progress_bar, contain_original_data=args.contain_original_data
         )
+        print(results["overall"])
+        if args.ragas_metrics:
+            ragas_metrics = evaluator.get_ragas_metrics(results, args)
+            print(ragas_metrics)
         print(f"Evaluation results of task {task} saved to {output_save_path}.")
 
 
