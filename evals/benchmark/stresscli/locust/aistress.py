@@ -130,7 +130,7 @@ class AiStressUser(HttpUser):
                     else:
                         first_token_ts = None
                         complete_response = ""
-                        if self.environment.parsed_options.bench_target == "llmservingfixed":
+                        if self.environment.parsed_options.bench_target == "llmservefixed":
                             client = sseclient.SSEClient(resp)
                             for event in client.events():
                                 if first_token_ts is None:
