@@ -19,6 +19,9 @@ def respStatics(environment, req, resp):
         num_token_input_prompt = len(tokenizer.encode(req["messages"]))
     elif environment.parsed_options.bench_target in ["llmfixed"]:
         num_token_input_prompt = len(tokenizer.encode(req["query"]))
+    elif environment.parsed_options.bench_target == "llmservefixed":
+        content = " ".join([msg["content"] for msg in req["messages"]])
+        num_token_input_prompt = len(tokenizer.encode(content))
     else:
         num_token_input_prompt = -1
 
