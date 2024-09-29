@@ -783,7 +783,7 @@ my_embedding = [
 
 
 def getReqData():
-    return ({"text": my_query, "embedding": my_embedding},)
+    return {"text": my_query, "embedding": my_embedding}
 
 
 def respStatics(environment, reqData, resp):
