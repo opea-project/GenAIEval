@@ -14,8 +14,13 @@ def getUrl():
 
 
 def getReqData():
-    return {"messages": [{"role": "user", "content": "What is Deep Learning?"}], "model": "tgi", "max_tokens": 128, "n": 1, "stream": True,}
-
+    return {
+        "messages": [{"role": "user", "content": "What is Deep Learning?"}],
+        "model": "tgi",
+        "max_tokens": 128,
+        "n": 1,
+        "stream": True,
+    }
 
 
 def respStatics(environment, reqData, respData):
