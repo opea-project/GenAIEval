@@ -1,7 +1,12 @@
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+import logging
+
+import numpy
 import tokenresponse as token
+
+console_logger = logging.getLogger("locust.stats_logger")
 
 
 def getUrl():
@@ -10,14 +15,11 @@ def getUrl():
 
 def getReqData():
     return {
-        "query": "What is the revenue of Nike in last 10 years before 2023? Give me detail",
-        "max_new_tokens": 128,
-        "top_k": 10,
-        "top_p": 0.95,
-        "typical_p": 0.95,
-        "temperature": 0.01,
-        "repetition_penalty": 1.03,
-        "streaming": True,
+        "messages": [{"role": "user", "content": "What is Deep Learning?"}],
+        "model": "tgi",
+        "max_tokens": 128,
+        "n": 1,
+        "stream": True,
     }
 
 
