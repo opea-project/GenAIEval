@@ -1,6 +1,7 @@
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+import json
 import logging
 import os
 import sys
@@ -8,7 +9,6 @@ import threading
 import time
 
 import gevent
-import numpy
 import sseclient
 from locust import HttpUser, between, events, task
 from locust.runners import STATE_CLEANUP, STATE_STOPPED, STATE_STOPPING, MasterRunner, WorkerRunner
@@ -87,6 +87,7 @@ class AiStressUser(HttpUser):
         url = bench_package.getUrl()
         streaming_bench_target = [
             "llmfixed",
+            "llmservefixed",
             "llmbench",
             "chatqnafixed",
             "chatqnabench",
@@ -128,18 +129,32 @@ class AiStressUser(HttpUser):
                         }
                     else:
                         first_token_ts = None
-                        client = sseclient.SSEClient(resp)
                         complete_response = ""
-                        for event in client.events():
-                            if event.data == "[DONE]":
-                                break
-                            else:
+                        if self.environment.parsed_options.bench_target == "llmservefixed":
+                            client = sseclient.SSEClient(resp)
+                            for event in client.events():
                                 if first_token_ts is None:
                                     first_token_ts = time.perf_counter()
-                                chunk = event.data.strip()
-                                if chunk.startswith("b'") and chunk.endswith("'"):
-                                    chunk = chunk[2:-1]
-                            complete_response += chunk
+                                try:
+                                    data = json.loads(event.data)
+                                    if "choices" in data and len(data["choices"]) > 0:
+                                        delta = data["choices"][0].get("delta", {})
+                                        content = delta.get("content", "")
+                                        complete_response += content
+                                except json.JSONDecodeError:
+                                    continue
+                        else:
+                            client = sseclient.SSEClient(resp)
+                            for event in client.events():
+                                if event.data == "[DONE]":
+                                    break
+                                else:
+                                    if first_token_ts is None:
+                                        first_token_ts = time.perf_counter()
+                                    chunk = event.data.strip()
+                                    if chunk.startswith("b'") and chunk.endswith("'"):
+                                        chunk = chunk[2:-1]
+                                complete_response += chunk
                         end_ts = time.perf_counter()
                         respData = {
                             "response_string": complete_response,

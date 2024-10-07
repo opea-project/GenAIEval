@@ -21,8 +21,8 @@ def getReqData():
     }
 
 
-def respStatics(environment, resp):
-    return token.respStatics(environment, resp)
+def respStatics(environment, reqData, respData):
+    return token.respStatics(environment, reqData, respData)
 
 
 def staticsOutput(environment, reqlist):
