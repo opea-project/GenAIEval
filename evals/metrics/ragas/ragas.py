@@ -4,11 +4,15 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import os
+import re
 from typing import Dict, Optional, Union
 
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseLanguageModel
 from langchain_huggingface import HuggingFaceEndpoint
+
+# import * is only allowed at module level according to python syntax
+from ragas.metrics import *
 
 
 def format_ragas_metric_name(name: str):
@@ -29,16 +33,17 @@ class RagasMetric:
         self.model = model
         self.embeddings = embeddings
         self.metrics = metrics
-        self.validated_list = [
-            "answer_correctness",
-            "answer_relevancy",
-            "answer_similarity",
-            "context_precision",
-            "context_recall",
-            "faithfulness",
-            "context_utilization",
-            # "reference_free_rubrics_score",
-        ]
+
+        # self.validated_list = [
+        #     "answer_correctness",
+        #     "answer_relevancy",
+        #     "answer_similarity",
+        #     "context_precision",
+        #     "context_recall",
+        #     "faithfulness",
+        #     "context_utilization",
+        #     # "reference_free_rubrics_score",
+        # ]
 
     async def a_measure(self, test_case: Dict):
         return self.measure(test_case)
@@ -47,37 +52,51 @@ class RagasMetric:
         # sends to server
         try:
             from ragas import evaluate
-            from ragas.metrics import (
-                answer_correctness,
-                answer_relevancy,
-                answer_similarity,
-                context_precision,
-                context_recall,
-                context_utilization,
-                faithfulness,
-            )
+            from ragas.metrics import ALL_METRICS
+
+            self.metric_names = [metric.__class__.__name__ for metric in ALL_METRICS]
+            self.metric_names = [re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower() for name in self.metric_names]
+            self.metric_names = list(set(self.metric_names))
+            # Note - summarization score metric is not working with best open-source LLMs
+            # Note - which is why we are removing it from our offering at the moment.
+            self.metric_names.remove("summarization_score")
+            self.metric_instances = {}
+            for metric in self.metric_names:
+                try:
+                    self.metric_instances[metric] = eval(metric)
+                except:
+                    pass
+            # from ragas.metrics import (
+            #     answer_correctness,
+            #     answer_relevancy,
+            #     answer_similarity,
+            #     context_precision,
+            #     context_recall,
+            #     context_utilization,
+            #     faithfulness,
+            # )
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
         try:
             from datasets import Dataset
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Please install dataset")
-        self.metrics_instance = {
-            "answer_correctness": answer_correctness,
-            "answer_relevancy": answer_relevancy,
-            "answer_similarity": answer_similarity,
-            "context_precision": context_precision,
-            "context_recall": context_recall,
-            "faithfulness": faithfulness,
-            "context_utilization": context_utilization,
-            # "reference_free_rubrics_score": reference_free_rubrics_score,
-        }
+        # self.metrics_instance = {
+        #     "answer_correctness": answer_correctness,
+        #     "answer_relevancy": answer_relevancy,
+        #     "answer_similarity": answer_similarity,
+        #     "context_precision": context_precision,
+        #     "context_recall": context_recall,
+        #     "faithfulness": faithfulness,
+        #     "context_utilization": context_utilization,
+        #     # "reference_free_rubrics_score": reference_free_rubrics_score,
+        # }
         # Set LLM model
         openai_key = os.getenv("OPENAI_API_KEY", None)
         if openai_key is not None:
             print("OPENAI_API_KEY is provided, ragas initializes the model by OpenAI.")
-            self.model = None
-        if isinstance(self.model, str):
+            self.chat_model = None
+        elif isinstance(self.model, str):
             print("LLM endpoint: ", self.model)
             self.chat_model = HuggingFaceEndpoint(
                 endpoint_url=self.model,
@@ -92,9 +111,9 @@ class RagasMetric:
             tmp_metrics = []
             # check supported list
             for metric in self.metrics:
-                if metric not in self.validated_list:
+                if metric not in self.metric_names:
                     raise ValueError(
-                        "metric should be in supported list {}. ".format(self.validated_list)
+                        "metric should be in supported list {}. ".format(self.metric_names)
                         + "ClientResponseError raised with LangchainLLM "
                         + "when context_precision, context_recall ran. "
                         + "Here are the related issues described in ragas "
@@ -102,19 +121,20 @@ class RagasMetric:
                         + "https://github.com/explodinggradients/ragas/issues/664."
                     )
                 else:
-                    if metric == "answer_relevancy" and self.embeddings is None:
-                        raise ValueError("answer_relevancy metric need provide embeddings model.")
+                    if metric == "AnswerRelevancy" and self.embeddings is None:
+                        raise ValueError("AnswerRelevancy metric need provide embeddings model.")
                     tmp_metrics.append(self.metrics_instance[metric])
             self.metrics = tmp_metrics
         else:
-            self.metrics = [
-                answer_relevancy,
-                faithfulness,
-                answer_correctness,
-                answer_similarity,
-                context_precision,
-                context_recall,
-            ]
+            self.metrics = list(self.metric_instances.values())
+            # self.metrics = [
+            #     answer_relevancy,
+            #     faithfulness,
+            #     answer_correctness,
+            #     answer_similarity,
+            #     context_precision,
+            #     context_recall,
+            # ]
         # Find necessary input fields using the given metrics
         _required_columns = set()
         column_map = {  # this column maps new naming style in ragas to their old naming style
@@ -122,6 +142,7 @@ class RagasMetric:
             "response": "answer",
             "reference": "ground_truth",
             "retrieved_contexts": "contexts",
+            "reference_contexts": "reference_contexts",
         }
         for metric in self.metrics:
             if hasattr(metric, "_required_columns"):
