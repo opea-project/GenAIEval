@@ -62,7 +62,8 @@ password: admin
 If you have any Grafana installation issue please check this  [link](https://grafana.com/docs/grafana/latest/setup-grafana/installation/).
 
 
-The next step is to configure the data source for Grafana to scrape metrics from. Click on the "Data Source" button, select Prometheus, and specify the Prometheus url `localhost:9090`.
+The next step is to configure the data source for Grafana to scrape metrics from. Click on the "Data Source" button, select Prometheus, and specify the Prometheus url `localhost:9090`. If the dashboard does not display data, under the `Other section` for the Data Source, change the HTTP method to `GET`.
+
 
 ## 3. Import Grafana Dashboard
 After setup the Grafana server, then you can import a Grafana Dashboard through uploading a dashboard JSON file in the Grafana UI under `Home > Dashboards > Import dashboard`. You can use a file like [tgi_grafana.json](https://github.com/huggingface/text-generation-inference/blob/main/assets/tgi_grafana.json).
