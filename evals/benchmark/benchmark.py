@@ -341,11 +341,15 @@ def run_benchmark(report=False):
 
     if report:
         print(all_output_folders)
+        all_results = dict()
         for each_bench_folders in all_output_folders:
             for folder in each_bench_folders:
                 from stresscli.commands.report import get_report_results
                 results = get_report_results(folder)
+                all_results[folder] = results
                 print(f"results = {results}\n")
+
+        return all_results
 
 
 if __name__ == "__main__":
