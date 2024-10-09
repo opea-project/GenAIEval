@@ -74,6 +74,8 @@ def locust_runtests(kubeconfig, profile):
 
         click.echo(f"Load test results saved to {base_folder}")
 
+        return base_folder
+
 
 def collect_metrics(collector, services, output_dir, namespace=None):
     """Collect metrics from the specified services and output directory.

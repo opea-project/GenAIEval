@@ -4,6 +4,7 @@
 import os
 from datetime import datetime
 
+import argparse
 import yaml
 from stresscli.commands.load_test import locust_runtests
 from utils import get_service_cluster_ip, load_yaml
@@ -251,18 +252,21 @@ def run_service_test(example, service_type, service, test_suite_config):
     )
 
     # Run the test using locust_runtests function
+    output_folders = []
     for index, run_yaml_path in enumerate(run_yaml_paths, start=1):
         print(f"[OPEA BENCHMARK] 🚀 The {index} time test is running, run yaml: {run_yaml_path}...")
-        locust_runtests(None, run_yaml_path)
+        output_folders.append(locust_runtests(None, run_yaml_path))
 
     print(f"[OPEA BENCHMARK] 🚀 Test completed for {service_name} at {url}")
+
+    return output_folders
 
 
 def process_service(example, service_type, case_data, test_suite_config):
     service = case_data.get(service_type)
     if service and service.get("run_test"):
         print(f"[OPEA BENCHMARK] 🚀 Example: {example} Service: {service.get('service_name')}, Running test...")
-        run_service_test(example, service_type, service, test_suite_config)
+        return run_service_test(example, service_type, service, test_suite_config)
 
 
 def check_test_suite_config(test_suite_config):
@@ -285,6 +289,11 @@ def check_test_suite_config(test_suite_config):
 
 
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description="Read and parse JSON/YAML files and output JSON file")
+    parser.add_argument("--report", help="Return the perf", action="store_true")
+    args = parser.parse_args()
+
     # Load test suit configuration
     yaml_content = load_yaml("./benchmark.yaml")
     # Extract data
@@ -329,4 +338,7 @@ if __name__ == "__main__":
         case_data = parsed_data["all_case_data"].get(example, {})
         service_types = example_service_map.get(example, [])
         for service_type in service_types:
-            process_service(example, service_type, case_data, test_suite_config)
+            output_folders = process_service(example, service_type, case_data, test_suite_config)
+
+    if args.report:
+        print(output_folders)
