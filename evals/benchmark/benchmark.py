@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 
 import argparse
+import subprocess
 import yaml
 from stresscli.commands.load_test import locust_runtests
 from utils import get_service_cluster_ip, load_yaml
@@ -333,12 +334,19 @@ if __name__ == "__main__":
         "visualqna": ["lvm", "lvmserve", "e2e"],
     }
 
+    all_output_folders = []
     # Process each example's services
     for example in parsed_data["examples"]:
         case_data = parsed_data["all_case_data"].get(example, {})
         service_types = example_service_map.get(example, [])
         for service_type in service_types:
-            output_folders = process_service(example, service_type, case_data, test_suite_config)
+            output_folder = process_service(example, service_type, case_data, test_suite_config)
+            if output_folder is not None:
+                all_output_folders.append(output_folder)
 
     if args.report:
-        print(output_folders)
+        print(all_output_folders)
+        for each_bench_folders in all_output_folders:
+            for folder in each_bench_folders:
+                print(folder)
+            subprocess.run(['python', './stresscli/stresscli.py', '--report', folder], check=True, text=True, capture_output=False)
