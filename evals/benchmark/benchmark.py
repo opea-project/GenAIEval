@@ -289,13 +289,8 @@ def check_test_suite_config(test_suite_config):
         raise ValueError("Must specify either run_time or user_queries.")
 
 
-if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(description="Read and parse JSON/YAML files and output JSON file")
-    parser.add_argument("--report", help="Return the perf", action="store_true")
-    args = parser.parse_args()
-
-    # Load test suit configuration
+def run_benchmark(report=False):
+# Load test suit configuration
     yaml_content = load_yaml("./benchmark.yaml")
     # Extract data
     parsed_data = extract_test_case_data(yaml_content)
@@ -344,10 +339,18 @@ if __name__ == "__main__":
             if output_folder is not None:
                 all_output_folders.append(output_folder)
 
-    if args.report:
+    if report:
         print(all_output_folders)
         for each_bench_folders in all_output_folders:
             for folder in each_bench_folders:
                 from stresscli.commands.report import get_report_results
                 results = get_report_results(folder)
                 print(f"results = {results}\n")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Read and parse JSON/YAML files and output JSON file")
+    parser.add_argument("--report", help="Return the perf", action="store_true")
+    args = parser.parse_args()
+
+    run_benchmark(report=args.report)
