@@ -69,13 +69,13 @@ test_cases:
                      # or container names if deploy with Docker for metrics collection,
                      # activate if collect_service_metric is true
         - "chatqna-backend-server-svc"
-        - "chatqna-nginx-svc"                      
-        - "dataprep-svc"              
-        - "embedding-dependency-svc"                           
-        - "llm-dependency-svc"         
-        - "reranking-dependency-svc"  
-        - "retriever-svc"             
-        - "vector-db"  
+        - "chatqna-nginx-svc"
+        - "dataprep-svc"
+        - "embedding-dependency-svc"
+        - "llm-dependency-svc"
+        - "reranking-dependency-svc"
+        - "retriever-svc"
+        - "vector-db"
       dataset: # Activate if random_prompt=true: leave blank = default dataset(WebQuestions) or sharegpt
 
   codegen:

@@ -30,6 +30,7 @@ seed = os.environ["OPEA_EVAL_SEED"]
 if seed and seed != "none":
     random.seed(seed)
 
+
 def getUrl():
     return "/v1/chatqna"
 

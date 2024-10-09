@@ -131,13 +131,9 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
     )
     runspec["namespace"] = run_settings.get("namespace", global_settings.get("namespace", locust_defaults["namespace"]))
     runspec["dataset"] = run_settings.get("dataset", global_settings.get("dataset", locust_defaults["dataset"]))
-    runspec["dataset"] = (
-        locust_defaults["dataset"] if runspec["dataset"] is None else runspec["dataset"]
-    )
+    runspec["dataset"] = locust_defaults["dataset"] if runspec["dataset"] is None else runspec["dataset"]
     runspec["seed"] = run_settings.get("seed", global_settings.get("seed", locust_defaults["seed"]))
-    runspec["seed"] = (
-        locust_defaults["seed"] if runspec["seed"] is None else runspec["seed"]
-    )
+    runspec["seed"] = locust_defaults["seed"] if runspec["seed"] is None else runspec["seed"]
     runspec["run_name"] = run_settings["name"]
 
     # Specify load shape to adjust user distribution
