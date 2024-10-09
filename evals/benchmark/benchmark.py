@@ -349,5 +349,5 @@ if __name__ == "__main__":
         for each_bench_folders in all_output_folders:
             for folder in each_bench_folders:
                 from stresscli.commands.report import get_report_results
-                results = get_report_results(output_folder)
-                print("results = ", results)
+                results = get_report_results(folder)
+                print(f"results = {results}\n")
