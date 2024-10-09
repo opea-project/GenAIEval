@@ -348,5 +348,6 @@ if __name__ == "__main__":
         print(all_output_folders)
         for each_bench_folders in all_output_folders:
             for folder in each_bench_folders:
-                print(folder)
-            subprocess.run(['python', './stresscli/stresscli.py', '--report', folder], check=True, text=True, capture_output=False)
+                from stresscli.commands.report import get_report_results
+                results = get_report_results(output_folder)
+                print("results = ", results)
