@@ -45,7 +45,7 @@ def getReqData():
     else:
         msg = qlist[qid]["qText"]
 
-    logging.warning(f"Selected question: {msg}")
+    logging.debug(f"Selected question: {msg}")
 
     return {"messages": msg, "max_tokens": 128}
 
