@@ -1,11 +1,11 @@
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+import argparse
 import os
+import subprocess
 from datetime import datetime
 
-import argparse
-import subprocess
 import yaml
 from stresscli.commands.load_test import locust_runtests
 from utils import get_service_cluster_ip, load_yaml
@@ -290,7 +290,7 @@ def check_test_suite_config(test_suite_config):
 
 
 def run_benchmark(report=False):
-# Load test suit configuration
+    # Load test suit configuration
     yaml_content = load_yaml("./benchmark.yaml")
     # Extract data
     parsed_data = extract_test_case_data(yaml_content)
@@ -345,6 +345,7 @@ def run_benchmark(report=False):
         for each_bench_folders in all_output_folders:
             for folder in each_bench_folders:
                 from stresscli.commands.report import get_report_results
+
                 results = get_report_results(folder)
                 all_results[folder] = results
                 print(f"results = {results}\n")
