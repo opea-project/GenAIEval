@@ -50,6 +50,20 @@ def _(parser):
         default="constant",
         help="load shape to adjust conccurency at runtime",
     )
+    parser.add_argument(
+        "--dataset",
+        type=str,
+        env_var="OPEA_EVAL_DATASET",
+        default="default",
+        help="dataset",
+    )
+    parser.add_argument(
+        "--seed",
+        type=str,
+        env_var="OPEA_EVAL_SEED",
+        default="none",
+        help="The seed for all RNGs",
+    )
 
 
 reqlist = []
@@ -188,11 +202,14 @@ def on_test_start(environment, **kwargs):
         console_logger.info(f"Http timeout      : {environment.parsed_options.http_timeout}\n")
         console_logger.info(f"Benchmark target  : {environment.parsed_options.bench_target}\n")
         console_logger.info(f"Load shape        : {environment.parsed_options.load_shape}")
+        console_logger.info(f"Dataset           : {environment.parsed_options.dataset}")
 
 
 @events.init.add_listener
 def on_locust_init(environment, **_kwargs):
     global bench_package
+    os.environ["OPEA_EVAL_DATASET"] = environment.parsed_options.dataset
+    os.environ["OPEA_EVAL_SEED"] = environment.parsed_options.seed
     try:
         bench_package = __import__(environment.parsed_options.bench_target)
     except ImportError:

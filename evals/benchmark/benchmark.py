@@ -54,6 +54,7 @@ def extract_test_case_data(content):
         "service_port": test_suite_config.get("service_port"),
         "load_shape": test_suite_config.get("load_shape"),
         "query_timeout": test_suite_config.get("query_timeout", 120),
+        "seed": test_suite_config.get("seed", None),
         "all_case_data": {
             example: content["test_cases"].get(example, {}) for example in test_suite_config.get("examples", [])
         },
@@ -93,6 +94,8 @@ def create_run_yaml_content(service, base_url, bench_target, test_phase, num_que
                 "bench-target": bench_target,
                 "service-metric-collect": test_params["collect_service_metric"],
                 "service-list": service.get("service_list", []),
+                "dataset": service.get("dataset", "default"),
+                "seed": test_params.get("seed", None),
                 "llm-model": test_params["llm_model"],
                 "deployment-type": test_params["deployment_type"],
                 "load-shape": test_params["load_shape"],
@@ -307,6 +310,7 @@ def run_benchmark(report=False):
         "load_shape": parsed_data["load_shape"],
         "query_timeout": parsed_data["query_timeout"],
         "warm_ups": parsed_data["warm_ups"],
+        "seed": parsed_data["seed"],
     }
     check_test_suite_config(test_suite_config)
 
