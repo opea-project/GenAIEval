@@ -1,7 +1,9 @@
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+import argparse
 import os
+import subprocess
 from datetime import datetime
 
 import yaml
@@ -251,18 +253,21 @@ def run_service_test(example, service_type, service, test_suite_config):
     )
 
     # Run the test using locust_runtests function
+    output_folders = []
     for index, run_yaml_path in enumerate(run_yaml_paths, start=1):
         print(f"[OPEA BENCHMARK] 🚀 The {index} time test is running, run yaml: {run_yaml_path}...")
-        locust_runtests(None, run_yaml_path)
+        output_folders.append(locust_runtests(None, run_yaml_path))
 
     print(f"[OPEA BENCHMARK] 🚀 Test completed for {service_name} at {url}")
+
+    return output_folders
 
 
 def process_service(example, service_type, case_data, test_suite_config):
     service = case_data.get(service_type)
     if service and service.get("run_test"):
         print(f"[OPEA BENCHMARK] 🚀 Example: {example} Service: {service.get('service_name')}, Running test...")
-        run_service_test(example, service_type, service, test_suite_config)
+        return run_service_test(example, service_type, service, test_suite_config)
 
 
 def check_test_suite_config(test_suite_config):
@@ -284,7 +289,7 @@ def check_test_suite_config(test_suite_config):
         raise ValueError("Must specify either run_time or user_queries.")
 
 
-if __name__ == "__main__":
+def run_benchmark(report=False):
     # Load test suit configuration
     yaml_content = load_yaml("./benchmark.yaml")
     # Extract data
@@ -324,9 +329,33 @@ if __name__ == "__main__":
         "visualqna": ["lvm", "lvmserve", "e2e"],
     }
 
+    all_output_folders = []
     # Process each example's services
     for example in parsed_data["examples"]:
         case_data = parsed_data["all_case_data"].get(example, {})
         service_types = example_service_map.get(example, [])
         for service_type in service_types:
-            process_service(example, service_type, case_data, test_suite_config)
+            output_folder = process_service(example, service_type, case_data, test_suite_config)
+            if output_folder is not None:
+                all_output_folders.append(output_folder)
+
+    if report:
+        print(all_output_folders)
+        all_results = dict()
+        for each_bench_folders in all_output_folders:
+            for folder in each_bench_folders:
+                from stresscli.commands.report import get_report_results
+
+                results = get_report_results(folder)
+                all_results[folder] = results
+                print(f"results = {results}\n")
+
+        return all_results
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Read and parse JSON/YAML files and output JSON file")
+    parser.add_argument("--report", help="Return the perf", action="store_true")
+    args = parser.parse_args()
+
+    run_benchmark(report=args.report)
