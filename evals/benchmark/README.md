@@ -72,6 +72,7 @@ test_suite_config:
         arrival-rate: 1.0        # Request arrival rate
   warm_ups: 0  # Number of test requests for warm-ups
   run_time: 60m  # Total runtime for the test suite
+  seed:  # The seed for all RNGs
   user_queries: [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]  # Number of test requests
   query_timeout: 120  # Number of seconds to wait for a simulated user to complete any executing task before exiting. 120 sec by defeult.
   random_prompt: false  # Use random prompts if true, fixed prompts if false
@@ -112,4 +113,10 @@ test_cases:
     e2e:
       run_test: true
       service_name: "chatqna-backend-server-svc"
+      service_list:  # Replace with your k8s service names if deploy with k8s
+                     # or container names if deploy with Docker for metrics collection,
+                     # activate if collect_service_metric is true
+        - "chatqna-backend-server-svc"
+      dataset: # Activate if random_prompt=true: leave blank = default dataset(WebQuestions) or sharegpt
 ```
+If you'd like to use sharegpt dataset, please download the dataset according to the [guide](https://github.com/lm-sys/FastChat/issues/90#issuecomment-1493250773). Merge all downloaded data files into one file named sharegpt.json and put the file at `evals/benchmark/stresscli/dataset`.

@@ -32,6 +32,8 @@ locust_defaults = {
     "max-request": 100,
     "namespace": "default",
     "load-shape": {"name": DEFAULT_LOADSHAPE},
+    "dataset": "default",
+    "seed": "none",
 }
 
 console_logger = logging.getLogger("opea.eval")
@@ -130,7 +132,10 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         "deployment-type", global_settings.get("deployment-type", locust_defaults["deployment-type"])
     )
     runspec["namespace"] = run_settings.get("namespace", global_settings.get("namespace", locust_defaults["namespace"]))
-
+    runspec["dataset"] = run_settings.get("dataset", global_settings.get("dataset", locust_defaults["dataset"]))
+    runspec["dataset"] = locust_defaults["dataset"] if runspec["dataset"] is None else runspec["dataset"]
+    runspec["seed"] = run_settings.get("seed", global_settings.get("seed", locust_defaults["seed"]))
+    runspec["seed"] = locust_defaults["seed"] if runspec["seed"] is None else runspec["seed"]
     runspec["run_name"] = run_settings["name"]
 
     # Specify load shape to adjust user distribution
@@ -193,7 +198,12 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
             processes = 10 if concurrent_level > 400 else 5 if concurrent_level > 200 else processes
     elif load_shape == "poisson":
         if load_shape_params and "arrival-rate" in load_shape_params:
-            processes = max(2, math.ceil(int(load_shape_params["arrival-rate"]) / 10))
+            processes = max(2, math.ceil(int(load_shape_params["arrival-rate"]) / 5))
+    else:
+        if load_shape_params and "arrival-rate" in load_shape_params:
+            processes = max(2, math.ceil(int(load_shape_params["arrival-rate"]) / 5))
+        elif runspec["max_requests"] > 0:
+            processes = 10 if runspec["max_requests"] > 2000 else 5 if runspec["max_requests"] > 1000 else processes
 
     cmd = [
         "locust",
@@ -205,6 +215,10 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         runspec["runtime"],
         "--load-shape",
         runspec["load-shape"],
+        "--dataset",
+        runspec["dataset"],
+        "--seed",
+        str(runspec["seed"]),
         "--processes",
         str(processes),
         "--users",
