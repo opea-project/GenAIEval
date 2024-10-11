@@ -4,7 +4,6 @@
 import logging
 
 import locust
-import numpy as np
 from locust import LoadTestShape, events
 
 logger = logging.getLogger(__name__)
@@ -19,7 +18,7 @@ def _(parser):
     )
 
 
-class PoissonLoadShape(LoadTestShape):
+class ConstantRPSLoadShape(LoadTestShape):
     use_common_options = True
 
     def __init__(self, *args, **kwargs):
@@ -29,14 +28,13 @@ class PoissonLoadShape(LoadTestShape):
 
     def tick(self):
         if self.last_tick == 0:
-            logger.info("Poisson load shape arrival rate: {arrival_rate}".format(arrival_rate=self.arrival_rate))
+            logger.info("Constant load shape arrival rate: {arrival_rate}".format(arrival_rate=self.arrival_rate))
 
         run_time = self.get_run_time()
         if run_time < self.runner.environment.parsed_options.run_time:
-            time_diff = run_time - self.last_tick
             self.last_tick = run_time
 
-            new_users = np.random.poisson(lam=self.arrival_rate * time_diff)
+            new_users = int(self.arrival_rate)
             current_users = self.get_current_user_count()
             user_count = current_users + new_users
             logger.debug(
@@ -50,3 +48,4 @@ class PoissonLoadShape(LoadTestShape):
 
         self.runner.environment.stop_timeout = 0
         return None
+

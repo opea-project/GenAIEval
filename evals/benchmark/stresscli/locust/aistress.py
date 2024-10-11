@@ -87,9 +87,9 @@ class AiStressUser(HttpUser):
     def bench_main(self):
         max_request = self.environment.parsed_options.max_request
         if max_request >= 0 and AiStressUser.request >= max_request:
-            # For poisson load shape, a user only sends single request before it stops.
+            # For custom load shape based on arrival_rate, new users spawned after exceeding max_request is reached will be stopped.
             # TODO: user should not care about load shape
-            if self.environment.parsed_options.load_shape == "poisson":
+            if "arrival_rate" in self.environment.parsed_options:
                 self.stop(force=True)
 
             time.sleep(1)
@@ -186,10 +186,10 @@ class AiStressUser(HttpUser):
             self.environment.runner.stats.log_request("POST", url, time.perf_counter() - start_ts, 0)
             self.environment.runner.stats.log_error("POST", url, "Locust Request error")
 
-        # For poisson load shape, a user only sends single request before it stops.
+        # For custom load shape based on arrival_rate, a user only sends single request before it sleeps.
         # TODO: user should not care about load shape
-        if self.environment.parsed_options.load_shape == "poisson":
-            self.stop(force=True)
+        if "arrival_rate" in self.environment.parsed_options:
+            time.sleep(365 * 60 * 60)
 
     # def on_stop(self) -> None:
 
@@ -255,6 +255,8 @@ def checker(environment):
         max_request = environment.parsed_options.max_request
         if max_request >= 0 and environment.runner.stats.num_requests >= max_request:
             logging.info(f"Exceed the max-request number:{environment.runner.stats.num_requests}, Exit...")
+            # Remove stop_timeout after test quit to avoid Locust user stop exception with custom load shape
+            environment.runner.environment.stop_timeout = 0.0
             #            while environment.runner.user_count > 0:
             time.sleep(5)
             environment.runner.quit()
