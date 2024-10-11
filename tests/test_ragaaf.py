@@ -12,7 +12,7 @@ host_ip = os.getenv("host_ip", "localhost")
 port = os.getenv("port", "8008")
 
 
-class TestRagasMetric(unittest.TestCase):
+class TestRagaafMetric(unittest.TestCase):
 
     # @unittest.skip("need pass localhost id")
     def test_ragaaf(self):
@@ -42,8 +42,6 @@ class TestRagasMetric(unittest.TestCase):
             model_name=model_name,
             evaluation_metrics=evaluation_metrics,
             examples=examples,
-            # openai_key=openai_key,
-            # hf_token=hf_token,
             debug_mode=True,
         )
 
