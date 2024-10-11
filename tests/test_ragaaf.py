@@ -40,7 +40,7 @@ class TestRagasMetric(unittest.TestCase):
             model_name=model_name,
             evaluation_metrics=evaluation_metrics,
             examples=examples,
-            openai_key=openai_key,
+            # openai_key=openai_key,
             # hf_token=hf_token,
             debug_mode=True,
         )
