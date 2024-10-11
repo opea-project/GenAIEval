@@ -1,10 +1,10 @@
-# RAGAAF (RAG aasessment - Annotation Free) 
+# RAGAAF (RAG assessment - Annotation Free) 
 
-We provide easy-to-use, flexible, opensource and annotation-free RAG evaluation tool using LLM-as-a-judge while benefitting from Intel's Gaudi2 AI accelator chips. 
+We introduce - RAGAAF, Intel's easy-to-use, flexible, opensource and annotation-free RAG evaluation tool using LLM-as-a-judge while benefitting from Intel's Gaudi2 AI accelator chips. 
 
 ## Overview
 ### Data 
-AutoEval is best suited for Long Form Question Answering (LFQA) datasets where you want to gauge quality and factualness of the answer via LLM's intelligence. Here, you can use benchmarking datasets or bring your own custom datasets. Please make sure to set `field_map` to map AutoEval fields such as "question" to your dataset's corresponding field like "query". 
+RAGAAF is best suited for Long Form Question Answering (LFQA) datasets where you want to gauge quality and factualness of the answer via LLM's intelligence. Here, you can use benchmarking datasets or bring your own custom datasets. Please make sure to set `field_map` to map AutoEval fields such as "question" to your dataset's corresponding field like "query". 
 > Note : To use benchmarking datasets, set argument `data_mode=benchmarking`. Similarly, to use custom datasets, set `data_mode=local`.
 ### Model
 AutoEval can run in 3 evaluation modes - 
@@ -20,7 +20,7 @@ AutoEval can run in 3 evaluation modes -
 ## Metrics
 AutoEval provides 4 metrics - factualness, correctness, relevance and readability. You can also bring your own metrics and grading scales. Don't forget to add your metric to `evaluation_metrics` argument. 
 ## Generation configuration 
-Please set generation parameters as per your requirement in `GENERATION_CONFIG` in `run_eval.py`. 
+We provide recommended generation parameters after experimenting with different LLMs. If you'd like to edit them to your requirement, please set generation parameters in `GENERATION_CONFIG` in `run_eval.py`. 
 
 ## Run using HF endpoint 
 ```python3
