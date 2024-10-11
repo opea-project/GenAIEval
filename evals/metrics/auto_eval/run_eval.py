@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import time
+
 from huggingface_hub import login
 
 from .prompt_engineering import Prompt
@@ -71,6 +72,7 @@ class AutoEvaluate:
         print("Generation of scores and reasoning took {:.2f} seconds for {:,} examples".format(end - start, n_samples))
         return responses
 
+
 if __name__ == "__main__":
 
     dataset = "explodinggradients/ragas-wikiqa"
@@ -82,7 +84,7 @@ if __name__ == "__main__":
 
     evaluation_mode = "openai"
     openai_key = "<add your openai key>"
-    model_name="gpt-4o"
+    model_name = "gpt-4o"
 
     evaluation_metrics = ["factualness", "relevance", "correctness", "readability"]
 
@@ -101,9 +103,3 @@ if __name__ == "__main__":
 
     for response in responses:
         print(response)
-
-    
-
-    
-
-    

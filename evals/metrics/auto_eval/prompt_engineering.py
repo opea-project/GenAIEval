@@ -2,15 +2,16 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from jinja2 import Template
-from .prompt_templates import NAME2METRIC
+
 from .prompt_templates import *
+from .prompt_templates import NAME2METRIC
 
 
 class Prompt:
     """Class to customize prompt template using user-defined list of metrics."""
 
     def __init__(self, metrics, input_fields):
-        self.metrics =  metrics
+        self.metrics = metrics
         self.input_fields = input_fields
         self.template = self.load_prompt_template()
 
@@ -37,10 +38,10 @@ class Prompt:
         return "\n\n".join(closing_prompt)
 
     def load_prompt_template(self):
-        content = [] 
+        content = []
         for metric_name in ["opening_prompt"] + self.metrics:
             metric_instance = NAME2METRIC[metric_name]
-            content += metric_instance.template,
+            content += (metric_instance.template,)
         content += (self.create_grading_format(),)
         content += (self.create_closing_prompt(),)
         return Template("\n\n".join(content))
