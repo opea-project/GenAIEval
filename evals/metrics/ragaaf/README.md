@@ -24,7 +24,6 @@ We provide recommended generation parameters after experimenting with different 
 
 ## Run using HF endpoint 
 ```python3
-
 # step 1 : choose your dataset -- local or benchmarking
 dataset = "explodinggradients/ragas-wikiqa"
 data_mode = "benchmarking"
@@ -46,7 +45,7 @@ hf_token = "<add your HF token>"
 # step 3 - choose metrics of your choice, you can also add custom metrics
 evaluation_metrics = ["factualness", "relevance", "correctness", "readability"]
 
-# step 4 - run evaluation 
+# step 4 - run evaluation
 evaluator = AnnotationFreeEvaluate(
     dataset=dataset,
     data_mode=data_mode,

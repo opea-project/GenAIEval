@@ -4,5 +4,5 @@ jsonlines
 langchain_community
 langchain_huggingface
 lm-eval==0.4.3
-ragas==0.1.19   
 openai
+ragas==0.1.19   
