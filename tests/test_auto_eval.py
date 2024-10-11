@@ -3,7 +3,6 @@
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-
 import os
 import unittest
 
@@ -22,8 +21,16 @@ class TestRagasMetric(unittest.TestCase):
         data_mode = "benchmarking"
         field_map = {"question": "question", "answer": "generated_with_rag", "context": "context"}
 
+        # evaluation_mode = "openai"
+        # model_name = "gpt-4o"
+        # openai_key = "<add your openai key here>"
+
         evaluation_mode = "endpoint"
         model_name = f"http://{host_ip}:{port}"
+
+        # evaluation_mode = "local"
+        # model_name = "mistralai/Mixtral-8x7B-Instruct-v0.1"
+        # hf_token = "<add your hf token here>"
 
         evaluation_metrics = ["factualness", "relevance", "correctness", "readability"]
 
@@ -34,6 +41,8 @@ class TestRagasMetric(unittest.TestCase):
             evaluation_mode=evaluation_mode,
             model_name=model_name,
             evaluation_metrics=evaluation_metrics,
+            # openai_key=openai_key,
+            # hf_token=hf_token,
             debug_mode=True,
         )
 

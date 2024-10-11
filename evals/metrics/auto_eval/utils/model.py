@@ -6,7 +6,7 @@ from typing import List
 import openai
 import torch
 from huggingface_hub import InferenceClient
-from transformers import AutoModel, AutoModelForCausalLM, AutoTokenizer, TextStreamer, pipeline
+from transformers import AutoTokenizer, pipeline
 
 from .helper import extract_delay_from_rate_limit_error_msg
 from .retry import retry_and_handle_exceptions

@@ -1,26 +1,18 @@
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-import os
-
-from dotenv import load_dotenv
-from jinja2 import Environment, FileSystemLoader, Template
+from jinja2 import Template
+from .prompt_templates import NAME2METRIC
+from .prompt_templates import *
 
 
 class Prompt:
     """Class to customize prompt template using user-defined list of metrics."""
 
-    def __init__(self, metrics, input_fields, prompt_dir):
-        self.metrics = metrics
+    def __init__(self, metrics, input_fields):
+        self.metrics =  metrics
         self.input_fields = input_fields
-        self.define_template_paths(prompt_dir)
         self.template = self.load_prompt_template()
-
-    def define_template_paths(self, prompt_dir):
-        self.opening_prompt_path = os.path.join(prompt_dir, "opening_prompt.md")
-        metric_prompt_names = ["{}_prompt.md".format(metric) for metric in self.metrics]
-        local_metric_prompt_paths = [os.path.join("metric_prompt_templates", m) for m in metric_prompt_names]
-        self.metric_prompt_paths = [os.path.join(prompt_dir, p) for p in local_metric_prompt_paths]
 
     def create_grading_format(self):
         grading_format = (
@@ -44,16 +36,11 @@ class Prompt:
             closing_prompt += ("Provided {}:".format(f) + "\n" + "{{" + f + "}}",)
         return "\n\n".join(closing_prompt)
 
-    @staticmethod
-    def load_template(template_path):
-        dir = os.path.dirname(os.path.abspath(__file__))
-        env = Environment(loader=FileSystemLoader(dir))
-        return env.get_template(template_path)
-
     def load_prompt_template(self):
-        content = [self.load_template(self.opening_prompt_path).render()]
-        for path in self.metric_prompt_paths:
-            content += (self.load_template(path).render(),)
+        content = [] 
+        for metric_name in ["opening_prompt"] + self.metrics:
+            metric_instance = NAME2METRIC[metric_name]
+            content += metric_instance.template,
         content += (self.create_grading_format(),)
         content += (self.create_closing_prompt(),)
         return Template("\n\n".join(content))
@@ -70,13 +57,9 @@ if __name__ == "__main__":
     # step 0 - user input
     metrics = ["factualness", "relevance", "correctness", "readability"]
     input_fields = ["question", "answer", "context"]
-    prompt_dir = "./auto_eval_metrics/"
 
-    # step 1 - load jinja2 environment
-    load_dotenv(os.path.join(os.path.dirname(__file__), ".env"), override=True)
-
-    # step 2 - load prompt using Prompt class
-    prompt = Prompt(metrics=metrics, input_fields=input_fields, prompt_dir=prompt_dir)
+    # step 1 - load prompt using Prompt class
+    prompt = Prompt(metrics=metrics, input_fields=input_fields)
 
     example = {
         "question": "Who is wife of Barak Obama",
@@ -85,6 +68,7 @@ if __name__ == "__main__":
         "ground_truth": "Wife of Barak Obama is Michelle Obama",
     }
 
+    # step 2 - render prompt with given inputs
     rendered_prompt = prompt.render_prompt(
         question=example["question"], answer=example["answer"], context=example["context"]
     )
