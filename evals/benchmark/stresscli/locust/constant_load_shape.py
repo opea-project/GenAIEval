@@ -48,4 +48,3 @@ class ConstantRPSLoadShape(LoadTestShape):
 
         self.runner.environment.stop_timeout = 0
         return None
-
