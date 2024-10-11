@@ -14,7 +14,7 @@ port = os.getenv("port", "8008")
 
 class TestRagaafMetric(unittest.TestCase):
 
-    # @unittest.skip("need pass localhost id")
+    @unittest.skip("need pass localhost id")
     def test_ragaaf(self):
 
         dataset = "sample data"
