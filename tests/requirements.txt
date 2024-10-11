@@ -6,5 +6,4 @@ langchain_community
 langchain_huggingface
 lm-eval==0.4.3
 openai
-python-dotenv
-ragas
+ragas==0.1.19   

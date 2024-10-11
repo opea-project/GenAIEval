@@ -74,6 +74,26 @@ def report(ctx, folder, format, output):
                 csvwriter.writerow(row)
 
 
+def get_report_results(folder):
+    """Print the test report."""
+    print(f"Get report results from: {folder}")
+    output_data = {}
+    testcases = get_testcases(folder)
+    for testcase in testcases:
+        include = "|".join([TESTSPEC_SECTION_NAME, CSV_SECTION_NAME, METRICS_SECTION_NAME])
+        extracted_data = export_testdata(testcase, folder, include)
+        if extracted_data:
+            output_data[testcase] = extracted_data
+
+    result = {}
+    for testcase, data in output_data.items():
+        testcase_result = {}
+        for key, value in data.items():
+            testcase_result[key] = value
+        result[testcase] = testcase_result
+    return result
+
+
 def export_testspec(testcase, folder):
     testspec_path = os.path.join(folder, f"{testcase}_testspec.yaml")
     extracted_data = {}
