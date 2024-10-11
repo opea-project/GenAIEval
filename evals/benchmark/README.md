@@ -12,11 +12,15 @@ This Tool provides a microservice benchmarking framework that uses YAML configur
 
 ## Table of Contents
 
-- [Installation](#installation)
-- [Usage](#usage)
-- [Configuration](#configuration)
-  - [Test Suite Configuration](#test-suite-configuration)
-  - [Test Cases](#test-cases)
+- [OPEA Benchmark Tool](#opea-benchmark-tool)
+  - [Features](#features)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+    - [Prerequisites](#prerequisites)
+  - [Usage](#usage)
+  - [Configuration](#configuration)
+    - [Test Suite Configuration](#test-suite-configuration)
+    - [Test Cases](#test-cases)
 
 
 ## Installation
@@ -68,7 +72,7 @@ test_suite_config:
     params:                  # Loadshape-specific parameters
       constant:                # Constant load shape specific parameters, activate only if load_shape.name is constant
         concurrent_level: 4      # If user_queries is specified, concurrent_level is target number of requests per user. If not, it is the number of simulated users
-        # arrival_rate: 1.0       # Request arrival rate. If set, concurrent_level will be overrided, constant load will be generated based on arrival-rate
+        # arrival_rate: 1.0       # Request arrival rate. If set, concurrent_level will be overridden, constant load will be generated based on arrival-rate
       poisson:                 # Poisson load shape specific parameters, activate only if load_shape.name is poisson
         arrival_rate: 1.0        # Request arrival rate
   warm_ups: 0  # Number of test requests for warm-ups
