@@ -15,22 +15,20 @@ port = os.getenv("port", "8008")
 class TestRagasMetric(unittest.TestCase):
 
     # @unittest.skip("need pass localhost id")
-    def test_ragas(self):
+    def test_ragaaf(self):
 
-        dataset = "explodinggradients/ragas-wikiqa"
-        data_mode = "benchmarking"
-        field_map = {"question": "question", "answer": "generated_with_rag", "context": "context"}
+        dataset = "sample data"
+        data_mode = "unit"
+        field_map = {"question": "question", "answer": "actual_output", "context": "contexts"}
 
-        # evaluation_mode = "openai"
-        # model_name = "gpt-4o"
-        # openai_key = "<add your openai key>"
+        question = "What if these shoes don't fit?"
+        actual_output = "We offer a 30-day full refund at no extra cost."
+        contexts = ["All customers are eligible for a 30 day full refund at no extra cost.", 
+                            "We can only process full refund upto 30 day after the purchase."]
+        examples = [{"question" : question, "actual_output" : actual_output, "contexts" : contexts}]
 
         evaluation_mode = "endpoint"
         model_name = f"http://{host_ip}:{port}"
-
-        # evaluation_mode = "local"
-        # model_name = "meta-llama/Llama-3.2-1B-Instruct"
-        # hf_token = "<add your HF token>"
 
         evaluation_metrics = ["factualness", "relevance", "correctness", "readability"]
 
@@ -41,7 +39,8 @@ class TestRagasMetric(unittest.TestCase):
             evaluation_mode=evaluation_mode,
             model_name=model_name,
             evaluation_metrics=evaluation_metrics,
-            # openai_key=openai_key,
+            examples=examples,
+            openai_key=openai_key,
             # hf_token=hf_token,
             debug_mode=True,
         )

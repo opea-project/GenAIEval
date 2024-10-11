@@ -21,6 +21,7 @@ class AnnotationFreeEvaluate:
         evaluation_mode,
         model_name,
         evaluation_metrics,
+        examples=None,
         hf_token=None,
         openai_key=None,
         debug_mode=None,
@@ -30,7 +31,7 @@ class AnnotationFreeEvaluate:
             "endpoint": {"max_tokens": 500},
             "local": {"max_new_tokens": 500},
         }
-        self.data = RAGDataset(dataset=dataset, field_map=field_map, mode=data_mode)
+        self.data = RAGDataset(dataset=dataset, field_map=field_map, mode=data_mode, examples=examples)
         self.evaluator = self.get_evaluator(evaluation_mode, model_name, openai_key, hf_token)
         self.prompt_template = self.get_template(evaluation_metrics, field_map)
         self.debug_mode = debug_mode
