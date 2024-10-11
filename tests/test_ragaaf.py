@@ -23,9 +23,11 @@ class TestRagasMetric(unittest.TestCase):
 
         question = "What if these shoes don't fit?"
         actual_output = "We offer a 30-day full refund at no extra cost."
-        contexts = ["All customers are eligible for a 30 day full refund at no extra cost.", 
-                            "We can only process full refund upto 30 day after the purchase."]
-        examples = [{"question" : question, "actual_output" : actual_output, "contexts" : contexts}]
+        contexts = [
+            "All customers are eligible for a 30 day full refund at no extra cost.",
+            "We can only process full refund upto 30 day after the purchase.",
+        ]
+        examples = [{"question": question, "actual_output": actual_output, "contexts": contexts}]
 
         evaluation_mode = "endpoint"
         model_name = f"http://{host_ip}:{port}"

@@ -34,10 +34,10 @@ class RAGDataset:
         return Dataset.from_list(data)
 
     def load_unit_data(self, examples):
-        assert len(examples) >= 1, "Please provide atleast one example"
+        assert len(examples) >= 1, "Please provide at least one example"
         data = [self.load_example(obj) for obj in examples]
         return Dataset.from_list(data)
-    
+
     def load_benchmarking_data(self):
         dataset = load_dataset(self.dataset)["train"]
         data = [self.load_example(obj) for obj in dataset]
@@ -50,7 +50,7 @@ class RAGDataset:
             return self.load_unit_data(examples)
         else:
             return self.load_benchmarking_data()
-            
+
     def validate_dataset(self):
         for i, example in enumerate(self.data):
             for out_field in self.field_map:
