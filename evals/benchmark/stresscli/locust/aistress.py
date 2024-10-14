@@ -220,6 +220,7 @@ def on_locust_init(environment, **_kwargs):
         environment.runner.register_message("worker_reqsent", on_reqsent)
     if not isinstance(environment.runner, MasterRunner):
         environment.runner.register_message("all_reqcnt", on_reqcount)
+        environment.runner.register_message("test_quit", on_quit)
 
 
 @events.quitting.add_listener
@@ -249,6 +250,11 @@ def on_reqcount(msg, **kwargs):
     AiStressUser.request = msg.data
 
 
+def on_quit(environment, msg, **kwargs):
+    logging.debug(f"Test quitting, set stop_timeout to 0...")
+    environment.runner.environment.stop_timeout = 0
+
+
 def checker(environment):
     while environment.runner.state not in [STATE_STOPPING, STATE_STOPPED, STATE_CLEANUP]:
         time.sleep(1)
@@ -256,7 +262,8 @@ def checker(environment):
         if max_request >= 0 and environment.runner.stats.num_requests >= max_request:
             logging.info(f"Exceed the max-request number:{environment.runner.stats.num_requests}, Exit...")
             # Remove stop_timeout after test quit to avoid Locust user stop exception with custom load shape
-            environment.runner.environment.stop_timeout = 0.0
+            environment.runner.send_message("test_quit", None)
+            environment.runner.environment.stop_timeout = 0
             #            while environment.runner.user_count > 0:
             time.sleep(5)
             environment.runner.quit()
