@@ -12,12 +12,171 @@ This Tool provides a microservice benchmarking framework that uses YAML configur
 
 ## Table of Contents
 
+- [Workload Deployment in Kubernetes](#workload-deployment-in-kubernetes)
+  - [Prerequisites](#prerequisites)
+  - [Deployment](#deployment)
+    - [1. Deploy with CPUs only](#1-deploy-with-cpus-only)
+    - [2. Deploy with Gaudi Devices](#2-deploy-with-gaudi-devices)
+    - [3. Deploy with Multiple Pod Instances](#3-deploy-with-multiple-pod-instances)
+    - [4. Deploy with a Specific Namespace](#4-deploy-with-a-specific-namespace)
+    - [5. Deploy with Proxy](#5-deploy-with-proxy)
+  - [Destroy](#destroy)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Configuration](#configuration)
   - [Test Suite Configuration](#test-suite-configuration)
   - [Test Cases](#test-cases)
 
+## Workload Deployment in Kubernetes
+
+### Prerequisites
+
+- Kubernetes installation: Use [kubespray](https://github.com/opea-project/docs/blob/main/guide/installation/k8s_install/k8s_install_kubespray.md) or other official Kubernetes installation guides.
+- Helm installation: Follow the [Helm documentation](https://helm.sh/docs/intro/install/#helm) to install Helm.
+- Install the OPEA Helm Chart:
+
+  ```bash
+  helm repo add opea https://opea-project.github.io/GenAIInfra
+  ```
+- Setup Hugging Face Token
+  To access models and APIs from Hugging Face, set your token as environment variable.
+  ```bash
+  export HFTOKEN="insert-your-huggingface-token-here"
+  ```
+
+### Deployment
+
+#### 1. Deploy with CPUs only
+
+This setup ensures that all services in the opea/chatqna workload run with CPU resources only.
+
+```bash
+# Get the list of available charts:
+helm search repo opea
+
+# Deploy the opea/chatqna chart
+helm install chatqna opea/chatqna --set global.HUGGINGFACEHUB_API_TOKEN=${HFTOKEN}
+```
+Verify deployment status:
+- Deployed Kubernetes services:
+
+  These are the actual services running in the cluster. Use the following command to list their runtime names:
+  ```bash
+  kubectl get svc
+  ```
+- Check the status of pods and ensure they are ready before proceeding:
+  ```bash
+  kubectl get pods
+  ```
+
+#### 2. Deploy with Gaudi Devices
+
+To offload TEI embedding and TGI inference to Intel Gaudi devices, use the specific values file.
+
+```bash
+# Extract chart contents to access provided configuration files.
+helm pull opea/chatqna --untar
+
+# Deploy using the Gaudi-specific configuration.
+helm install chatqna opea/chatqna --set global.HUGGINGFACEHUB_API_TOKEN=${HFTOKEN} -f chatqna/gaudi-values.yaml 
+
+```
+
+#### 3. Deploy with Multiple Pod Instances
+
+To effectively deploy your workload across multiple nodes, follow these steps.
+
+##### Preload Shared Models
+Downloading models simultaneously to multiple nodes in your cluster can overload resources such as network bandwidth, memory and storage. To prevent resource exhaustion, it's recommended to preload the models in advance.
+
+```bash
+pip install -U "huggingface_hub[cli]"
+sudo mkdir -p /mnt/models
+sudo chmod 777 /mnt/models
+huggingface-cli download --cache-dir /mnt/models Intel/neural-chat-7b-v3-3
+export MODELDIR=/mnt/models
+```
+Once the models are downloaded, you can consider the following methods for sharing them across nodes:
+- Persistent Volume Claim (PVC): This is the recommended approach for production setups. For more details on using PVC, refer to [PVC](https://github.com/opea-project/GenAIInfra/blob/main/helm-charts/README.md#using-persistent-volume).
+- Local Host Path: For simpler testing, ensure that each node involved in the deployment follows the steps above to locally prepare the models. After preparing the models, use `--set global.modelUseHostPath=${MODELDIR}` in the deployment command.
+
+##### Get the Chart-Defined Service Names
+These are the logical services defined in the Helm chart, such as `retriever-usvc`, `tei`, and `teirerank`, you can retrieve the full list with:
+```bash
+helm show readme opea/chatqna
+```
+##### Get the Node Names
+Get the node name for each of the nodes for deployment.
+```bash
+kubectl get nodes --show-labels
+```
+
+##### Configure Multiple Pod Instances
+
+If you plan to deploy the workload across multiple nodes, specify the target node names and the number of pod instances for each service in a custom YAML file (e.g., cluster.yaml), use the chart-defined service names to ensure proper configuration. Below is an example configuration for deploying the workload across two nodes:
+```
+# cluster.yaml - Example configuration for multiple instances
+tgi:                          # Chart-defined service name
+  replicaCount: 12            # Number of pod instances to deploy (default is 1 if not specified)
+  evenly_distributed: true    # Distribute instances evenly across hardware nodes
+  affinity:                   # Schedule pods on specific nodes
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                  - node1     # Node name
+                  - node2
+```
+##### Deploy with Your Custom Configuration
+Use the following command to deploy the workload with multiple instances:
+
+```bash
+helm install chatqna opea/chatqna \
+  --set global.HUGGINGFACEHUB_API_TOKEN=${HFTOKEN} \
+  --set global.modelUseHostPath=${MODELDIR} \
+  -f chatqna/gaudi-values.yaml -f cluster.yaml
+```
+
+#### 4. Deploy with a Specific Namespace
+
+To deploy the workload in a specific namespace:
+
+```bash
+export NAMESPACE=“insert-your-workload-namespace”
+helm install chatqna opea/chatqna \
+  --set global.HUGGINGFACEHUB_API_TOKEN=${HFTOKEN} \
+  -f chatqna/gaudi-values.yaml \
+  --namespace ${NAMESPACE} --create-namespace
+```
+
+When using a custom namespace, remember to specify it when interacting with Kubernetes:
+
+```bash
+kubectl get pods -n ${NAMESPACE}
+```
+
+#### 5. Deploy with Proxy
+
+If your environment requires proxy settings:
+
+```bash
+helm install chatqna opea/chatqna \
+  --set global.HUGGINGFACEHUB_API_TOKEN=${HFTOKEN} \
+  --set global.http_proxy=${http_proxy} \
+  --set global.https_proxy=${https_proxy} \
+  -f chatqna/gaudi-values.yaml
+```
+
+### Destroy
+
+Uninstall `opea/chatqna` chart when it's no longer needed.
+ 
+```bash
+helm uninstall chatqna
+```
 
 ## Installation
 
@@ -85,7 +244,7 @@ test_suite_config:
 
 Each test case includes multiple services, each of which can be toggled on/off using the `run_test` flag. You can also change specific parameters for each service for performance tuning.
 
-Example test case configuration for `chatqna`:
+Example test case configuration for `chatqna`, you can retrieve the deployed kubernetes service name by running `kubectl get svc` for kubernetes deployment.
 
 ```yaml
 test_cases:
