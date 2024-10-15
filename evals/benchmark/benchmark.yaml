@@ -23,6 +23,7 @@ test_suite_config: # Overall configuration settings for the test suite
         concurrent_level: 4      # If user_queries is specified, concurrent_level is target number of requests per user. If not, it is the number of simulated users
       poisson:                 # Poisson load shape specific parameters, activate only if load_shape is poisson
         arrival-rate: 1.0        # Request arrival rate
+  namespace: "" # Fill the user-defined namespace. Otherwise, it will be default.
 
 test_cases:
   chatqna:

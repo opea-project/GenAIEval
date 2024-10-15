@@ -40,6 +40,10 @@ def extract_test_case_data(content):
     # Extract test suite configuration
     test_suite_config = content.get("test_suite_config", {})
 
+    # Ensure the namespace is a string before calling strip()
+    raw_namespace = test_suite_config.get("namespace")
+    namespace = (raw_namespace.strip() if isinstance(raw_namespace, str) else "") or "default"
+
     return {
         "examples": test_suite_config.get("examples", []),
         "warm_ups": test_suite_config.get("warm_ups", 0),
@@ -55,6 +59,7 @@ def extract_test_case_data(content):
         "load_shape": test_suite_config.get("load_shape"),
         "query_timeout": test_suite_config.get("query_timeout", 120),
         "seed": test_suite_config.get("seed", None),
+        "namespace": namespace,
         "all_case_data": {
             example: content["test_cases"].get(example, {}) for example in test_suite_config.get("examples", [])
         },
@@ -90,7 +95,7 @@ def create_run_yaml_content(service, base_url, bench_target, test_phase, num_que
                 "host": base_url,
                 "stop-timeout": test_params["query_timeout"],
                 "processes": 2,
-                "namespace": "default",
+                "namespace": test_params["namespace"],
                 "bench-target": bench_target,
                 "service-metric-collect": test_params["collect_service_metric"],
                 "service-list": service.get("service_list", []),
@@ -200,7 +205,7 @@ def create_and_save_run_yaml(example, deployment_type, service_type, service, ba
     return run_yaml_paths
 
 
-def get_service_ip(service_name, deployment_type="k8s", service_ip=None, service_port=None):
+def get_service_ip(service_name, deployment_type="k8s", service_ip=None, service_port=None, namespace="default"):
     """Get the service IP and port based on the deployment type.
 
     Args:
@@ -214,7 +219,7 @@ def get_service_ip(service_name, deployment_type="k8s", service_ip=None, service
     """
     if deployment_type == "k8s":
         # Kubernetes IP and port retrieval logic
-        svc_ip, port = get_service_cluster_ip(service_name)
+        svc_ip, port = get_service_cluster_ip(service_name, namespace)
     elif deployment_type == "docker":
         # For Docker deployment, service_ip and service_port must be specified
         if not service_ip or not service_port:
@@ -239,7 +244,11 @@ def run_service_test(example, service_type, service, test_suite_config):
 
     # Get the service IP and port based on deployment type
     svc_ip, port = get_service_ip(
-        service_name, deployment_type, test_suite_config.get("service_ip"), test_suite_config.get("service_port")
+        service_name,
+        deployment_type,
+        test_suite_config.get("service_ip"),
+        test_suite_config.get("service_port"),
+        test_suite_config.get("namespace")
     )
 
     base_url = f"http://{svc_ip}:{port}"
@@ -311,6 +320,7 @@ def run_benchmark(report=False):
         "query_timeout": parsed_data["query_timeout"],
         "warm_ups": parsed_data["warm_ups"],
         "seed": parsed_data["seed"],
+        "namespace": parsed_data["namespace"],
     }
     check_test_suite_config(test_suite_config)
 
