@@ -29,33 +29,29 @@ def write_json(data, filename):
         logging.error(f"Failed to write {filename}: {e}")
         return False
 
+from kubernetes import client, config
 
-def get_service_cluster_ip(service_name):
+def get_service_cluster_ip(service_name, namespace="default"):
+    # Load the Kubernetes configuration
+    config.load_kube_config()  # or use config.load_incluster_config() if running inside a Kubernetes pod
+
+    # Create an API client for the core API (which handles services)
+    v1 = client.CoreV1Api()
+
     try:
-        # Run the kubectl command to get the services
-        result = subprocess.run(["kubectl", "get", "svc"], capture_output=True, text=True, check=True)
+        # Get the service object
+        service = v1.read_namespaced_service(name=service_name, namespace=namespace)
 
-        # Parse the output
-        lines = result.stdout.splitlines()
-        headers = lines[0].split()
+        # Extract the Cluster IP
+        cluster_ip = service.spec.cluster_ip
 
-        # Find the indices for the columns we are interested in
-        name_idx = headers.index("NAME")
-        cluster_ip_idx = headers.index("CLUSTER-IP")
-        port_idx = headers.index("PORT(S)")
+        # Extract the port number (assuming the first port, modify if necessary)
+        if service.spec.ports:
+            port_number = service.spec.ports[0].port  # Get the first port number
+        else:
+            port_number = None
 
-        for line in lines[1:]:
-            columns = line.split()
-            if columns[name_idx] == service_name:
-                cluster_ip = columns[cluster_ip_idx]
-                ports = columns[port_idx]
-
-                main_part = ports.split("/")[0]
-                port = main_part.split(":")[0]
-                return cluster_ip, port
-
-        raise ValueError(f"Service {service_name} not found.")
-
-    except subprocess.CalledProcessError as e:
-        print(f"Error running kubectl command: {e}")
+        return cluster_ip, port_number
+    except client.exceptions.ApiException as e:
+        print(f"Error fetching service: {e}")
         return None
