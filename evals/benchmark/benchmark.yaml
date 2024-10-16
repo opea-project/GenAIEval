@@ -28,13 +28,13 @@ test_cases:
   chatqna:
     embedding:
       run_test: false
-      service_name: "embedding-svc"  # Replace with your service name
+      service_name: "chatqna-embedding-usvc"  # Replace with your service name
     embedserve:
       run_test: false
-      service_name: "embedding-dependency-svc"  # Replace with your service name
+      service_name: "chatqna-tei"  # Replace with your service name
     retriever:
       run_test: false
-      service_name: "retriever-svc"  # Replace with your service name
+      service_name: "chatqna-retriever-usvc"  # Replace with your service name
       parameters:
         search_type: "similarity"
         k: 4
@@ -43,15 +43,15 @@ test_cases:
         score_threshold: 0.2
     reranking:
       run_test: false
-      service_name: "reranking-svc"  # Replace with your service name
+      service_name: "chatqna-reranking-usvc"  # Replace with your service name
       parameters:
         top_n: 1
     rerankserve:
       run_test: false
-      service_name: "reranking-dependency-svc"  # Replace with your service name
+      service_name: "chatqna-teirerank"  # Replace with your service name
     llm:
       run_test: false
-      service_name: "llm-svc"  # Replace with your service name
+      service_name: "chatqna-llm-uservice"  # Replace with your service name
       parameters:
         max_new_tokens: 128
         temperature: 0.01
@@ -61,21 +61,20 @@ test_cases:
         streaming: true
     llmserve:
       run_test: false
-      service_name: "llm-dependency-svc"  # Replace with your service name
+      service_name: "chatqna-tgi"  # Replace with your service name
     e2e:
       run_test: true
-      service_name: "chatqna-backend-server-svc"  # Replace with your service name
+      service_name: "chatqna"  # Replace with your service name
       service_list:  # Replace with your k8s service names if deploy with k8s
                      # or container names if deploy with Docker for metrics collection,
                      # activate if collect_service_metric is true
-        - "chatqna-backend-server-svc"
-        - "chatqna-nginx-svc"
-        - "dataprep-svc"
-        - "embedding-dependency-svc"
-        - "llm-dependency-svc"
-        - "reranking-dependency-svc"
-        - "retriever-svc"
-        - "vector-db"
+        - "chatqna"
+        - "chatqna-embedding-usvc"
+        - "chatqna-reranking-usvc"
+        - "chatqna-llm-uservice"
+        - "chatqna-tei"
+        - "chatqna-teirerank"
+        - "chatqna-tgi"
       dataset: # Activate if random_prompt=true: leave blank = default dataset(WebQuestions) or sharegpt
 
   codegen:
