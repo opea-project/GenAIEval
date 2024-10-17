@@ -241,7 +241,11 @@ def run_service_test(example, service_type, service, test_suite_config):
 
     # Get the service IP and port based on deployment type
     svc_ip, port = get_service_ip(
-        service_name, deployment_type, namespace, test_suite_config.get("service_ip"), test_suite_config.get("service_port")
+        service_name,
+        deployment_type,
+        namespace,
+        test_suite_config.get("service_ip"),
+        test_suite_config.get("service_port"),
     )
 
     base_url = f"http://{svc_ip}:{port}"
