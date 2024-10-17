@@ -1,6 +1,7 @@
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+import json
 import logging
 import os
 import sys
@@ -8,7 +9,6 @@ import threading
 import time
 
 import gevent
-import numpy
 import sseclient
 from locust import HttpUser, between, events, task
 from locust.runners import STATE_CLEANUP, STATE_STOPPED, STATE_STOPPING, MasterRunner, WorkerRunner
@@ -23,7 +23,7 @@ def _(parser):
         "--max-request",
         type=int,
         env_var="MAX_REQUEST",
-        default=10000,
+        default=-1,
         help="Stop the benchmark If exceed this request",
     )
     parser.add_argument(
@@ -42,6 +42,27 @@ def _(parser):
         env_var="LLM_MODEL",
         default="Intel/neural-chat-7b-v3-3",
         help="LLM model name",
+    )
+    parser.add_argument(
+        "--load-shape",
+        type=str,
+        env_var="OPEA_EVAL_LOAD_SHAPE",
+        default="constant",
+        help="load shape to adjust conccurency at runtime",
+    )
+    parser.add_argument(
+        "--dataset",
+        type=str,
+        env_var="OPEA_EVAL_DATASET",
+        default="default",
+        help="dataset",
+    )
+    parser.add_argument(
+        "--seed",
+        type=str,
+        env_var="OPEA_EVAL_SEED",
+        default="none",
+        help="The seed for all RNGs",
     )
 
 
@@ -64,8 +85,13 @@ class AiStressUser(HttpUser):
 
     @task
     def bench_main(self):
+        max_request = self.environment.parsed_options.max_request
+        if max_request >= 0 and AiStressUser.request >= max_request:
+            # For poisson load shape, a user only sends single request before it stops.
+            # TODO: user should not care about load shape
+            if self.environment.parsed_options.load_shape == "poisson":
+                self.stop(force=True)
 
-        if AiStressUser.request >= self.environment.parsed_options.max_request:
             time.sleep(1)
             return
         with AiStressUser._lock:
@@ -75,6 +101,7 @@ class AiStressUser(HttpUser):
         url = bench_package.getUrl()
         streaming_bench_target = [
             "llmfixed",
+            "llmservefixed",
             "llmbench",
             "chatqnafixed",
             "chatqnabench",
@@ -116,18 +143,32 @@ class AiStressUser(HttpUser):
                         }
                     else:
                         first_token_ts = None
-                        client = sseclient.SSEClient(resp)
                         complete_response = ""
-                        for event in client.events():
-                            if event.data == "[DONE]":
-                                break
-                            else:
+                        if self.environment.parsed_options.bench_target == "llmservefixed":
+                            client = sseclient.SSEClient(resp)
+                            for event in client.events():
                                 if first_token_ts is None:
                                     first_token_ts = time.perf_counter()
-                                chunk = event.data.strip()
-                                if chunk.startswith("b'") and chunk.endswith("'"):
-                                    chunk = chunk[2:-1]
-                            complete_response += chunk
+                                try:
+                                    data = json.loads(event.data)
+                                    if "choices" in data and len(data["choices"]) > 0:
+                                        delta = data["choices"][0].get("delta", {})
+                                        content = delta.get("content", "")
+                                        complete_response += content
+                                except json.JSONDecodeError:
+                                    continue
+                        else:
+                            client = sseclient.SSEClient(resp)
+                            for event in client.events():
+                                if event.data == "[DONE]":
+                                    break
+                                else:
+                                    if first_token_ts is None:
+                                        first_token_ts = time.perf_counter()
+                                    chunk = event.data.strip()
+                                    if chunk.startswith("b'") and chunk.endswith("'"):
+                                        chunk = chunk[2:-1]
+                                complete_response += chunk
                         end_ts = time.perf_counter()
                         respData = {
                             "response_string": complete_response,
@@ -145,6 +186,11 @@ class AiStressUser(HttpUser):
             self.environment.runner.stats.log_request("POST", url, time.perf_counter() - start_ts, 0)
             self.environment.runner.stats.log_error("POST", url, "Locust Request error")
 
+        # For poisson load shape, a user only sends single request before it stops.
+        # TODO: user should not care about load shape
+        if self.environment.parsed_options.load_shape == "poisson":
+            self.stop(force=True)
+
     # def on_stop(self) -> None:
 
 
@@ -155,11 +201,15 @@ def on_test_start(environment, **kwargs):
         console_logger.info(f"Max request count : {environment.parsed_options.max_request}")
         console_logger.info(f"Http timeout      : {environment.parsed_options.http_timeout}\n")
         console_logger.info(f"Benchmark target  : {environment.parsed_options.bench_target}\n")
+        console_logger.info(f"Load shape        : {environment.parsed_options.load_shape}")
+        console_logger.info(f"Dataset           : {environment.parsed_options.dataset}")
 
 
 @events.init.add_listener
 def on_locust_init(environment, **_kwargs):
     global bench_package
+    os.environ["OPEA_EVAL_DATASET"] = environment.parsed_options.dataset
+    os.environ["OPEA_EVAL_SEED"] = environment.parsed_options.seed
     try:
         bench_package = __import__(environment.parsed_options.bench_target)
     except ImportError:
@@ -202,7 +252,8 @@ def on_reqcount(msg, **kwargs):
 def checker(environment):
     while environment.runner.state not in [STATE_STOPPING, STATE_STOPPED, STATE_CLEANUP]:
         time.sleep(1)
-        if environment.runner.stats.num_requests >= environment.parsed_options.max_request:
+        max_request = environment.parsed_options.max_request
+        if max_request >= 0 and environment.runner.stats.num_requests >= max_request:
             logging.info(f"Exceed the max-request number:{environment.runner.stats.num_requests}, Exit...")
             #            while environment.runner.user_count > 0:
             time.sleep(5)
