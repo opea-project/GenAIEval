@@ -12,15 +12,11 @@ This Tool provides a microservice benchmarking framework that uses YAML configur
 
 ## Table of Contents
 
-- [OPEA Benchmark Tool](#opea-benchmark-tool)
-  - [Features](#features)
-  - [Table of Contents](#table-of-contents)
-  - [Installation](#installation)
-    - [Prerequisites](#prerequisites)
-  - [Usage](#usage)
-  - [Configuration](#configuration)
-    - [Test Suite Configuration](#test-suite-configuration)
-    - [Test Cases](#test-cases)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+  - [Test Suite Configuration](#test-suite-configuration)
+  - [Test Cases](#test-cases)
 
 
 ## Installation
