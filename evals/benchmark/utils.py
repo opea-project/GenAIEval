@@ -30,10 +30,10 @@ def write_json(data, filename):
         return False
 
 
-def get_service_cluster_ip(service_name):
+def get_service_cluster_ip(service_name, namespace):
     try:
         # Run the kubectl command to get the services
-        result = subprocess.run(["kubectl", "get", "svc"], capture_output=True, text=True, check=True)
+        result = subprocess.run(["kubectl", "-n", namespace, "get", "svc"], capture_output=True, text=True, check=True)
 
         # Parse the output
         lines = result.stdout.splitlines()

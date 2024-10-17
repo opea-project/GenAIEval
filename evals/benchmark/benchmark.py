@@ -50,6 +50,7 @@ def extract_test_case_data(content):
         "collect_service_metric": test_suite_config.get("collect_service_metric"),
         "llm_model": test_suite_config.get("llm_model"),
         "deployment_type": test_suite_config.get("deployment_type"),
+        "k8s_namespace": test_suite_config.get("k8s_namespace"),
         "service_ip": test_suite_config.get("service_ip"),
         "service_port": test_suite_config.get("service_port"),
         "load_shape": test_suite_config.get("load_shape"),
@@ -90,7 +91,7 @@ def create_run_yaml_content(service, base_url, bench_target, test_phase, num_que
                 "host": base_url,
                 "stop-timeout": test_params["query_timeout"],
                 "processes": 2,
-                "namespace": "default",
+                "namespace": test_params["k8s_namespace"],
                 "bench-target": bench_target,
                 "service-metric-collect": test_params["collect_service_metric"],
                 "service-list": service.get("service_list", []),
@@ -200,7 +201,7 @@ def create_and_save_run_yaml(example, deployment_type, service_type, service, ba
     return run_yaml_paths
 
 
-def get_service_ip(service_name, deployment_type="k8s", service_ip=None, service_port=None):
+def get_service_ip(service_name, deployment_type="k8s", namespace="default", service_ip=None, service_port=None):
     """Get the service IP and port based on the deployment type.
 
     Args:
@@ -214,7 +215,7 @@ def get_service_ip(service_name, deployment_type="k8s", service_ip=None, service
     """
     if deployment_type == "k8s":
         # Kubernetes IP and port retrieval logic
-        svc_ip, port = get_service_cluster_ip(service_name)
+        svc_ip, port = get_service_cluster_ip(service_name, namespace)
     elif deployment_type == "docker":
         # For Docker deployment, service_ip and service_port must be specified
         if not service_ip or not service_port:
@@ -236,10 +237,11 @@ def run_service_test(example, service_type, service, test_suite_config):
 
     # Get the deployment type from the test suite configuration
     deployment_type = test_suite_config.get("deployment_type", "k8s")
+    namespace = test_suite_config.get("k8s_namespace", "default")
 
     # Get the service IP and port based on deployment type
     svc_ip, port = get_service_ip(
-        service_name, deployment_type, test_suite_config.get("service_ip"), test_suite_config.get("service_port")
+        service_name, deployment_type, namespace, test_suite_config.get("service_ip"), test_suite_config.get("service_port")
     )
 
     base_url = f"http://{svc_ip}:{port}"
@@ -304,6 +306,7 @@ def run_benchmark(report=False):
         "collect_service_metric": parsed_data["collect_service_metric"],
         "llm_model": parsed_data["llm_model"],
         "deployment_type": parsed_data["deployment_type"],
+        "k8s_namespace": parsed_data["k8s_namespace"],
         "service_ip": parsed_data["service_ip"],
         "service_port": parsed_data["service_port"],
         "test_output_dir": parsed_data["test_output_dir"],

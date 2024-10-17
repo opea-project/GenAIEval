@@ -4,6 +4,7 @@
 test_suite_config: # Overall configuration settings for the test suite
   examples: ["chatqna"]  # The specific test cases being tested, e.g., chatqna, codegen, codetrans, faqgen, audioqna, visualqna
   deployment_type: "k8s"  # Default is "k8s", can also be "docker"
+  k8s_namespace: "default" # Workload deployed namespace for k8s, default is "default"
   service_ip: None  # Leave as None for k8s, specify for Docker
   service_port: None  # Leave as None for k8s, specify for Docker
   warm_ups: 0  # Number of test requests for warm-up
