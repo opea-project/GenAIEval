@@ -251,7 +251,7 @@ def on_reqcount(msg, **kwargs):
 
 
 def on_quit(environment, msg, **kwargs):
-    logging.debug(f"Test quitting, set stop_timeout to 0...")
+    logging.debug("Test quitting, set stop_timeout to 0...")
     environment.runner.environment.stop_timeout = 0
 
 
