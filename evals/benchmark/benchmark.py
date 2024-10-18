@@ -73,14 +73,19 @@ def create_run_yaml_content(service, base_url, bench_target, test_phase, num_que
     # the parameter will be passed to Locust to launch fixed
     # number of simulated users.
     concurrency = 1
+    runs_list = []
+    index = 1
     try:
         load_shape = test_params["load_shape"]["name"]
         load_shape_params = test_params["load_shape"]["params"][load_shape]
         if load_shape_params and load_shape_params["concurrent_level"]:
-            if num_queries >= 0:
-                concurrency = max(1, num_queries // load_shape_params["concurrent_level"])
-            else:
-                concurrency = load_shape_params["concurrent_level"]
+            for query in num_queries:
+                if query >= 0:
+                    concurrency = max(1, query // load_shape_params["concurrent_level"])
+                else:
+                    concurrency = load_shape_params["concurrent_level"]
+                runs_list.append({"name": f"{test_phase}_{index}", "users": concurrency, "max-request": query})
+                index += 1
     except KeyError as e:
         # If the concurrent_level is not specified, load shapes should
         # manage concurrency and user spawn rate by themselves.
@@ -105,7 +110,7 @@ def create_run_yaml_content(service, base_url, bench_target, test_phase, num_que
                 "deployment-type": test_params["deployment_type"],
                 "load-shape": test_params["load_shape"],
             },
-            "runs": [{"name": test_phase, "users": concurrency, "max-request": num_queries}],
+            "runs": runs_list,
         }
     }
 
@@ -135,8 +140,8 @@ def generate_stresscli_run_yaml(
             The parameters of single test case.
         test_phase : str [warmup|benchmark]
             Current phase of the test.
-        num_queries : int
-            The number of test requests sent to SUT
+        num_queries : list
+            The list of query numbers of test requests sent to SUT
         base_url : str
             The root endpoint of SUT
         test_params : dict
@@ -161,7 +166,7 @@ def generate_stresscli_run_yaml(
     # Dump the stresscli configuration file
     service_name = case_params.get("service_name")
     run_yaml_path = os.path.join(
-        test_params["test_output_dir"], f"run_{service_name}_{ts}_{test_phase}_{num_queries}.yaml"
+        test_params["test_output_dir"], f"run_{service_name}_{ts}_{test_phase}.yaml"
     )
     with open(run_yaml_path, "w") as yaml_file:
         yaml.dump(stresscli_yaml, yaml_file)
@@ -180,7 +185,7 @@ def create_and_save_run_yaml(example, deployment_type, service_type, service, ba
     if warm_ups is not None and warm_ups > 0:
         run_yaml_paths.append(
             generate_stresscli_run_yaml(
-                example, service_type, service, test_suite_config, "warmup", warm_ups, base_url, index
+                example, service_type, service, test_suite_config, "warmup", [warm_ups], base_url, index
             )
         )
 
@@ -190,17 +195,16 @@ def create_and_save_run_yaml(example, deployment_type, service_type, service, ba
         # Test stop is controlled by run time
         run_yaml_paths.append(
             generate_stresscli_run_yaml(
-                example, service_type, service, test_suite_config, "benchmark", -1, base_url, index
+                example, service_type, service, test_suite_config, "benchmark", [-1], base_url, index
             )
         )
     else:
         # Test stop is controlled by request count
-        for user_queries in user_queries_lst:
-            run_yaml_paths.append(
-                generate_stresscli_run_yaml(
-                    example, service_type, service, test_suite_config, "benchmark", user_queries, base_url, index
-                )
+        run_yaml_paths.append(
+            generate_stresscli_run_yaml(
+                example, service_type, service, test_suite_config, "benchmark", user_queries_lst, base_url, index
             )
+        )
 
     return run_yaml_paths
 
