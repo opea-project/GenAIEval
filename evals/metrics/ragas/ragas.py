@@ -123,7 +123,7 @@ class RagasMetric:
                 else:
                     if metric == "AnswerRelevancy" and self.embeddings is None:
                         raise ValueError("AnswerRelevancy metric need provide embeddings model.")
-                    tmp_metrics.append(self.metrics_instance[metric])
+                    tmp_metrics.append(self.metrics_instances[metric])
             self.metrics = tmp_metrics
         else:
             self.metrics = list(self.metric_instances.values())
