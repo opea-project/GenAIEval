@@ -165,9 +165,7 @@ def generate_stresscli_run_yaml(
 
     # Dump the stresscli configuration file
     service_name = case_params.get("service_name")
-    run_yaml_path = os.path.join(
-        test_params["test_output_dir"], f"run_{service_name}_{ts}_{test_phase}.yaml"
-    )
+    run_yaml_path = os.path.join(test_params["test_output_dir"], f"run_{service_name}_{ts}_{test_phase}.yaml")
     with open(run_yaml_path, "w") as yaml_file:
         yaml.dump(stresscli_yaml, yaml_file)
 
