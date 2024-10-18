@@ -24,6 +24,7 @@ test_suite_config: # Overall configuration settings for the test suite
         # arrival_rate: 1.0       # Request arrival rate. If set, concurrent_level will be overridden, constant load will be generated based on arrival-rate
       poisson:                 # Poisson load shape specific parameters, activate only if load_shape.name is poisson
         arrival_rate: 1.0        # Request arrival rate
+  namespace: "" # Fill the user-defined namespace. Otherwise, it will be default.
 
 test_cases:
   chatqna:
