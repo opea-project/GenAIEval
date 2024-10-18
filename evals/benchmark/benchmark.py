@@ -248,7 +248,7 @@ def run_service_test(example, service_type, service, test_suite_config):
         deployment_type,
         test_suite_config.get("service_ip"),
         test_suite_config.get("service_port"),
-        test_suite_config.get("namespace")
+        test_suite_config.get("namespace"),
     )
 
     base_url = f"http://{svc_ip}:{port}"
