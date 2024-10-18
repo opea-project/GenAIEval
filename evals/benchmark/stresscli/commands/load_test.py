@@ -142,11 +142,17 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
     load_shape_conf = run_settings.get("load-shape", global_settings.get("load-shape", locust_defaults["load-shape"]))
     try:
         load_shape = load_shape_conf["name"]
+        runspec["load-shape"] = load_shape_conf
     except KeyError:
         load_shape = DEFAULT_LOADSHAPE
 
-    runspec["load-shape"] = load_shape
-    if load_shape == DEFAULT_LOADSHAPE:
+    load_shape_params = None
+    try:
+        load_shape_params = load_shape_conf["params"][load_shape]
+    except KeyError:
+        console_logger.info(f"The specified load shape not found: {load_shape}")
+
+    if load_shape == DEFAULT_LOADSHAPE and (load_shape_params is None or "arrival_rate" not in load_shape_params):
         # constant load is Locust's default load shape, do nothing.
         console_logger.info("Use default load shape.")
     else:
@@ -155,7 +161,10 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         if os.path.isfile(f_custom_load_shape):
             # Add the locust file of the custom load shape into classpath
             runspec["locustfile"] += f",{f_custom_load_shape}"
-            console_logger.info("Use custom load shape: {load_shape}")
+            if load_shape == DEFAULT_LOADSHAPE:
+                console_logger.info("Use default load shape based on request arrival rate")
+            else:
+                console_logger.info("Use custom load shape: {load_shape}")
         else:
             console_logger.error(
                 f"Unsupported load shape: {load_shape}."
@@ -180,15 +189,9 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
 
     spawn_rate = 100 if runspec["users"] > 100 else runspec["users"]
 
-    load_shape_params = None
-    try:
-        load_shape_params = load_shape_conf["params"][load_shape]
-    except KeyError:
-        console_logger.info(f"The specified load shape not found: {load_shape}")
-
     # Dynamically allocate Locust processes to fit different loads
     processes = 2
-    if load_shape == "constant":
+    if load_shape == "constant" and (load_shape_params is None or "arrival_rate" not in load_shape_params):
         if runspec["max_requests"] > 0:
             processes = 10 if runspec["max_requests"] > 2000 else 5 if runspec["max_requests"] > 1000 else processes
         else:
@@ -197,11 +200,11 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
                 concurrent_level = int(load_shape_params["concurrent_level"])
             processes = 10 if concurrent_level > 400 else 5 if concurrent_level > 200 else processes
     elif load_shape == "poisson":
-        if load_shape_params and "arrival-rate" in load_shape_params:
-            processes = max(2, math.ceil(int(load_shape_params["arrival-rate"]) / 5))
+        if load_shape_params and "arrival_rate" in load_shape_params:
+            processes = max(2, math.ceil(int(load_shape_params["arrival_rate"]) / 5))
     else:
-        if load_shape_params and "arrival-rate" in load_shape_params:
-            processes = max(2, math.ceil(int(load_shape_params["arrival-rate"]) / 5))
+        if load_shape_params and "arrival_rate" in load_shape_params:
+            processes = max(2, math.ceil(int(load_shape_params["arrival_rate"]) / 5))
         elif runspec["max_requests"] > 0:
             processes = 10 if runspec["max_requests"] > 2000 else 5 if runspec["max_requests"] > 1000 else processes
 
@@ -214,7 +217,7 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         "--run-time",
         runspec["runtime"],
         "--load-shape",
-        runspec["load-shape"],
+        load_shape,
         "--dataset",
         runspec["dataset"],
         "--seed",
