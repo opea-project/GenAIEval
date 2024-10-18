@@ -29,7 +29,9 @@ def write_json(data, filename):
         logging.error(f"Failed to write {filename}: {e}")
         return False
 
+
 from kubernetes import client, config
+
 
 def get_service_cluster_ip(service_name, namespace="default"):
     # Load the Kubernetes configuration
