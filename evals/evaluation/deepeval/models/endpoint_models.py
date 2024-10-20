@@ -1,20 +1,21 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 import abc
-from abc import ABC, abstractmethod
 import time
-import requests
-from requests.exceptions import RequestException
-from aiohttp import ClientSession, TCPConnector
-from typing import Optional, Tuple, List, Union
+from abc import ABC, abstractmethod
 from functools import cached_property
+from typing import List, Optional, Tuple, Union
+
+import requests
+from aiohttp import ClientSession, TCPConnector
 from deepeval.models.gpt_model import GPTModel
+from requests.exceptions import RequestException
+
 
 class TGIEndpointModel(GPTModel):
     def __init__(self, model: str, model_name: Optional[str] = None):
-        model_name = (
-            "server-endpoint"
-            if model_name is None
-            else model_name
-        )
+        model_name = "server-endpoint" if model_name is None else model_name
         super().__init__(model_name=model_name)
 
         self.model = model
@@ -42,7 +43,7 @@ class TGIEndpointModel(GPTModel):
         except RequestException as e:
             raise Exception(f"An unexpected error occurred: {str(e)}")
 
-        return res["generated_text"], cost 
+        return res["generated_text"], cost
 
     def load_model(self, *args, **kwargs):
         """Loads a model, that will be responsible for scoring.
