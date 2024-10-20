@@ -32,6 +32,7 @@ from deepeval.test_case import LLMTestCase
 
 def test_case():
     from evals.evaluation.deepeval.models.endpoint_models import TGIEndpointModel
+
     endpoint = TGIEndpointModel(model="http://localhost:{your_llm_port}/generate")
 
     answer_relevancy_metric = AnswerRelevancyMetric(threshold=0.5, model=endpoint)
