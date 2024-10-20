@@ -17,3 +17,4 @@ requests
 rouge_score
 sseclient-py
 transformers
+deepeval==1.4.0
