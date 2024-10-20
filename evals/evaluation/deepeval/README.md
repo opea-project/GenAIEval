@@ -1,7 +1,7 @@
 
 DeepEval is a simple-to-use, open-source LLM evaluation framework, for evaluating large-language model systems. It is similar to Pytest but specialized for unit testing LLM outputs. DeepEval incorporates the latest research to evaluate LLM outputs based on metrics such as G-Eval, hallucination, answer relevancy, RAGAS, etc., which uses LLMs and various other NLP models that runs locally on your machine for evaluation.
 
-We customize models to support more local LLMs services for the evaluation of metrics such as , hallucination, answer relevancy, etc.
+We customize models to support more local LLMs services for the evaluation of metrics such as hallucination, answer relevancy, etc.
 
 # 🚀 QuickStart
 
@@ -18,7 +18,6 @@ To setup a LLM model, we can use [tgi-gaudi](https://github.com/huggingface/tgi-
 
 ```
 # please set your llm_port and hf_token
-
 docker run -p {your_llm_port}:80 --runtime=habana -e HABANA_VISIBLE_DEVICES=all -e PT_HPU_ENABLE_LAZY_COLLECTIVES=true -e OMPI_MCA_btl_vader_single_copy_mechanism=none -e HF_TOKEN={your_hf_token} -e PREFILL_BATCH_BUCKET_SIZE=1 -e BATCH_BUCKET_SIZE=8 --cap-add=sys_nice --ipc=host ghcr.io/huggingface/tgi-gaudi:2.0.5 --model-id mistralai/Mixtral-8x7B-Instruct-v0.1 --max-input-tokens 2048 --max-total-tokens 4096 --sharded true --num-shard 2 --max-batch-total-tokens 65536 --max-batch-prefill-tokens 2048
 ```
 
@@ -33,8 +32,8 @@ from deepeval.test_case import LLMTestCase
 
 def test_case():
     from evals.evaluation.deepeval.models.endpoint_models import TGIEndpointModel
-
     endpoint = TGIEndpointModel(model="http://localhost:{your_llm_port}/generate")
+
     answer_relevancy_metric = AnswerRelevancyMetric(threshold=0.5, model=endpoint)
     test_case = LLMTestCase(
         input="What if these shoes don't fit?",
@@ -47,4 +46,4 @@ def test_case():
 
 ## Acknowledgements
 
-The evalution inherits from [deepeval](https://github.com/confident-ai/deepeval) repo. Thank for the founders of Confident AI.
+The evaluation inherits from [deepeval](https://github.com/confident-ai/deepeval) repo. Thank for the founders of Confident AI.
