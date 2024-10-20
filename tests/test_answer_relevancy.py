@@ -31,6 +31,7 @@ class TestAnswerRelevancyMetric(unittest.TestCase):
         endpoint = TGIEndpointModel(model="http://localhost:8008/generate")
 
         import os
+
         # the option of opting out of the telemetry data collection through an environment variable
         # https://github.com/confident-ai/deepeval/blob/main/docs/docs/data-privacy.mdx#your-privacy-using-deepeval
         os.environ["DEEPEVAL_TELEMETRY_OPT_OUT"] = "YES"
@@ -41,10 +42,7 @@ class TestAnswerRelevancyMetric(unittest.TestCase):
         from deepeval.metrics import AnswerRelevancyMetric
         from deepeval.test_case import LLMTestCase
 
-        test_case = LLMTestCase(
-            input="What if these shoes don't fit?",
-            actual_output=actual_output
-        )
+        test_case = LLMTestCase(input="What if these shoes don't fit?", actual_output=actual_output)
 
         metric = AnswerRelevancyMetric(threshold=0.5, model=endpoint, async_mode=False)
         metric.measure(test_case)
