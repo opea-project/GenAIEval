@@ -79,28 +79,28 @@ def parallel_generations_by_api(
     if codegen_url := args.codegen_url:
         assert "/codegen" in codegen_url, "Only OPEA codegen compatible APIs are supported"
         import asyncio
-        import os
-
-        import requests
         from tqdm.asyncio import tqdm
 
-        async def get_res(prompt):
-            headers = {"Content-Type": "application/json"}
-            data = {
-                "messages": prompt,
-                "max_tokens": 2048,
-                "stream": False,
-                "temperature": args.temperature,
-                "top_p": args.top_p,
-                "top_k": args.top_k,
-            }
-            async with aiohttp.ClientSession() as session:
-                async with session.post(codegen_url, json=data, headers=headers, timeout=600) as response:
-                    text = await response.text()
-                    return text
+        async def get_res(prompt, semaphore):
+            async with semaphore:
+                headers = {"Content-Type": "application/json"}
+                data = {
+                    "messages": prompt,
+                    "max_tokens": 2048,
+                    "stream": False,
+                    "temperature": args.temperature,
+                    "top_p": args.top_p,
+                    "top_k": args.top_k,
+                }
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(codegen_url, json=data, headers=headers, timeout=600) as response:
+                        text = await response.text()
+                        return text
 
         prompts = [task.get_prompt(doc) for doc in dataset]
-        awaitables = [get_res(prompt=prompt) for prompt in prompts]
+        semaphore = asyncio.Semaphore(20)
+        awaitables = [get_res(prompt=prompt, semaphore=semaphore) for prompt in prompts]
+
         responses = asyncio.run(tqdm.gather(*awaitables))
         generations = []
         for i, (prompt, response) in enumerate(zip(prompts, responses)):
