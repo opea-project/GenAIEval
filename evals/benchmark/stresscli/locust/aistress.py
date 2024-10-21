@@ -72,12 +72,9 @@ def _(parser):
         help="User-customized prompts",
     )
     parser.add_argument(
-        "--max-output",
-        type=int,
-        env_var="OPEA_EVAL_MAX_OUTPUT_TOKENS",
-        default=128,
-        help="Max number of output tokens"
+        "--max-output", type=int, env_var="OPEA_EVAL_MAX_OUTPUT_TOKENS", default=128, help="Max number of output tokens"
     )
+
 
 reqlist = []
 start_ts = 0

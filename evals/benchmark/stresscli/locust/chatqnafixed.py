@@ -2,10 +2,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
+
 import tokenresponse as token
 
 opea_eval_prompts = os.environ["OPEA_EVAL_PROMPTS"]
 max_new_tokens = int(os.environ["OPEA_EVAL_MAX_OUTPUT_TOKENS"])
+
 
 def getUrl():
     return "/v1/chatqna"
