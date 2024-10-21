@@ -100,6 +100,8 @@ def create_run_yaml_content(service, base_url, bench_target, test_phase, num_que
                 "service-metric-collect": test_params["collect_service_metric"],
                 "service-list": service.get("service_list", []),
                 "dataset": service.get("dataset", "default"),
+                "prompts": service.get("prompts", None),
+                "max-output": service.get("max_output", 128),
                 "seed": test_params.get("seed", None),
                 "llm-model": test_params["llm_model"],
                 "deployment-type": test_params["deployment_type"],

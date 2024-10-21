@@ -33,6 +33,8 @@ locust_defaults = {
     "namespace": "default",
     "load-shape": {"name": DEFAULT_LOADSHAPE},
     "dataset": "default",
+    "max-output": 128,
+    "prompts": "none",
     "seed": "none",
 }
 
@@ -134,6 +136,10 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
     runspec["namespace"] = run_settings.get("namespace", global_settings.get("namespace", locust_defaults["namespace"]))
     runspec["dataset"] = run_settings.get("dataset", global_settings.get("dataset", locust_defaults["dataset"]))
     runspec["dataset"] = locust_defaults["dataset"] if runspec["dataset"] is None else runspec["dataset"]
+    runspec["prompts"] = run_settings.get("prompts", global_settings.get("prompts", locust_defaults["prompts"]))
+    runspec["prompts"] = locust_defaults["prompts"] if runspec["prompts"] is None else runspec["prompts"]
+    runspec["max_output"] = run_settings.get("max-output", global_settings.get("max-output", locust_defaults["max-output"]))
+    runspec["max_output"] = locust_defaults["max-output"] if runspec["max_output"] is None else runspec["max_output"]
     runspec["seed"] = run_settings.get("seed", global_settings.get("seed", locust_defaults["seed"]))
     runspec["seed"] = locust_defaults["seed"] if runspec["seed"] is None else runspec["seed"]
     runspec["run_name"] = run_settings["name"]
@@ -220,6 +226,10 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         load_shape,
         "--dataset",
         runspec["dataset"],
+        "--prompts",
+        runspec["prompts"],
+        "--max-output",
+        str(runspec["max_output"]),
         "--seed",
         str(runspec["seed"]),
         "--processes",

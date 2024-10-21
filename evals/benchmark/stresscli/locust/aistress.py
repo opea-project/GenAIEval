@@ -64,7 +64,20 @@ def _(parser):
         default="none",
         help="The seed for all RNGs",
     )
-
+    parser.add_argument(
+        "--prompts",
+        type=str,
+        env_var="OPEA_EVAL_PROMPTS",
+        default="In a increasingly complex world where technology has rapidly advanced and evolved far beyond our wildest dreams and most ambitious imaginations, humanity now stands on the very precipice of a revolutionary new era that is filled with endless possibilities, profound and significant changes, as well as intricate challenges that we must address. The year is now 2050, and artificial intelligence has seamlessly woven itself deeply and intricately into the very fabric of everyday life. Autonomous vehicles glide effortlessly and smoothly through the bustling, vibrant, and lively city streets, while drones swiftly and accurately deliver packages with pinpoint precision, making logistics and delivery systems more efficient, streamlined, and advanced than ever before in the entire history of humankind and technological development. Smart homes, equipped with cutting-edge advanced sensors and sophisticated algorithms, anticipate every possible need and requirement of their inhabitants, creating an environment of unparalleled convenience, exceptional comfort, and remarkable efficiency that enhances our daily lives. However, with these remarkable and groundbreaking advancements come a host of new challenges, uncertainties, and ethical dilemmas that society must confront, navigate, and address in a thoughtful and deliberate manner. As we carefully navigate through this brave new world filled with astonishing technological marvels, innovations, and breakthroughs, questions about the implications and consequences of AI technologies become increasingly pressing, relevant, and urgent for individuals and communities alike. Issues surrounding privacy—how our personal data is collected, securely stored, processed, and utilized—emerge alongside significant concerns about security in a rapidly evolving digital landscape where vulnerabilities can be easily and readily exploited by malicious actors, hackers, and cybercriminals. Moreover, philosophical inquiries regarding the very nature of consciousness itself rise prominently to the forefront of public discourse, debate, and discussion, inviting diverse perspectives, opinions, and ethical considerations from various stakeholders. In light of these profound developments and transformative changes that we are witnessing, I would like to gain a much deeper, broader, and more comprehensive understanding of what artificial intelligence truly is and what it encompasses in its entirety and complexity. Could you elaborate extensively, thoroughly, and comprehensively on its precise definition, its wide-ranging and expansive scope, as well as the myriad and diverse ways it significantly impacts our daily lives, personal experiences, and society as a whole in various dimensions?",
+        help="User-customized prompts",
+    )
+    parser.add_argument(
+        "--max-output",
+        type=int,
+        env_var="OPEA_EVAL_MAX_OUTPUT_TOKENS",
+        default=128,
+        help="Max number of output tokens"
+    )
 
 reqlist = []
 start_ts = 0
@@ -203,6 +216,8 @@ def on_test_start(environment, **kwargs):
         console_logger.info(f"Benchmark target  : {environment.parsed_options.bench_target}\n")
         console_logger.info(f"Load shape        : {environment.parsed_options.load_shape}")
         console_logger.info(f"Dataset           : {environment.parsed_options.dataset}")
+        console_logger.info(f"Customized prompt : {environment.parsed_options.prompts}")
+        console_logger.info(f"Max output tokens : {environment.parsed_options.max_output}")
 
 
 @events.init.add_listener
@@ -210,6 +225,8 @@ def on_locust_init(environment, **_kwargs):
     global bench_package
     os.environ["OPEA_EVAL_DATASET"] = environment.parsed_options.dataset
     os.environ["OPEA_EVAL_SEED"] = environment.parsed_options.seed
+    os.environ["OPEA_EVAL_PROMPTS"] = environment.parsed_options.prompts
+    os.environ["OPEA_EVAL_MAX_OUTPUT_TOKENS"] = str(environment.parsed_options.max_output)
     try:
         bench_package = __import__(environment.parsed_options.bench_target)
     except ImportError:
