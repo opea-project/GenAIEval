@@ -1,6 +1,7 @@
 bigcode-eval@git+https://github.com/bigcode-project/bigcode-evaluation-harness.git
 click
 deepdiff
+deepeval==1.4.0
 evaluate
 flask
 jieba
