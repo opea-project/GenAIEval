@@ -79,6 +79,7 @@ def parallel_generations_by_api(
     if codegen_url := args.codegen_url:
         assert "/codegen" in codegen_url, "Only OPEA codegen compatible APIs are supported"
         import asyncio
+
         from tqdm.asyncio import tqdm
 
         async def get_res(prompt, semaphore):
