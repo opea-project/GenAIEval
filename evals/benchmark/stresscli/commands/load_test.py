@@ -138,7 +138,9 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
     runspec["dataset"] = locust_defaults["dataset"] if runspec["dataset"] is None else runspec["dataset"]
     runspec["prompts"] = run_settings.get("prompts", global_settings.get("prompts", locust_defaults["prompts"]))
     runspec["prompts"] = locust_defaults["prompts"] if runspec["prompts"] is None else runspec["prompts"]
-    runspec["max_output"] = run_settings.get("max-output", global_settings.get("max-output", locust_defaults["max-output"]))
+    runspec["max_output"] = run_settings.get(
+        "max-output", global_settings.get("max-output", locust_defaults["max-output"])
+    )
     runspec["max_output"] = locust_defaults["max-output"] if runspec["max_output"] is None else runspec["max_output"]
     runspec["seed"] = run_settings.get("seed", global_settings.get("seed", locust_defaults["seed"]))
     runspec["seed"] = locust_defaults["seed"] if runspec["seed"] is None else runspec["seed"]
