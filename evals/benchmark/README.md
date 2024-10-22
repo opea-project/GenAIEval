@@ -119,5 +119,7 @@ test_cases:
                      # activate if collect_service_metric is true
         - "chatqna-backend-server-svc"
       dataset: # Activate if random_prompt=true: leave blank = default dataset(WebQuestions) or sharegpt
+      prompts: # User-customized prompts, activate if random_prompt=false.
+      max_output: 128  # max number of output tokens
 ```
 If you'd like to use sharegpt dataset, please download the dataset according to the [guide](https://github.com/lm-sys/FastChat/issues/90#issuecomment-1493250773). Merge all downloaded data files into one file named sharegpt.json and put the file at `evals/benchmark/stresscli/dataset`.

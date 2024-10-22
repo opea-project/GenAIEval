@@ -64,6 +64,16 @@ def _(parser):
         default="none",
         help="The seed for all RNGs",
     )
+    parser.add_argument(
+        "--prompts",
+        type=str,
+        env_var="OPEA_EVAL_PROMPTS",
+        default="In a world where technology has advanced beyond our wildest dreams, humanity stands on the brink of a new era. The year is 2050, and artificial intelligence has become an integral part of everyday life. Autonomous vehicles zip through the streets, drones deliver packages with pinpoint accuracy, and smart homes anticipate every need of their inhabitants. But with these advancements come new challenges and ethical dilemmas. As society grapples with the implications of AI, questions about privacy, security, and the nature of consciousness itself come to the forefront. Please answer me the question what is artificial intelligence.",
+        help="User-customized prompts",
+    )
+    parser.add_argument(
+        "--max-output", type=int, env_var="OPEA_EVAL_MAX_OUTPUT_TOKENS", default=128, help="Max number of output tokens"
+    )
 
 
 reqlist = []
@@ -203,6 +213,8 @@ def on_test_start(environment, **kwargs):
         console_logger.info(f"Benchmark target  : {environment.parsed_options.bench_target}\n")
         console_logger.info(f"Load shape        : {environment.parsed_options.load_shape}")
         console_logger.info(f"Dataset           : {environment.parsed_options.dataset}")
+        console_logger.info(f"Customized prompt : {environment.parsed_options.prompts}")
+        console_logger.info(f"Max output tokens : {environment.parsed_options.max_output}")
 
 
 @events.init.add_listener
@@ -210,6 +222,8 @@ def on_locust_init(environment, **_kwargs):
     global bench_package
     os.environ["OPEA_EVAL_DATASET"] = environment.parsed_options.dataset
     os.environ["OPEA_EVAL_SEED"] = environment.parsed_options.seed
+    os.environ["OPEA_EVAL_PROMPTS"] = environment.parsed_options.prompts
+    os.environ["OPEA_EVAL_MAX_OUTPUT_TOKENS"] = str(environment.parsed_options.max_output)
     try:
         bench_package = __import__(environment.parsed_options.bench_target)
     except ImportError:
