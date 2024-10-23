@@ -36,6 +36,30 @@ Next, run Prometheus server `nohup ./prometheus --config.file=./prometheus.yml &
 
 You should now access `localhost:9090/targets?search=` to open the Prometheus UI.
 
+### 1.1 CPU Metrics (optional)
+
+The Prometheus Node Exporter is required for collecting CPU metrics. Install and run the Node Exporter via tarball by the [guide](https://prometheus.io/docs/guides/node-exporter/#installing-and-running-the-node-exporter). 
+
+Or install it in a K8S cluster by the following commands:
+
+```bash
+git clone https://github.com/opea-project/GenAIEval.git
+cd GenAIEval/evals/benchmark/grafana/
+kubectl apply -f grafana_node_exporter.yaml
+```
+
+Add the following configuration to `prometheus.yml`:
+
+```yaml
+scrape_configs:
+  - job_name: "prometheus-node-exporter"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["<NODE1_IP>:9100", "<NODE2_IP>:9100", ...]
+```
+
+Restart Prometheus after saving the changes.
+
 ## 2. Setup Grafana
 
 Grafana provides numerous dashboards to visualize data from a data source. Here we introduce how to visualize TGI metrics.
@@ -75,3 +99,4 @@ In this folder, we also provides some Grafana dashboard JSON files for your refe
 - `tgi_grafana.json`: A sample Grafana dashboard JSON file for visualizing TGI metrics.
 - `redis_grafana.json`: A sample Grafana dashboard JSON file for visualizing the Redis metrics. For importing the redis metrics, you need to add the new connection and Redis data source in Grafana. Please refer this [link](https://grafana.com/grafana/plugins/redis-datasource/?tab=installation) for more details.
 - `gaudi_grafana.json`: A sample Grafana dashboard JSON file for visualizing the Intel® Gaudi® AI accelerator metrics in a container cluster for compute workload.
+- `cpu_grafana.json`: A sample Grafana dashboard JSON file for visualizing the CPU metrics.
