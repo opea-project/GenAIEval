@@ -26,7 +26,7 @@ def respStatics(environment, req, resp):
         num_token_input_prompt = -1
 
     num_token_output = len(
-        tokenizer.encode(resp["response_string"].encode("utf-8").decode("unicode_escape"), add_special_tokens=False)
+        tokenizer.encode(resp["response_string"].lstrip().encode("utf-8").decode("unicode_escape"), add_special_tokens=False)
     )
 
     return {
