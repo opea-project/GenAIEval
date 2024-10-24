@@ -2,13 +2,14 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-
 import os
+
 import tokenresponse as token
 
 console_logger = logging.getLogger("locust.stats_logger")
 
 model = os.environ["LLM_MODEL"]
+
 
 def getUrl():
     return "/v1/chat/completions"
