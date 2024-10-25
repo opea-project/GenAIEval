@@ -45,7 +45,7 @@ port = os.getenv("port", "<your port where the endpoint is active>")
 evaluation_mode = "endpoint"
 model_name = f"http://{host_ip}:{port}" 
 ```
-> `local` evaluation mode uses your local hardware (GPU usage is prioritized over CPU when available). Don't forget to set `hf_token` argument and your favourite open-source model in `model_name` argument. 
+> `local` evaluation mode uses your local hardware (GPU usage is prioritized over CPU when available). Don't forget to set `hf_token` argument and your favourite open-source model in `model_name` argument. </br>
 > `openai` evaluation mode uses openai backend. Please set your `openai_key` as argument and your choice of OpenAI model as `model_name` argument.
 ### 4. Metrics 
 ```python3
