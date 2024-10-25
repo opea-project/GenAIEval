@@ -3,10 +3,10 @@
 Intel's RAGAAF toolkit employs opensource LLM-as-a-judge technique on Intel's Gaudi2 AI accelator chips to perform annotation-free evaluation of RAG. 
 
 ## Key features 
-✨ Annotation Free evaluation (ground truth answers are not required).
-🧠 Provides score and reasoning for each metric allowing a deep dive into LLM's throught process. 
-🤗 Quick access to latest innovations in opensource Large Language Models.
-⏩ Seamlessly boost performance using Intel's powerful AI accelerator chips - Gaudi. 
+✨ Annotation Free evaluation (ground truth answers are not required). </br>
+🧠 Provides score and reasoning for each metric allowing a deep dive into LLM's throught process. </br>
+🤗 Quick access to latest innovations in opensource Large Language Models. </br>
+⏩ Seamlessly boost performance using Intel's powerful AI accelerator chips - Gaudi. </br>
 ✍️ Flexibility to bring your own metrics, grading rubrics and datasets. 
 
 ## Run RAGAAF
