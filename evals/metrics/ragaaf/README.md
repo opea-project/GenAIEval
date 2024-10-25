@@ -17,13 +17,13 @@ We provide 3 modes for data loading - `benchmarking`, `unit` and `local` to supp
 Let us see how to load a unit test case. 
 ```python3
 # load your dataset
-dataset = "unit_data" # name of the dataset
-data_mode = "unit" # mode for data loading
+dataset = "unit_data"  # name of the dataset
+data_mode = "unit"  # mode for data loading
 field_map = {
-                "question": "question", 
-                "answer": "actual_output", 
-                "context": "contexts"
-            } # map your data field such as "actual_output" to RAGAAF field "answer"
+    "question": "question",
+    "answer": "actual_output",
+    "context": "contexts",
+}  # map your data field such as "actual_output" to RAGAAF field "answer"
 
 # your desired unit test case
 question = "What if these shoes don't fit?"
@@ -43,13 +43,13 @@ We provide 3 evaluation modes - `endpoint`, `local` (supports CPU and GPU), `ope
 host_ip = os.getenv("host_ip", "localhost")
 port = os.getenv("port", "<your port where the endpoint is active>")
 evaluation_mode = "endpoint"
-model_name = f"http://{host_ip}:{port}" 
+model_name = f"http://{host_ip}:{port}"
 ```
 > `local` evaluation mode uses your local hardware (GPU usage is prioritized over CPU when available). Don't forget to set `hf_token` argument and your favourite open-source model in `model_name` argument. </br>
 > `openai` evaluation mode uses openai backend. Please set your `openai_key` as argument and your choice of OpenAI model as `model_name` argument.
 ### 4. Metrics 
 ```python3
-# choose metrics of your choice, you can also add custom metrics 
+# choose metrics of your choice, you can also add custom metrics
 evaluation_metrics = ["factualness", "relevance", "correctness", "readability"]
 ```
 ### 5. Evaluation 
@@ -79,7 +79,7 @@ for response in responses:
 ```python3
 class MetricName:
     name = "metric_name"
-    required_columns = ["answer", "context", "question"] # the fields your metric needs
+    required_columns = ["answer", "context", "question"]  # the fields your metric needs
     template = """- <metric_name> : <metric_name> measures <note down what you'd like this metric to measure>.
   - Score 1: <add your grading rubric for score 1>.
   - Score 2: <add your grading rubric for score 2>.
