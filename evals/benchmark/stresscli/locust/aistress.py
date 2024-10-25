@@ -225,10 +225,9 @@ def on_locust_init(environment, **_kwargs):
     os.environ["OPEA_EVAL_PROMPTS"] = environment.parsed_options.prompts
     os.environ["OPEA_EVAL_MAX_OUTPUT_TOKENS"] = str(environment.parsed_options.max_output)
     os.environ["LLM_MODEL"] = environment.parsed_options.llm_model
-    try:
-        bench_package = __import__(environment.parsed_options.bench_target)
-    except ImportError:
-        return None
+
+    bench_package = __import__(environment.parsed_options.bench_target)
+
     if not isinstance(environment.runner, WorkerRunner):
         gevent.spawn(checker, environment)
         environment.runner.register_message("worker_reqdata", on_reqdata)
