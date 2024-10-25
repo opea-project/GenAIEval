@@ -11,7 +11,7 @@ Intel's RAGAAF toolkit employs opensource LLM-as-a-judge technique on Intel's Ga
 
 ## Run RAGAAF
 
-### Data 
+### 1. Data 
 We provide 3 modes for data loading - `benchmarking`, `unit` and `local` to support benchmarking datasets, unit test cases and your custom datasets. 
 
 Let us see how to load a unit test case. 
@@ -34,9 +34,9 @@ contexts = [
 ]
 examples = [{"question": question, "actual_output": actual_output, "contexts": contexts}]
 ```
-### Launch endpoint on Gaudi 
+### 2. Launch endpoint on Gaudi 
 Please launch an endpoint on Gaudi2 using the most popular LLMs such as `mistralai/Mixtral-8x7B-Instruct-v0.1` by following the 2 step instructions here - [tgi-gaudi](https://github.com/huggingface/tgi-gaudi). 
-### Model 
+### 3. Model 
 We provide 3 evaluation modes - `endpoint`, `local` (supports CPU and GPU), `openai`. 
 ```python3
 # choose your favourite LLM and hardware
@@ -47,12 +47,12 @@ model_name = f"http://{host_ip}:{port}"
 ```
 > `local` evaluation mode uses your local hardware (GPU usage is prioritized over CPU when available). Don't forget to set `hf_token` argument and your favourite open-source model in `model_name` argument. 
 > `openai` evaluation mode uses openai backend. Please set your `openai_key` as argument and your choice of OpenAI model as `model_name` argument.
-### Metrics 
+### 4. Metrics 
 ```python3
 # choose metrics of your choice, you can also add custom metrics 
 evaluation_metrics = ["factualness", "relevance", "correctness", "readability"]
 ```
-### Evaluation 
+### 5. Evaluation 
 ```python3
 from evals.metrics.ragaaf import AnnotationFreeEvaluate
 
