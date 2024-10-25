@@ -66,10 +66,11 @@ test_suite_config:
   load_shape:              # Tenant concurrency pattern
     name: constant           # poisson or constant(locust default load shape)
     params:                  # Loadshape-specific parameters
-      constant:                # Poisson load shape specific parameters, activate only if load_shape is poisson
+      constant:                # Constant load shape specific parameters, activate only if load_shape.name is constant
         concurrent_level: 4      # If user_queries is specified, concurrent_level is target number of requests per user. If not, it is the number of simulated users
-      poisson:                 # Poisson load shape specific parameters, activate only if load_shape is poisson
-        arrival-rate: 1.0        # Request arrival rate
+        # arrival_rate: 1.0       # Request arrival rate. If set, concurrent_level will be overridden, constant load will be generated based on arrival-rate
+      poisson:                 # Poisson load shape specific parameters, activate only if load_shape.name is poisson
+        arrival_rate: 1.0        # Request arrival rate
   warm_ups: 0  # Number of test requests for warm-ups
   run_time: 60m  # Total runtime for the test suite
   seed:  # The seed for all RNGs
@@ -118,5 +119,7 @@ test_cases:
                      # activate if collect_service_metric is true
         - "chatqna-backend-server-svc"
       dataset: # Activate if random_prompt=true: leave blank = default dataset(WebQuestions) or sharegpt
+      prompts: # User-customized prompts, activate if random_prompt=false.
+      max_output: 128  # max number of output tokens
 ```
 If you'd like to use sharegpt dataset, please download the dataset according to the [guide](https://github.com/lm-sys/FastChat/issues/90#issuecomment-1493250773). Merge all downloaded data files into one file named sharegpt.json and put the file at `evals/benchmark/stresscli/dataset`.

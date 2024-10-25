@@ -64,6 +64,16 @@ def _(parser):
         default="none",
         help="The seed for all RNGs",
     )
+    parser.add_argument(
+        "--prompts",
+        type=str,
+        env_var="OPEA_EVAL_PROMPTS",
+        default="In a world where technology has advanced beyond our wildest dreams, humanity stands on the brink of a new era. The year is 2050, and artificial intelligence has become an integral part of everyday life. Autonomous vehicles zip through the streets, drones deliver packages with pinpoint accuracy, and smart homes anticipate every need of their inhabitants. But with these advancements come new challenges and ethical dilemmas. As society grapples with the implications of AI, questions about privacy, security, and the nature of consciousness itself come to the forefront. Please answer me the question what is artificial intelligence.",
+        help="User-customized prompts",
+    )
+    parser.add_argument(
+        "--max-output", type=int, env_var="OPEA_EVAL_MAX_OUTPUT_TOKENS", default=128, help="Max number of output tokens"
+    )
 
 
 reqlist = []
@@ -87,9 +97,9 @@ class AiStressUser(HttpUser):
     def bench_main(self):
         max_request = self.environment.parsed_options.max_request
         if max_request >= 0 and AiStressUser.request >= max_request:
-            # For poisson load shape, a user only sends single request before it stops.
+            # For custom load shape based on arrival_rate, new users spawned after exceeding max_request is reached will be stopped.
             # TODO: user should not care about load shape
-            if self.environment.parsed_options.load_shape == "poisson":
+            if "arrival_rate" in self.environment.parsed_options:
                 self.stop(force=True)
 
             time.sleep(1)
@@ -186,10 +196,10 @@ class AiStressUser(HttpUser):
             self.environment.runner.stats.log_request("POST", url, time.perf_counter() - start_ts, 0)
             self.environment.runner.stats.log_error("POST", url, "Locust Request error")
 
-        # For poisson load shape, a user only sends single request before it stops.
+        # For custom load shape based on arrival_rate, a user only sends single request before it sleeps.
         # TODO: user should not care about load shape
-        if self.environment.parsed_options.load_shape == "poisson":
-            self.stop(force=True)
+        if "arrival_rate" in self.environment.parsed_options:
+            time.sleep(365 * 60 * 60)
 
     # def on_stop(self) -> None:
 
@@ -203,6 +213,8 @@ def on_test_start(environment, **kwargs):
         console_logger.info(f"Benchmark target  : {environment.parsed_options.bench_target}\n")
         console_logger.info(f"Load shape        : {environment.parsed_options.load_shape}")
         console_logger.info(f"Dataset           : {environment.parsed_options.dataset}")
+        console_logger.info(f"Customized prompt : {environment.parsed_options.prompts}")
+        console_logger.info(f"Max output tokens : {environment.parsed_options.max_output}")
 
 
 @events.init.add_listener
@@ -210,6 +222,9 @@ def on_locust_init(environment, **_kwargs):
     global bench_package
     os.environ["OPEA_EVAL_DATASET"] = environment.parsed_options.dataset
     os.environ["OPEA_EVAL_SEED"] = environment.parsed_options.seed
+    os.environ["OPEA_EVAL_PROMPTS"] = environment.parsed_options.prompts
+    os.environ["OPEA_EVAL_MAX_OUTPUT_TOKENS"] = str(environment.parsed_options.max_output)
+    os.environ["LLM_MODEL"] = environment.parsed_options.llm_model
     try:
         bench_package = __import__(environment.parsed_options.bench_target)
     except ImportError:
@@ -220,6 +235,7 @@ def on_locust_init(environment, **_kwargs):
         environment.runner.register_message("worker_reqsent", on_reqsent)
     if not isinstance(environment.runner, MasterRunner):
         environment.runner.register_message("all_reqcnt", on_reqcount)
+        environment.runner.register_message("test_quit", on_quit)
 
 
 @events.quitting.add_listener
@@ -249,12 +265,20 @@ def on_reqcount(msg, **kwargs):
     AiStressUser.request = msg.data
 
 
+def on_quit(environment, msg, **kwargs):
+    logging.debug("Test quitting, set stop_timeout to 0...")
+    environment.runner.environment.stop_timeout = 0
+
+
 def checker(environment):
     while environment.runner.state not in [STATE_STOPPING, STATE_STOPPED, STATE_CLEANUP]:
         time.sleep(1)
         max_request = environment.parsed_options.max_request
         if max_request >= 0 and environment.runner.stats.num_requests >= max_request:
             logging.info(f"Exceed the max-request number:{environment.runner.stats.num_requests}, Exit...")
+            # Remove stop_timeout after test quit to avoid Locust user stop exception with custom load shape
+            environment.runner.send_message("test_quit", None)
+            environment.runner.environment.stop_timeout = 0
             #            while environment.runner.user_count > 0:
             time.sleep(5)
             environment.runner.quit()
