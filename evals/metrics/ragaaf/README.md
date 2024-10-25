@@ -1,7 +1,13 @@
 # RAGAAF (RAG assessment - Annotation Free) 
 
-We introduce - RAGAAF, Intel's easy-to-use, flexible, opensource and annotation-free RAG evaluation tool employing LLM-as-a-judge technique on Intel's Gaudi2 AI accelator chips. RAGAAF is best suited for Long Form Question Answering (LFQA) datasets where you want to gauge quality and effectiveness of the answer using LLM's intelligence. 
+Intel's RAGAAF toolkit employs opensource LLM-as-a-judge technique on Intel's Gaudi2 AI accelator chips to perform annotation-free evaluation of RAG. 
 
+## Key features 
+✨ Annotation Free evaluation (ground truth answers are not required).
+🧠 Provides score and reasoning for each metric allowing a deep dive into LLM's throught process. 
+🤗 Quick access to latest innovations in opensource Large Language Models.
+⏩ Seamlessly boost performance using Intel's powerful AI accelerator chips - Gaudi. 
+✍️ Flexibility to bring your own metrics, grading rubrics and datasets. 
 
 ## Run RAGAAF
 
