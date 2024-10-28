@@ -1,6 +1,6 @@
 [LongBench](https://github.com/THUDM/LongBench) is the benchmark for bilingual, multitask, and comprehensive assessment of long context understanding capabilities of large language models. LongBench includes different languages (Chinese and English) to provide a more comprehensive evaluation of the large models' multilingual capabilities on long contexts. In addition, LongBench is composed of six major categories and twenty one different tasks, covering key long-text application scenarios such as single-document QA, multi-document QA, summarization, few-shot learning, synthetic tasks and code completion.
 
-In this guideline, we evalute LongBench dataset with OPEA services on Intel hardwares.
+In this guideline, we evaluate LongBench dataset with OPEA services on Intel hardwares.
 
 # 🚀 QuickStart
 
@@ -56,11 +56,11 @@ python pred.py \
 The prediction will be saved to "pred/{LLM_MODEL}/{DATASET.jsonl}".
 
 ## Evaluate
-Evalute the prediction with LongBench metrics.
+Evaluate the prediction with LongBench metrics.
 ```
 git clone https://github.com/THUDM/LongBench
 cd LongBench
 pip install -r requirements.txt
 python eval.py --model ${LLM_MODEL}
 ```
-Then evaluted result will be saved to "pred/{LLM_MODEL}/{result.jsonl}".
+Then evaluated result will be saved to "pred/{LLM_MODEL}/{result.jsonl}".
