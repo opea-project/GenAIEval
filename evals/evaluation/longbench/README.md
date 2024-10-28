@@ -55,7 +55,7 @@ python pred.py \
 ```
 The prediction will be saved to "pred/{LLM_MODEL}/{DATASET.jsonl}".
 
-## Evalute
+## Evaluate
 Evalute the prediction with LongBench metrics.
 ```
 git clone https://github.com/THUDM/LongBench
