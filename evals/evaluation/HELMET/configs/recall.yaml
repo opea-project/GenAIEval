@@ -1,3 +1,6 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 input_max_length: 131072,131072,131072,131072
 datasets: ruler_niah_mk_2,ruler_niah_mk_3,ruler_niah_mv,json_kv
 generation_max_length: 50,100,50,100

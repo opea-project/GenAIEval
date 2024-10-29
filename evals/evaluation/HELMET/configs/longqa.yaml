@@ -1,3 +1,6 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 input_max_length: 131072,131072,131072
 datasets: narrativeqa_130772,infbench_qa_eng_130862,infbench_choice_eng_130862
 generation_max_length: 100,10,10

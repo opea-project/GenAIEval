@@ -1,3 +1,6 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 input_max_length: 8192,16384,32768,65536
 datasets: msmarco_rerank_psg,msmarco_rerank_psg,msmarco_rerank_psg,msmarco_rerank_psg
 generation_max_length: 200,200,200,200

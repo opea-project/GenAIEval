@@ -1,5 +1,8 @@
 #!/bin/bash -l
 
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 ##############################
 #       Job blueprint        #
 ##############################
@@ -8,7 +11,7 @@
 #SBATCH --job-name=api ## CHANGE JOBNAME HERE
 #SBATCH --array=0
 
-# Remove one # to uncommment
+# Remove one # to uncomment
 #SBATCH --output=./joblog/%x-%A_%a.out                          ## Stdout
 #SBATCH --error=./joblog/%x-%A_%a.err                           ## Stderr
 

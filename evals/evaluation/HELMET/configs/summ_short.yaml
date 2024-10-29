@@ -1,3 +1,6 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 input_max_length: 8192,16384,32768,65536,8192,16384,32768,65536
 datasets: infbench_sum_eng_6792,infbench_sum_eng_14984,infbench_sum_eng_31368,infbench_sum_eng_64136,multi_lexsum_7492,multi_lexsum_15684,multi_lexsum_32068,multi_lexsum_64836
 generation_max_length: 1200,1200,1200,1200,400,400,400,400
