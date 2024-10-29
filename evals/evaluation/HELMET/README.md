@@ -157,7 +157,7 @@ python eval.py --config configs/cite.yaml --use_vllm
 Disclaimer: 
 VLLM can be much faster than using the native HuggingFace generation; however, we found that the results can be slightly different, so we recommend using the native HuggingFace generation for the final evaluation.
 All reported results in the paper are from the native HuggingFace generation.
-The speedup is much more noticable for tasks that generates more tokens (e.g., summarization may see up to 2x speedup), whereas the speedup is less noticable for tasks that generate fewer tokens (e.g., JSON KV may see less than 5% speedup).
+The speedup is much more noticeable for tasks that generates more tokens (e.g., summarization may see up to 2x speedup), whereas the speedup is less noticeable for tasks that generate fewer tokens (e.g., JSON KV may see less than 5% speedup).
 
 </details>
 
@@ -211,7 +211,7 @@ Please also cite the original dataset creators, listed below:
 @inproceedings{mallen-etal-2023-trust,
     title = "When Not to Trust Language Models: Investigating Effectiveness of Parametric and Non-Parametric Memories",
     author = "Mallen, Alex  and
-      Asai, Akari  and
+      Asia, Akari  and
       Zhong, Victor  and
       Das, Rajarshi  and
       Khashabi, Daniel  and

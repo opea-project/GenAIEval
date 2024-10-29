@@ -1,21 +1,25 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 import argparse
+import glob
 import json
 import os
-import sys
 import re
-from tqdm import tqdm
-import glob
+import sys
 
 import numpy as np
+from tqdm import tqdm
+
 # Get the parent directory path
-parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 # Add the parent directory to the Python path
 sys.path.append(parent_dir)
 
 from model_utils import OpenAIModel
 
 # prompts inspired by https://www.databricks.com/blog/LLM-auto-eval-best-practices-RAG
-fluency_prompt="""Please act as an impartial judge and evaluate the fluency of the provided text. The text should be coherent, non-repetitive, fluent, and grammatically correct.
+fluency_prompt = """Please act as an impartial judge and evaluate the fluency of the provided text. The text should be coherent, non-repetitive, fluent, and grammatically correct.
 
 Below is your grading rubric:
 - Score 0 (incoherent, repetitive, or incomplete): Incoherent sentences, repetitive sentences (even if not by exact words), incomplete answers, or gibberish. Note that even if the answer is coherent, if it is repetitive or incomplete, it should be given a score of 0.
@@ -34,7 +38,7 @@ Now, read the provided text, and evaluate the fluency using the rubric. Then out
 Text: "{text}"
 """
 
-fluency_prompt_book="""Please act as an impartial judge and evaluate the fluency of the provided text. The text should be coherent, non-repetitive, fluent, and grammatically correct.
+fluency_prompt_book = """Please act as an impartial judge and evaluate the fluency of the provided text. The text should be coherent, non-repetitive, fluent, and grammatically correct.
 
 Below is your grading rubric:
 - Score 0 (incoherent, repetitive, or incomplete): Incoherent sentences, repetitive sentences (even if not by exact words), incomplete answers, or gibberish. Note that even if the answer is coherent, if it is repetitive or incomplete, it should be given a score of 0.
@@ -52,7 +56,7 @@ Now, read the provided text, and evaluate the fluency using the rubric. Then out
 Text: "{text}"
 """
 
-recall_prompt="""Please act as an impartial judge and evaluate the quality of the provided summary of a civil lawsuit. The summary is based on a set of legal documents, and it should contain a short description of the background, the parties involved, and the outcomes of the case. The text should contain all the major points in the expert-written summary, which are given to you.
+recall_prompt = """Please act as an impartial judge and evaluate the quality of the provided summary of a civil lawsuit. The summary is based on a set of legal documents, and it should contain a short description of the background, the parties involved, and the outcomes of the case. The text should contain all the major points in the expert-written summary, which are given to you.
 
 Below is your grading rubric:
 Recall:
@@ -102,7 +106,7 @@ Summary: "{summary}"
 """
 
 
-recall_prompt_book="""Please act as an impartial judge and evaluate the quality of the provided summary of a novel. It should discuss the plots and characters of the story. The text should contain all the given key points.
+recall_prompt_book = """Please act as an impartial judge and evaluate the quality of the provided summary of a novel. It should discuss the plots and characters of the story. The text should contain all the given key points.
 
 Below is your grading rubric:
 Recall:
@@ -213,7 +217,7 @@ Summary: <start of summary>{summary}<end of summary>
 """
 
 
-precision_prompt="""Please act as an impartial judge and evaluate the quality of the provided summary of a civil lawsuit. The summary is based on a set of legal documents, and it should contain a short description of the background, the parties involved, and the outcomes of the case.
+precision_prompt = """Please act as an impartial judge and evaluate the quality of the provided summary of a civil lawsuit. The summary is based on a set of legal documents, and it should contain a short description of the background, the parties involved, and the outcomes of the case.
 
 Below is your grading rubric:
 Precision:
@@ -250,7 +254,7 @@ Provided summary: "{summary}"
 """
 
 
-precision_prompt_book="""Please act as an impartial judge and evaluate the quality of the provided summary of a novel.
+precision_prompt_book = """Please act as an impartial judge and evaluate the quality of the provided summary of a novel.
 
 Below is your grading rubric:
 Precision:
@@ -337,6 +341,7 @@ def parse_json(text):
         return json.loads(matches[-1])
     return None
 
+
 def check_metrics(model, results_file, output_file):
     with open(results_file, "r") as f:
         results = json.load(f)
@@ -353,17 +358,22 @@ def check_metrics(model, results_file, output_file):
                 d = json.loads(line)
                 keypoints[d["id"]] = d["summary/short_keypoints"]
 
-
     for idx, d in enumerate(tqdm(results["data"])):
         d["keypoints"] = keypoints[d["id"]]
 
         if "infbench" in results_file:
             fp = fluency_prompt_book.format(text=d["output"].strip())
-            rp = recall_prompt_book.format(keypoints="\n".join([f"{i+1}. {kp}" for i, kp in enumerate(d["keypoints"])]), summary=d["output"].strip())
+            rp = recall_prompt_book.format(
+                keypoints="\n".join([f"{i+1}. {kp}" for i, kp in enumerate(d["keypoints"])]),
+                summary=d["output"].strip(),
+            )
             pp = precision_prompt_book.format(expert_summary=d["answer"][0], summary=d["output"].strip())
         else:
             fp = fluency_prompt.format(text=d["output"].strip())
-            rp = recall_prompt.format(keypoints="\n".join([f"{i+1}. {kp}" for i, kp in enumerate(d["keypoints"])]), summary=d["output"].strip())
+            rp = recall_prompt.format(
+                keypoints="\n".join([f"{i+1}. {kp}" for i, kp in enumerate(d["keypoints"])]),
+                summary=d["output"].strip(),
+            )
             pp = precision_prompt.format(expert_summary=d["summary/long"], summary=d["output"].strip())
 
         def get_score(prompt, tries=2):
@@ -412,7 +422,9 @@ def check_metrics(model, results_file, output_file):
                 print(f"Scores: {d['gpt4-scores']}")
         else:
             print("Warning! Couldn't get a score")
-            print(f"GPT-4 output: \n---fluency call---\n{fo['output']}\n---recall call---\n{ro['output']}\n---precision call---\n{po['output']}\n------")
+            print(
+                f"GPT-4 output: \n---fluency call---\n{fo['output']}\n---recall call---\n{ro['output']}\n---precision call---\n{po['output']}\n------"
+            )
             # import pdb; pdb.set_trace()
     if len([d for d in results["data"] if "gpt4-scores" in d]) == 0:
         raise Exception("No scores found")
@@ -431,6 +443,7 @@ def check_metrics(model, results_file, output_file):
 
     return results
 
+
 if __name__ == "__main__":
     model = OpenAIModel("azure/gpt-4o-2024-05-13", temperature=0.1, generation_max_length=4096)
 
@@ -442,12 +455,81 @@ if __name__ == "__main__":
     shard_idx = args.shard_idx
 
     # this is all of our chat models
-    model_to_check = ['gpt-4-0125-preview', 'gpt-4o-2024-05-13', 'gpt-4o-2024-08-06', 'gpt-4o-mini-2024-07-18', 'claude-3-5-sonnet-20240620', 'gemini-1.5-flash-001', 'gemini-1.5-pro-001', 'Meta-Llama-3-8B-Instruct', 'Meta-Llama-3-8B-Instruct-Theta8M', 'Meta-Llama-3-70B-Instruct-Theta8M', 'Meta-Llama-3.1-8B-Instruct', 'Meta-Llama-3.1-70B-Instruct', 'Mistral-7B-Instruct-v0.1', 'Mistral-7B-Instruct-v0.2', 'Mistral-7B-Instruct-v0.3', 'Mistral-Nemo-Instruct-2407', 'Phi-3-mini-128k-instruct', 'Phi-3-small-128k-instruct', 'Phi-3-medium-128k-instruct', 'Phi-3.5-mini-instruct', 'Qwen2-7B-Instruct', 'Qwen2-57B-A14B-Instruct', 'c4ai-command-r-v01', 'AI21-Jamba-1.5-Mini', 'prolong-64k-instruct', 'prolong-512k-instruct-20b-theta128m', "MegaBeam-Mistral-7B-512k"]
+    model_to_check = [
+        "gpt-4-0125-preview",
+        "gpt-4o-2024-05-13",
+        "gpt-4o-2024-08-06",
+        "gpt-4o-mini-2024-07-18",
+        "claude-3-5-sonnet-20240620",
+        "gemini-1.5-flash-001",
+        "gemini-1.5-pro-001",
+        "Meta-Llama-3-8B-Instruct",
+        "Meta-Llama-3-8B-Instruct-Theta8M",
+        "Meta-Llama-3-70B-Instruct-Theta8M",
+        "Meta-Llama-3.1-8B-Instruct",
+        "Meta-Llama-3.1-70B-Instruct",
+        "Mistral-7B-Instruct-v0.1",
+        "Mistral-7B-Instruct-v0.2",
+        "Mistral-7B-Instruct-v0.3",
+        "Mistral-Nemo-Instruct-2407",
+        "Phi-3-mini-128k-instruct",
+        "Phi-3-small-128k-instruct",
+        "Phi-3-medium-128k-instruct",
+        "Phi-3.5-mini-instruct",
+        "Qwen2-7B-Instruct",
+        "Qwen2-57B-A14B-Instruct",
+        "c4ai-command-r-v01",
+        "AI21-Jamba-1.5-Mini",
+        "prolong-64k-instruct",
+        "prolong-512k-instruct-20b-theta128m",
+        "MegaBeam-Mistral-7B-512k",
+    ]
 
-    model_to_check = ['gpt-4-0125-preview', 'gpt-4o-2024-05-13', 'gpt-4o-2024-08-06', 'gpt-4o-mini-2024-07-18', 'claude-3-5-sonnet-20240620', 'gemini-1.5-flash-001', 'gemini-1.5-pro-001', 'Meta-Llama-3-8B-Theta8M', 'Meta-Llama-3-8B-Instruct-Theta8M', 'Meta-Llama-3-70B-Theta8M', 'Meta-Llama-3-70B-Instruct-Theta8M', 'Meta-Llama-3.1-8B', 'Meta-Llama-3.1-8B-Instruct', 'Meta-Llama-3.1-70B', 'Meta-Llama-3.1-70B-Instruct', "Llama-3.2-1B", "Llama-3.2-1B-Instruct", "Llama-3.2-3B", "Llama-3.2-3B-Instruct", 'llama-2-7b-80k-basefixed', 'Yarn-Llama-2-7b-128k', 'Mistral-7B-Instruct-v0.1', 'Mistral-7B-Instruct-v0.2', 'Mistral-7B-v0.3', 'Mistral-7B-Instruct-v0.3', 'Mistral-Nemo-Instruct-2407', 'MegaBeam-Mistral-7B-512k', 'Phi-3-mini-128k-instruct', 'Phi-3-small-128k-instruct', 'Phi-3-medium-128k-instruct', 'Phi-3.5-mini-instruct', 'Yi-6B-200K', 'Yi-9B-200K', 'Yi-34B-200K', 'Qwen2-7B-Instruct', 'Qwen2-57B-A14B-Instruct', 'AI21-Jamba-1.5-Mini', 'prolong-512k-instruct-20b-theta128m',]
+    model_to_check = [
+        "gpt-4-0125-preview",
+        "gpt-4o-2024-05-13",
+        "gpt-4o-2024-08-06",
+        "gpt-4o-mini-2024-07-18",
+        "claude-3-5-sonnet-20240620",
+        "gemini-1.5-flash-001",
+        "gemini-1.5-pro-001",
+        "Meta-Llama-3-8B-Theta8M",
+        "Meta-Llama-3-8B-Instruct-Theta8M",
+        "Meta-Llama-3-70B-Theta8M",
+        "Meta-Llama-3-70B-Instruct-Theta8M",
+        "Meta-Llama-3.1-8B",
+        "Meta-Llama-3.1-8B-Instruct",
+        "Meta-Llama-3.1-70B",
+        "Meta-Llama-3.1-70B-Instruct",
+        "Llama-3.2-1B",
+        "Llama-3.2-1B-Instruct",
+        "Llama-3.2-3B",
+        "Llama-3.2-3B-Instruct",
+        "llama-2-7b-80k-basefixed",
+        "Yarn-Llama-2-7b-128k",
+        "Mistral-7B-Instruct-v0.1",
+        "Mistral-7B-Instruct-v0.2",
+        "Mistral-7B-v0.3",
+        "Mistral-7B-Instruct-v0.3",
+        "Mistral-Nemo-Instruct-2407",
+        "MegaBeam-Mistral-7B-512k",
+        "Phi-3-mini-128k-instruct",
+        "Phi-3-small-128k-instruct",
+        "Phi-3-medium-128k-instruct",
+        "Phi-3.5-mini-instruct",
+        "Yi-6B-200K",
+        "Yi-9B-200K",
+        "Yi-34B-200K",
+        "Qwen2-7B-Instruct",
+        "Qwen2-57B-A14B-Instruct",
+        "AI21-Jamba-1.5-Mini",
+        "prolong-512k-instruct-20b-theta128m",
+    ]
 
-    #just replace the glob pattern
-    all_paths = [glob.glob(f"output/{m}/multi_lexsum_*_v12_*max400min*.json") for m in model_to_check] + [glob.glob(f"output/{m}/infbench_sum_*_v12_*max1200min*.json") for m in model_to_check]
+    # just replace the glob pattern
+    all_paths = [glob.glob(f"output/{m}/multi_lexsum_*_v12_*max400min*.json") for m in model_to_check] + [
+        glob.glob(f"output/{m}/infbench_sum_*_v12_*max1200min*.json") for m in model_to_check
+    ]
 
     all_paths = [item for sublist in all_paths for item in sublist if item.endswith(".json")]
     all_paths = [p for p in all_paths if not os.path.exists(p.replace(".json", "-gpt4eval_o.json"))]
@@ -459,4 +541,3 @@ if __name__ == "__main__":
         newp = p.replace(".json", "-gpt4eval_o.json")
         print("evaluating")
         check_metrics(model, p, newp)
-
