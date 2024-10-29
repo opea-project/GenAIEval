@@ -13,7 +13,7 @@ locust
 numpy
 pytest
 pyyaml
-ragas==v0.1.16
+ragas==v0.1.19
 requests
 rouge_score
 sseclient-py
