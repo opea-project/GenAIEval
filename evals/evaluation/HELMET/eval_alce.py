@@ -325,7 +325,7 @@ def compute_autoais(
         )
         autoais_tokenizer = AutoTokenizer.from_pretrained(AUTOAIS_MODEL, use_fast=False)
 
-    logger.info(f"Running AutoAIS...")
+    logger.info("Running AutoAIS...")
 
     def _format_document(doc):
         """Format document for AutoAIS."""
