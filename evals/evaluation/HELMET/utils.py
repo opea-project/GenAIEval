@@ -4,9 +4,8 @@
 Adopted from https://github.com/princeton-nlp/DensePhrases/blob/main/densephrases/utils/eval_utils.py
 """
 
-import os
-import string
 import logging
+import os
 import re
 import string
 import sys
@@ -84,7 +83,7 @@ def drqa_exact_match_score(prediction, ground_truth):
 
 def substring_exact_match_score(prediction, ground_truth):
     """Check if the ground truth is a (soft) exact match substring of the prediction."""
-    return normalize_answer(ground_truth) in normalize_answer(prediciton)
+    return normalize_answer(ground_truth) in normalize_answer(prediction)
 
 
 def drqa_metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
@@ -232,11 +231,11 @@ def calculate_retrieval_metrics(results, qrels, k_values=[1, 5, 10, 25, 50, 100]
         mrr["MRR"] += scores[query_id]["recip_rank"]
 
     for k in k_values:
-        ndcg[f"NDCG@{k}"] = round(ndcg[f"NDCG@{k}"]/len(scores), 5)
-        _map[f"MAP@{k}"] = round(_map[f"MAP@{k}"]/len(scores), 5)
-        recall[f"Recall@{k}"] = round(recall[f"Recall@{k}"]/len(scores), 5)
-        precision[f"P@{k}"] = round(precision[f"P@{k}"]/len(scores), 5)
-    mrr["MRR"] = round(mrr["MRR"]/len(scores), 5)
+        ndcg[f"NDCG@{k}"] = round(ndcg[f"NDCG@{k}"] / len(scores), 5)
+        _map[f"MAP@{k}"] = round(_map[f"MAP@{k}"] / len(scores), 5)
+        recall[f"Recall@{k}"] = round(recall[f"Recall@{k}"] / len(scores), 5)
+        precision[f"P@{k}"] = round(precision[f"P@{k}"] / len(scores), 5)
+    mrr["MRR"] = round(mrr["MRR"] / len(scores), 5)
 
     if verbose:
         for eval in [ndcg, _map, recall, precision, mrr]:
@@ -246,4 +245,3 @@ def calculate_retrieval_metrics(results, qrels, k_values=[1, 5, 10, 25, 50, 100]
 
     output = {**ndcg, **_map, **recall, **precision, **mrr}
     return output
-
