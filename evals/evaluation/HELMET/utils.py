@@ -4,8 +4,8 @@
 Adopted from https://github.com/princeton-nlp/DensePhrases/blob/main/densephrases/utils/eval_utils.py
 """
 
+import logging
 import os
-import string
 import re
 import string
 import sys
@@ -231,11 +231,11 @@ def calculate_retrieval_metrics(results, qrels, k_values=[1, 5, 10, 25, 50, 100]
         mrr["MRR"] += scores[query_id]["recip_rank"]
 
     for k in k_values:
-        ndcg[f"NDCG@{k}"] = round(ndcg[f"NDCG@{k}"]/len(scores), 5)
-        _map[f"MAP@{k}"] = round(_map[f"MAP@{k}"]/len(scores), 5)
-        recall[f"Recall@{k}"] = round(recall[f"Recall@{k}"]/len(scores), 5)
-        precision[f"P@{k}"] = round(precision[f"P@{k}"]/len(scores), 5)
-    mrr["MRR"] = round(mrr["MRR"]/len(scores), 5)
+        ndcg[f"NDCG@{k}"] = round(ndcg[f"NDCG@{k}"] / len(scores), 5)
+        _map[f"MAP@{k}"] = round(_map[f"MAP@{k}"] / len(scores), 5)
+        recall[f"Recall@{k}"] = round(recall[f"Recall@{k}"] / len(scores), 5)
+        precision[f"P@{k}"] = round(precision[f"P@{k}"] / len(scores), 5)
+    mrr["MRR"] = round(mrr["MRR"] / len(scores), 5)
 
     if verbose:
         for eval in [ndcg, _map, recall, precision, mrr]:
@@ -245,4 +245,3 @@ def calculate_retrieval_metrics(results, qrels, k_values=[1, 5, 10, 25, 50, 100]
 
     output = {**ndcg, **_map, **recall, **precision, **mrr}
     return output
-
