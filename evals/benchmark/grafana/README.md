@@ -38,14 +38,16 @@ You should now access `localhost:9090/targets?search=` to open the Prometheus UI
 
 ### 1.1 CPU Metrics (optional)
 
-The Prometheus Node Exporter is required for collecting CPU metrics. Install and run the Node Exporter via tarball by the [guide](https://prometheus.io/docs/guides/node-exporter/#installing-and-running-the-node-exporter). 
+The Prometheus Node Exporter is required for collecting CPU metrics. Deploy the Node Exporter via tarball by the [guide](https://prometheus.io/docs/guides/node-exporter/#installing-and-running-the-node-exporter). 
 
 Or install it in a K8S cluster by the following commands:
+
+Ensure namespace `monitoring` was created in your K8S environment.
 
 ```bash
 git clone https://github.com/opea-project/GenAIEval.git
 cd GenAIEval/evals/benchmark/grafana/
-kubectl apply -f grafana_node_exporter.yaml
+kubectl apply -f prometheus_cpu_exporter.yaml
 ```
 
 Add the following configuration to `prometheus.yml`:
@@ -56,6 +58,33 @@ scrape_configs:
     metrics_path: /metrics
     static_configs:
       - targets: ["<NODE1_IP>:9100", "<NODE2_IP>:9100", ...]
+```
+
+### 1.2 Intel® Gaudi® Metrics (optional)
+
+The Intel Gaudi Prometheus Metrics Exporter is required for collecting Intel® Gaudi® AI accelerator metrics. 
+
+Follow the [guide](https://docs.habana.ai/en/latest/Orchestration/Prometheus_Metric_Exporter.html#deploying-prometheus-metric-exporter-in-docker) to deploy the metrics exporter in Docker.
+
+Or install it in a K8S cluster by the following commands:
+
+Ensure namespace `monitoring` was created in your K8S environment.
+
+```bash
+git clone https://github.com/opea-project/GenAIEval.git
+cd GenAIEval/evals/benchmark/grafana/
+kubectl apply -f prometheus_gaudi_exporter.yaml
+```
+
+Add the following configuration to `prometheus.yml`:
+
+```yaml
+scrape_configs:
+  - job_name: "prometheus-gaudi-exporter"
+    scrape_interval: 15s
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["<NODE1_IP>:41611", "<NODE2_IP>:41611", ...]
 ```
 
 Restart Prometheus after saving the changes.
