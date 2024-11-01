@@ -162,7 +162,7 @@ The book also explores the history of Detroit and its transformation from a smal
 Overall, the book is a sweeping narrative that spans multiple generations and continents. It is a story about identity, culture, family, and history, and it raises important questions about the human experience.<end of summary>
 
 
-Reasoning: The summary incorrectly identifies the protagonist as "Cal Stephanides" instead of "Cal Margaret", so key point 1 is not supported. It does not mention key point 2. The summary mentions that Raul and Harris are silbings and that they eventually marry and settle down in Detroit so key point 3 is supported. It also mentions the Turkish attack and how they escape from Smyrna ot America so key point 5 is supported. It does not talk about the ship where they are wed so key point 6 is not supported. The summary then stops discussing the plot and so it does not mention key point 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, or 26. Thus, the only supported key points are 3 and 5, so recall is 2.
+Reasoning: The summary incorrectly identifies the protagonist as "Cal Stephanides" instead of "Cal Margaret", so key point 1 is not supported. It does not mention key point 2. The summary mentions that Raul and Harris are silbings and that they eventually marry and settle down in Detroit so key point 3 is supported. It also mentions the Turkish attack and how they escape from Smyrna to America so key point 5 is supported. It does not talk about the ship where they are wed so key point 6 is not supported. The summary then stops discussing the plot and so it does not mention key point 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, or 26. Thus, the only supported key points are 3 and 5, so recall is 2.
 
 Output: {{"supported_key_points": [3, 5], "recall": 2}}
 
@@ -386,7 +386,7 @@ def check_metrics(model, results_file, output_file):
                         return ret, o
             return None, o
 
-        f, fo = get_score(fp)
+        f, foutput = get_score(fp)
         if f is None:
             continue
         r, ro = get_score(rp)
@@ -409,21 +409,21 @@ def check_metrics(model, results_file, output_file):
                 "recall": rec,
                 "precision": prec,
                 "f1": f1,
-                "flunecy_output": fo["output"],
+                "flunecy_output": foutput["output"],
                 "recall_output": ro["output"],
                 "precision_output": po["output"],
             }
 
             if idx < 10:
                 print("=====================================")
-                print(f"Fluency: {fo['output']}")
+                print(f"Fluency: {foutput['output']}")
                 print(f"Recall: {ro['output']}")
                 print(f"Precision: {po['output']}")
                 print(f"Scores: {d['gpt4-scores']}")
         else:
             print("Warning! Couldn't get a score")
             print(
-                f"GPT-4 output: \n---fluency call---\n{fo['output']}\n---recall call---\n{ro['output']}\n---precision call---\n{po['output']}\n------"
+                f"GPT-4 output: \n---fluency call---\n{foutput['output']}\n---recall call---\n{ro['output']}\n---precision call---\n{po['output']}\n------"
             )
             # import pdb; pdb.set_trace()
     if len([d for d in results["data"] if "gpt4-scores" in d]) == 0:
