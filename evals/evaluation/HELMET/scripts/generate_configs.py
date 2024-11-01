@@ -10,7 +10,7 @@ master_mapping = {
             "input_length": v, "generation_max_length": 50, "test_files": f"data/ruler/niah_single_1/validation_{v}.jsonl"
         } for k, v in {"4k": 4096, "8k": 8192, "16k": 16384, "32k": 32768, "64k": 65536, "128k": 131072}.items()
     },
-    "ruler_niah_s_2": { # NIAH 
+    "ruler_niah_s_2": { # NIAH
         k: {
             "input_length": v, "generation_max_length": 50, "test_files": f"data/ruler/niah_single_2/validation_{v}.jsonl"
         } for k, v in {"4k": 4096, "8k": 8192, "16k": 16384, "32k": 32768, "64k": 65536, "128k": 131072}.items()
@@ -92,11 +92,11 @@ master_mapping = {
     # RAG tasks, using KILT's datasets and retrieval corpus
     "kilt_nq": {
         k: {
-            "input_length": v, "generation_max_length": 20, 
-            "test_files": "data/kilt/nq-dev-multikilt_1000_k" + ["20", "50", "105", "220", "440", "1000"][i] + "_dep6.jsonl", 
+            "input_length": v, "generation_max_length": 20,
+            "test_files": "data/kilt/nq-dev-multikilt_1000_k" + ["20", "50", "105", "220", "440", "1000"][i] + "_dep6.jsonl",
             "demo_files": "data/kilt/nq-train-multikilt_1000_k3_dep6.jsonl"
         } for i, (k, v) in enumerate(lengths_mapping.items())
-    }, 
+    },
     "kilt_triviaqa": {
         k: {
             "input_length": v, "generation_max_length": 20,
@@ -114,7 +114,7 @@ master_mapping = {
     "kilt_popqa": {
         k: {
             "input_length": v, "generation_max_length": 20, "name_postfix": "_3",
-            "test_files": "data/kilt/popqa_test_1000_k" + ["20", "50", "105", "220", "440", "1000"][i] + "_dep6.jsonl", 
+            "test_files": "data/kilt/popqa_test_1000_k" + ["20", "50", "105", "220", "440", "1000"][i] + "_dep6.jsonl",
             "demo_files": "data/kilt/popqa_test_1000_k3_dep6.jsonl"
         } for i, (k, v) in enumerate(lengths_mapping.items())
     },
@@ -150,7 +150,7 @@ master_mapping = {
 
     "msmarco_rerank_psg": {
         k: {
-            "input_length": v, "generation_max_length": 200, 
+            "input_length": v, "generation_max_length": 200,
             "test_files": "data/msmarco/test_reranking_data_k" + ["14", "50", "130", "285", "600", "1000"][i] + "_dep3.jsonl",
             "demo_files": "data/msmarco/test_reranking_data_k10_dep3.jsonl"
         } for i, (k, v) in enumerate(lengths_mapping.items())
@@ -209,8 +209,6 @@ def process_configs(config_name, datasets, input_lengths, **kwargs):
             **kwargs,
             "model_name_or_path": "meta-llama/Llama-3.1-8B-Instruct",
             "output_dir": "output/Llama-3.1-8B-Instruct",
-            "model_name_or_path": "meta-llama/Llama-3.2-1B-Instruct",
-            "output_dir": "output/Llama-3.2-1B-Instruct",
         })
     with open(config_name, "w") as f:
         yaml.dump(out_config, f, sort_keys=False)
@@ -219,9 +217,9 @@ def helmet_configs(input_lengths = ["128k"], fname_postfix = ""):
     synthetic = ["ruler_niah_mk_2", "ruler_niah_mk_3", "ruler_niah_mv", "json_kv"]
     # ruler actually doesn't support demos so it defaults to 0, json kv uses 2
     process_configs(
-        f"configs/recall{fname_postfix}.yaml", synthetic, input_lengths, 
+        f"configs/recall{fname_postfix}.yaml", synthetic, input_lengths,
         use_chat_template=False, max_test_samples=100, shots=2, stop_new_line=False
-    ) 
+    )
 
     rag = ['kilt_nq', 'kilt_triviaqa', 'kilt_hotpotqa', 'kilt_popqa']
     process_configs(
@@ -258,7 +256,7 @@ def helmet_configs(input_lengths = ["128k"], fname_postfix = ""):
         f"configs/cite{fname_postfix}.yaml", cite, input_lengths,
         use_chat_template=True, max_test_samples=100, shots=2, stop_new_line=False
     )
-    
+
 
 def niah_configs():
     input_lengths = [8192, 16384, 32768, 65536, 131072]
@@ -274,7 +272,7 @@ def niah_configs():
         }
     with open(f"configs/niah.yaml", "w") as f:
         yaml.dump(config, f, sort_keys=False)
-    
+
 
 def ruler_all_configs():
     input_lengths = [4096, 8192, 16384, 32768]
@@ -284,7 +282,7 @@ def ruler_all_configs():
     gen_lengths = [50, 50, 50, 50, 50, 100, 100, 50, 100, 50, 50, 50, 50]
 
     assert len(dataset) == len(gen_lengths)
-    
+
     configs = []
     for i, d in enumerate(dataset):
         for l in input_lengths:
@@ -309,7 +307,7 @@ def ruler_all_configs():
             "model_name_or_path": "/scratch/gpfs/hyen/models/Meta-Llama-3.1-8B",
             "output_dir": "output/Meta-Llama-3.1-8B",
         })
-        
+
         print(config)
         yaml.dump(config, f, sort_keys=False)
 

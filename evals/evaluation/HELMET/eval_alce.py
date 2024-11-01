@@ -79,8 +79,8 @@ def exact_presence(short_answers, context):
     n_short_answers = [normalize_answer(sa) for sa in short_answers]
     n_context = normalize_answer(context)
 
-    for ans in n_short_answers:
-        if ans in n_context:
+    for answer in n_short_answers:
+        if answer in n_context:
             return True
 
     return False
