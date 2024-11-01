@@ -98,11 +98,6 @@ def run_test(args, model, dataset, test_file, demo_file):
                 logger.info(f"Output: {output['output']}")
                 logger.info(f"Parsed output: {output['parsed_output']}")
 
-            if args.debug:
-                import pdb
-
-                pdb.set_trace()
-
             output = None
 
     end_time = time.time()
