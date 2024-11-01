@@ -171,7 +171,6 @@ def load_json_kv(path, shots, max_test_samples=None, seed=42):
         prediction = output["output"]
         answer = example["answer"]
         mets = calculate_metrics(prediction, answer)
-        # we don't really need to parse because we ues substring em, but could be nice to see how precise the model is
         parsed_pred = parse_output(prediction, "corresponding value:")
         new_mets = calculate_metrics(parsed_pred, answer)
         mets = {k: max(v, new_mets[k]) for k, v in mets.items()}
@@ -346,7 +345,6 @@ def load_multi_lexsum(dataset, path=None, shots=0, max_samples=None, seed=42):
         prediction = output["output"]
         answer = example["answer"]
         mets = calculate_metrics(prediction, answer)
-        # we don't really need to parse because we ues substring em, but could be nice to see how precise the model is
         parsed_pred = parse_output(prediction, system_template)
         if parsed_pred is not None:
             new_mets = calculate_metrics(parsed_pred, answer)

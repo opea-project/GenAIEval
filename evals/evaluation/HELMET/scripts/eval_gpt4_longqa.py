@@ -206,7 +206,6 @@ if __name__ == "__main__":
         "prolong-512k-instruct-20b-theta128m",
     ]
 
-    # customize this line according to the file pahts that you want to check
     all_paths = [glob.glob(f"output/{m}/narrativeqa_*.json") for m in model_to_check]
 
     all_paths = [p for p in all_paths if not os.path.exists(p.replace(".json", "-gpt4eval_o.json"))]
