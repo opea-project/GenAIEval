@@ -1,3 +1,6 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 input_max_length: 131072,131072
 datasets: alce_asqa_700,alce_qampari_700
 generation_max_length: 300,300

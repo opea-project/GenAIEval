@@ -1,3 +1,6 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 input_max_length: 8192,16384,32768,65536,8192,16384,32768,65536,8192,16384,32768,65536,8192,16384,32768,65536
 datasets: kilt_nq,kilt_nq,kilt_nq,kilt_nq,kilt_triviaqa,kilt_triviaqa,kilt_triviaqa,kilt_triviaqa,kilt_hotpotqa,kilt_hotpotqa,kilt_hotpotqa,kilt_hotpotqa,kilt_popqa_3,kilt_popqa_3,kilt_popqa_3,kilt_popqa_3
 generation_max_length: 20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20
