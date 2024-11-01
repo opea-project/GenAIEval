@@ -468,7 +468,7 @@ def compute_qampari_f1(data, cot=False):
         preds = [normalize_answer(x.strip()) for x in o.rstrip().rstrip(".").rstrip(",").split(",")]
         preds = [p for p in preds if len(p) > 0]  # delete empty answers
         num_preds.append(len(preds))
-        answers = [[normalize_answer(x) for x in and] for and in item["answers"]]
+        answers = [[normalize_answer(x) for x in answer] for answer in item["answers"]]
         flat_answers = [item for sublist in answers for item in sublist]
 
         prec.append(sum([p in flat_answers for p in preds]) / len(preds) if len(preds) > 0 else 0)
