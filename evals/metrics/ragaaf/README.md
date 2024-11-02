@@ -1,61 +1,71 @@
 # RAGAAF (RAG assessment - Annotation Free) 
 
-We introduce - RAGAAF, Intel's easy-to-use, flexible, opensource and annotation-free RAG evaluation tool using LLM-as-a-judge while benefitting from Intel's Gaudi2 AI accelator chips. 
+Intel's RAGAAF toolkit employs opensource LLM-as-a-judge technique on Intel's Gaudi2 AI accelator chips to perform annotation-free evaluation of RAG. 
 
-## Overview
-### Data 
-RAGAAF is best suited for Long Form Question Answering (LFQA) datasets where you want to gauge quality and factualness of the answer via LLM's intelligence. Here, you can use benchmarking datasets or bring your own custom datasets. Please make sure to set `field_map` to map AutoEval fields such as "question" to your dataset's corresponding field like "query". 
-> Note : To use benchmarking datasets, set argument `data_mode=benchmarking`. Similarly, to use custom datasets, set `data_mode=local`.
-### Model
-AutoEval can run in 3 evaluation modes - 
-1. `evaluation_mode="endpoint"` uses HuggingFace endpoint. 
-- We recommend launching a HuggingFace endpoint on Gaudi AI accelerator machines to ensure maximum usage and performance. 
-- To launch HF endpoint on Gaudi2, please follow the 2-step instructions here - [tgi-gaudi](https://github.com/huggingface/tgi-gaudi). 
-- Pass your endpoint url as `model_name` argument. 
-2. `evaluation_mode="openai"` uses openai backend. 
-- Please set your `openai_key` and your choice of model as `model_name` argument.
-3. `evaluation_mode="local"` uses your local hardware. 
-- Set `hf_token` argument and set your favourite open-source model in `model_name` argument. 
-- GPU usage will be prioritized after checking it's availability. If GPU is unavailable, the model will run on CPU. 
-## Metrics
-AutoEval provides 4 metrics - factualness, correctness, relevance and readability. You can also bring your own metrics and grading scales. Don't forget to add your metric to `evaluation_metrics` argument. 
-## Generation configuration 
-We provide recommended generation parameters after experimenting with different LLMs. If you'd like to edit them to your requirement, please set generation parameters in `GENERATION_CONFIG` in `run_eval.py`. 
+## Key features 
+✨ Annotation Free evaluation (ground truth answers are not required). </br>
+🧠 Provides score and reasoning for each metric allowing a deep dive into LLM's thought process. </br>
+🤗 Quick access to latest innovations in opensource Large Language Models. </br>
+⏩ Seamlessly boost performance using Intel's powerful AI accelerator chips - Gaudi. </br>
+✍️ Flexibility to bring your own metrics, grading rubrics and datasets. 
 
-## Run using HF endpoint 
+## Run RAGAAF
+
+### 1. Data 
+We provide 3 modes for data loading - `benchmarking`, `unit` and `local` to support benchmarking datasets, unit test cases and your custom datasets. 
+
+Let us see how to load a unit test case. 
 ```python3
-# step 1 : choose your dataset -- local or benchmarking
-dataset = "explodinggradients/ragas-wikiqa"
-data_mode = "benchmarking"
-field_map = {"question": "question", "answer": "generated_with_rag", "context": "context"}
+# load your dataset
+dataset = "unit_data"  # name of the dataset
+data_mode = "unit"  # mode for data loading
+field_map = {
+    "question": "question",
+    "answer": "actual_output",
+    "context": "contexts",
+}  # map your data field such as "actual_output" to RAGAAF field "answer"
 
-# step 2 - choose your favourite LLM and hardware
-
-# evaluation_mode = "openai"
-# model_name = "gpt-4o"
-# openai_key = "<add your openai key>"
-
-# evaluation_mode = "endpoint"
-# model_name = f"http://{host_ip}:{port}"
-
-evaluation_mode = "local"
-model_name = "meta-llama/Llama-3.2-1B-Instruct"
-hf_token = "<add your HF token>"
-
-# step 3 - choose metrics of your choice, you can also add custom metrics
+# your desired unit test case
+question = "What if these shoes don't fit?"
+actual_output = "We offer a 30-day full refund at no extra cost."
+contexts = [
+    "All customers are eligible for a 30 day full refund at no extra cost.",
+    "We can only process full refund upto 30 day after the purchase.",
+]
+examples = [{"question": question, "actual_output": actual_output, "contexts": contexts}]
+```
+### 2. Launch endpoint on Gaudi 
+Please launch an endpoint on Gaudi2 using the most popular LLMs such as `mistralai/Mixtral-8x7B-Instruct-v0.1` by following the 2 step instructions here - [tgi-gaudi](https://github.com/huggingface/tgi-gaudi). 
+### 3. Model 
+We provide 3 evaluation modes - `endpoint`, `local` (supports CPU and GPU), `openai`. 
+```python3
+# choose your favourite LLM and hardware
+host_ip = os.getenv("host_ip", "localhost")
+port = os.getenv("port", "<your port where the endpoint is active>")
+evaluation_mode = "endpoint"
+model_name = f"http://{host_ip}:{port}"
+```
+> `local` evaluation mode uses your local hardware (GPU usage is prioritized over CPU when available). Don't forget to set `hf_token` argument and your favourite open-source model in `model_name` argument. </br>
+> `openai` evaluation mode uses openai backend. Please set your `openai_key` as argument and your choice of OpenAI model as `model_name` argument.
+### 4. Metrics 
+```python3
+# choose metrics of your choice, you can also add custom metrics
 evaluation_metrics = ["factualness", "relevance", "correctness", "readability"]
+```
+### 5. Evaluation 
+```python3
+from evals.metrics.ragaaf import AnnotationFreeEvaluate
 
-# step 4 - run evaluation
 evaluator = AnnotationFreeEvaluate(
     dataset=dataset,
+    examples=examples,
     data_mode=data_mode,
     field_map=field_map,
     evaluation_mode=evaluation_mode,
     model_name=model_name,
     evaluation_metrics=evaluation_metrics,
     # openai_key=openai_key,
-    hf_token=hf_token,
-    debug_mode=True,
+    # hf_token=hf_token,
 )
 
 responses = evaluator.measure()
@@ -63,4 +73,17 @@ responses = evaluator.measure()
 for response in responses:
     print(response)
 ```
-That's it! For troubleshooting, please submit an issue and we will get right on it. 
+## Customizations 
+1. If you'd like to change generation parameters, please see in `GENERATION_CONFIG` in `run_eval.py`. 
+2. If you'd like to add a new metric, please mimic an existing metric, e.g., `./prompt_templates/correctness.py`
+```python3
+class MetricName:
+    name = "metric_name"
+    required_columns = ["answer", "context", "question"]  # the fields your metric needs
+    template = """- <metric_name> : <metric_name> measures <note down what you'd like this metric to measure>.
+  - Score 1: <add your grading rubric for score 1>.
+  - Score 2: <add your grading rubric for score 2>.
+  - Score 3: <add your grading rubric for score 3>.
+  - Score 4: <add your grading rubric for score 4>.
+  - Score 5: <add your grading rubric for score 5>."""
+```
