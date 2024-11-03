@@ -157,10 +157,7 @@ class Evaluator:
         query = self.get_query(data)
         data = {"inputs": query}
         headers = {"Content-Type": "application/json"}
-        response = requests.post(arguments.tei_embedding_endpoint + "/embed",
-            data=json.dumps(data),
-            headers=headers
-        )
+        response = requests.post(arguments.tei_embedding_endpoint + "/embed", data=json.dumps(data), headers=headers)
         if response.ok:
             embedding = response.json()[0]
         else:
