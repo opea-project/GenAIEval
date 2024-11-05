@@ -1,8 +1,6 @@
 # HELMET: How to Evaluate Long-context Language Models Effectively and Thoroughly <img src="assets/logo.jpeg" alt="HELMET" width="30">
 
----
-
-[[Paper](https://arxiv.org/abs/2410.02694)] 
+[[Paper](https://arxiv.org/abs/2410.02694)]
 
 HELMET <img src="assets/logo.jpeg" alt="HELMET" width="30"> (How to Evaluate Long-context Models Effectively and Thoroughly) is a comprehensive benchmark for long-context language models covering seven diverse categories of tasks.
 The datasets are application-centric and are designed to evaluate models at different lengths and levels of complexity.
@@ -154,7 +152,7 @@ To use VLLM to run the evaluation, you can simply add the `--use_vllm` flag to t
 ```bash
 python eval.py --config configs/cite.yaml --use_vllm
 ```
-Disclaimer: 
+Disclaimer:
 VLLM can be much faster than using the native HuggingFace generation; however, we found that the results can be slightly different, so we recommend using the native HuggingFace generation for the final evaluation.
 All reported results in the paper are from the native HuggingFace generation.
 The speedup is much more noticeable for tasks that generates more tokens (e.g., summarization may see up to 2x speedup), whereas the speedup is less noticeable for tasks that generate fewer tokens (e.g., JSON KV may see less than 5% speedup).
@@ -173,13 +171,13 @@ If you encounter any problems, you can also open an issue here. Please try to sp
 If you find our work useful, please cite us:
 ```
 @misc{yen2024helmetevaluatelongcontextlanguage,
-      title={HELMET: How to Evaluate Long-Context Language Models Effectively and Thoroughly}, 
+      title={HELMET: How to Evaluate Long-Context Language Models Effectively and Thoroughly},
       author={Howard Yen and Tianyu Gao and Minmin Hou and Ke Ding and Daniel Fleischer and Peter Izsak and Moshe Wasserblat and Danqi Chen},
       year={2024},
       eprint={2410.02694},
       archivePrefix={arXiv},
       primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2410.02694}, 
+      url={https://arxiv.org/abs/2410.02694},
 }
 ```
 
@@ -279,7 +277,7 @@ Please also cite the original dataset creators, listed below:
       Karpukhin, Vladimir  and Maillard, Jean  and
       Plachouras, Vassilis  and Rockt{\"a}schel, Tim  and
       Riedel, Sebastian},
-    booktitle = "Proceedings of the 2021 Conference of the North American Chapter of the Association 
+    booktitle = "Proceedings of the 2021 Conference of the North American Chapter of the Association
                  for Computational Linguistics: Human Language Technologies",
     month = jun,
     year = "2021",
@@ -383,7 +381,7 @@ Please also cite the original dataset creators, listed below:
 }
 
 @misc{bajaj2018ms,
-      title={MS MARCO: A Human Generated MAchine Reading COmprehension Dataset}, 
+      title={MS MARCO: A Human Generated MAchine Reading COmprehension Dataset},
       author={Payal Bajaj and Daniel Campos and Nick Craswell and Li Deng and Jianfeng Gao and Xiaodong Liu and Rangan Majumder and Andrew McNamara and Bhaskar Mitra and Tri Nguyen and Mir Rosenberg and Xia Song and Alina Stoica and Saurabh Tiwary and Tong Wang},
       year={2018},
       eprint={1611.09268},
@@ -421,13 +419,13 @@ Please also cite the original dataset creators, listed below:
 }
 
 @misc{zhang2024inftybenchextendinglongcontext,
-  title={$\infty$Bench: Extending Long Context Evaluation Beyond 100K Tokens}, 
+  title={$\infty$Bench: Extending Long Context Evaluation Beyond 100K Tokens},
   author={Xinrong Zhang and Yingfa Chen and Shengding Hu and Zihang Xu and Junhao Chen and Moo Khai Hao and Xu Han and Zhen Leng Thai and Shuo Wang and Zhiyuan Liu and Maosong Sun},
   year={2024},
   eprint={2402.13718},
   archivePrefix={arXiv},
   primaryClass={cs.CL},
-  url={https://arxiv.org/abs/2402.13718}, 
+  url={https://arxiv.org/abs/2402.13718},
 }
 
 @inproceedings{li-roth-2002-learning,
