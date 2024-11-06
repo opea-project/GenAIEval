@@ -61,7 +61,7 @@ jobs:
             docker stop ${{ env.CONTAINER_NAME }}
             docker rm -vf ${{ env.CONTAINER_NAME }} || true
           fi
-          docker run -tid --runtime=habana --name=${{ env.CONTAINER_NAME }} -v ${{ github.workspace }}:/GenAIEval -v /dev/shm:/dev/shm ${{ env.DOCKER_NAME }}:${{ env.DOCKER_TAG }}
+          docker run -tid --runtime=habana -e HABANA_VISIBLE_DEVICES=all --name=${{ env.CONTAINER_NAME }} -v ${{ github.workspace }}:/GenAIEval -v /dev/shm:/dev/shm ${{ env.DOCKER_NAME }}:${{ env.DOCKER_TAG }}
 
       - name: Evaluation
         run: |
