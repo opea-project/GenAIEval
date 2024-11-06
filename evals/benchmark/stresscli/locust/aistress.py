@@ -120,6 +120,7 @@ class AiStressUser(HttpUser):
             "faqgenfixed",
             "faqgenbench",
         ]
+        test_start_time = time.time()
         try:
             start_ts = time.perf_counter()
             with self.client.post(
@@ -150,6 +151,7 @@ class AiStressUser(HttpUser):
                             "response_string": resp.text,
                             "first_token_latency": time.perf_counter() - start_ts,
                             "total_latency": time.perf_counter() - start_ts,
+                            "test_start_time": test_start_time,
                         }
                     else:
                         first_token_ts = None
@@ -184,6 +186,7 @@ class AiStressUser(HttpUser):
                             "response_string": complete_response,
                             "first_token_latency": first_token_ts - start_ts,
                             "total_latency": end_ts - start_ts,
+                            "test_start_time": test_start_time,
                         }
                     reqdata = bench_package.respStatics(self.environment, reqData, respData)
                     logging.debug(f"Request data collected {reqdata}")
