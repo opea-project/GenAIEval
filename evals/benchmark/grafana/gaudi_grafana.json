@@ -318,7 +318,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "bdyfezhfquygwb"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "PCIe Throughput.",
         "fieldConfig": {
@@ -398,7 +398,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "bdyfezhfquygwb"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "exemplar": false,
@@ -413,7 +413,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "bdyfezhfquygwb"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "exemplar": false,
