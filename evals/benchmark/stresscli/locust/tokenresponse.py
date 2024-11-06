@@ -26,9 +26,7 @@ def respStatics(environment, req, resp):
         num_token_input_prompt = -1
 
     num_token_output = len(
-        tokenizer.encode(
-            resp["response_string"].lstrip().encode("utf-8").decode("unicode_escape"), add_special_tokens=False
-        )
+        tokenizer.encode(resp["response_string"].encode("utf-8").decode("unicode_escape"), add_special_tokens=False)
     )
 
     return {
@@ -37,6 +35,7 @@ def respStatics(environment, req, resp):
         "first_token": resp["first_token_latency"] * 1000,
         "next_token": (resp["total_latency"] - resp["first_token_latency"]) / (num_token_output - 1) * 1000,
         "total_latency": resp["total_latency"] * 1000,
+        "test_start_time": resp["test_start_time"],
     }
 
 
@@ -47,7 +46,6 @@ def staticsOutput(environment, reqlist):
     e2e_lat = []
     tokens_input = 0
     tokens_output = 0
-    duration = environment.runner.stats.last_request_timestamp - environment.runner.stats.start_time
 
     if len(reqlist) == 0:
         logging.debug(f"len(reqlist): {len(reqlist)}, skip printing")
@@ -60,6 +58,8 @@ def staticsOutput(environment, reqlist):
         e2e_lat.append(req["total_latency"])
         tokens_output += req["tokens_output"]
         tokens_input += req["tokens_input"]
+        test_start_time = req["test_start_time"]
+    duration = environment.runner.stats.last_request_timestamp - test_start_time
 
     # Statistics for success response data only
     if tokens_output == 0:
@@ -70,8 +70,8 @@ def staticsOutput(environment, reqlist):
             " Output Tokens: {}, RPS: {:.2f}, Input Tokens per Second: {:.2f}, Output Tokens per Second: {:.2f}"
         )
     e2e_msg = "End to End latency(ms),    P50: {:.2f},   P90: {:.2f},   P99: {:.2f},   Avg: {:.2f}"
-    first_msg = "First token latency(ms),   P50: {:.2f},   P90: {:.2f},   P99: {:.2f},   Avg: {:.2f}"
-    next_msg = "Next token latency(ms),   P50: {:.2f},   P90: {:.2f},   P99: {:.2f},   Avg: {:.2f}"
+    first_msg = "Time to First Token-TTFT(ms),   P50: {:.2f},   P90: {:.2f},   P99: {:.2f},   Avg: {:.2f}"
+    next_msg = "Time Per Output Token-TPOT(ms),   P50: {:.2f},   P90: {:.2f},   P99: {:.2f},   Avg: {:.2f}"
     average_msg = "Average token latency(ms)     : {:.2f}"
     console_logger.warning("\n=================Total statistics=====================")
     if tokens_output == 0:
