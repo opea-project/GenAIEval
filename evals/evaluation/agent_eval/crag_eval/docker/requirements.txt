@@ -6,3 +6,4 @@ langchain-huggingface
 pandas
 ragas
 sentence_transformers
+nltk
