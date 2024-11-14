@@ -50,8 +50,8 @@ def grade_answers(args, test_case):
         scores = []
         for case in test_case:
             metric.measure(case)
-            scores.append(metric.score["answer_correctness"])
-            print(metric.score)
+            scores.append(metric.score["answer_correctness"][0])
+            print(metric.score["answer_correctness"][0])
             print("-" * 50)
         return scores
 
@@ -79,13 +79,15 @@ if __name__ == "__main__":
     # print(test_case)
 
     scores = grade_answers(args, test_case)
+    print(scores)
 
     # save the scores
     if args.batch_grade:
         print("Aggregated answer correctness score: ", scores)
     else:
         data["answer_correctness"] = scores
-        print("Average answer correctness score: ", data["answer_correctness"].mean())
-        output_file = args.filename.split(".")[0] + "_graded.csv"
+        output_file = args.filename.replace(".csv", "_graded.csv") 
         data.to_csv(os.path.join(args.filedir, output_file), index=False)
         print("Scores saved to ", os.path.join(args.filedir, output_file))
+
+        print("Average answer correctness score: ", data["answer_correctness"].mean())

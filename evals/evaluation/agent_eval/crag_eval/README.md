@@ -46,7 +46,7 @@ cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/crag_eval/preprocess_data
 bash run_data_preprocess.sh
 ```
 **Note**: This is an example of data processing. You can develop and optimize your own data processing for this benchmark.
-3. Sample queries for benchmark
+3. (Optional) Sample queries for benchmark
 The CRAG dataset has more than 4000 queries, and running all of them can be very expensive and time-consuming. You can sample a subset for benchmark. Here we provide a script to sample up to 5 queries per question_type per dynamism in each domain. For example, we were able to get 92 queries from the music domain using the script.
 ```
 bash run_sample_data.sh
@@ -57,18 +57,18 @@ Here we showcase a RAG agent in GenAIExample repo. Please refer to the README in
 
 > **Please note**: This is an example. You can build your own agent systems using OPEA components, then expose your own systems as an endpoint for this benchmark.
 
-To launch the agent in our AgentQnA example, open another terminal and build images and launch agent system there.
+To launch the agent in our AgentQnA example, open another terminal and follow the instructions below.
 1. Build images
 ```
 export $WORKDIR=<your-work-directory>
 cd $WORKDIR
 git clone https://github.com/opea-project/GenAIExamples.git
 cd GenAIExamples/AgentQnA/tests/
-bash 1_build_images.sh
+bash step1_build_images.sh
 ```
 2. Start retrieval tool
 ```
-bash 2_start_retrieval_tool.sh
+bash step2_start_retrieval_tool.sh
 ```
 3. Ingest data into vector database and validate retrieval tool
 ```
@@ -86,7 +86,7 @@ python3 index_data.py --host_ip $host_ip --filedir ${WORKDIR}/datasets/crag_docs
 ```
 # Go to the terminal where you launched the AgentQnA example
 cd $WORKDIR/GenAIExamples/AgentQnA/tests/
-bash 4_launch_and_validate_agent.sh
+bash step4_launch_and_validate_agent.sh
 ```
 
 ## Run CRAG benchmark
