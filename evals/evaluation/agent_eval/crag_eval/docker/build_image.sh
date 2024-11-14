@@ -5,7 +5,7 @@ dockerfile=Dockerfile
 
 docker build \
     -f ${dockerfile} . \
-    -t crag-eval:latest \
+    -t crag-eval:v1.1 \
     --network=host \
     --build-arg http_proxy=${http_proxy} \
     --build-arg https_proxy=${https_proxy} \
