@@ -3,6 +3,7 @@ evaluate
 jieba
 langchain-community
 langchain-huggingface
+langchain-openai
 pandas
 ragas
 sentence_transformers
