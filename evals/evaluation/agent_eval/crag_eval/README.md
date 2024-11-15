@@ -53,7 +53,7 @@ bash run_sample_data.sh
 ```
 
 ## Launch agent QnA system
-Here we showcase a RAG agent in GenAIExample repo. Please refer to the README in the [AgentQnA example](https://github.com/opea-project/GenAIExamples/tree/main/AgentQnA/README.md) for more details.
+Here we showcase an agent system in OPEA GenAIExamples repo. Please refer to the README in the [AgentQnA example](https://github.com/opea-project/GenAIExamples/tree/main/AgentQnA/README.md) for more details.
 
 > **Please note**: This is an example. You can build your own agent systems using OPEA components, then expose your own systems as an endpoint for this benchmark.
 
@@ -88,6 +88,7 @@ python3 index_data.py --host_ip $host_ip --filedir ${WORKDIR}/datasets/crag_docs
 cd $WORKDIR/GenAIExamples/AgentQnA/tests/
 bash step4_launch_and_validate_agent_gaudi.sh
 ```
+Note: There are two agents in the agent system: a RAG agent (as the worker agent) and a ReAct agent (as the supervisor agent). For CRAG benchmark, we will use the RAG agent.
 
 ## Run CRAG benchmark
 Once you have your agent system up and running, the next step is to generate answers with agent. Change the variables in the script below and run the script. By default, it will run a sampled set of queries in music domain.
@@ -123,3 +124,39 @@ python3 test_llm_endpoint.py
 cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/crag_eval/run_benchmark/
 bash run_grading.sh
 ```
+ 
+### Validation of LLM-as-judge
+We validated RAGAS answer correctness as the metric to evaluate agents. We sampled 92 queries from the 374 music domain questions and conducted human evaluations on the conventional RAG answers, single RAG agent answers and hierachical ReAct agent answers of the 92 queries. We ran our experiments on Intel Gaudi2 accelerators. We used `meta-llama/Meta-Llama-3-70B-Instruct` as the LLM judge.
+
+We followed the criteria in the [CRAG paper](https://arxiv.org/pdf/2406.04744) to get human scores: 
+1. score 1 if the answer matches the golden answer or semantically similar.
+2. score 0 if the asnwer misses information, or is "I don't know", “I’m sorry I can’t find ...”, a system error such as recursion limit is hit, or a request from the system to clarify the original question.
+3. score -1 if the answer contains incorrect information.
+
+Please refer to [RAGAS source code](https://github.com/explodinggradients/ragas/blob/main/src/ragas/metrics/_answer_correctness.py) for the implementation of its `answer correctness` score.
+
+|Setup           |Mean Human score|Mean RAGAS `answer_correctness` score|
+|----------------|-----------|------------------------------|
+|Conventional RAG|0.05       |0.37|
+|Single RAG agent|0.18       |0.43|
+|Hierachical ReAct agent|0.22|0.54|
+
+We can see that the human scores and the RAGAS `answer_correctness` scores follow the same trend. Therefore, we went on to use RAGAS `answer_correctness` scores produced by `meta-llama/Meta-Llama-3-70B-Instruct` as the LLM judge for the evaluation of OPEA agents on the full CRAG music domain dataset.
+
+We have made available our scripts to calculate the mean scores. Refer to the `run_compare_scores.sh` script in the `run_benchmark` folder.
+
+
+## Benchmark results for OPEA RAG Agent
+We have evaluated the RAG agent (`rag_agent_llama` strategy) in the OPEA AgentQnA example on CRAG music domain dataset (374 questions in total). We used `meta-llama/Meta-Llama-3-70B-Instruct` and we served the LLM with tgi-gaudi on 4 Intel Gaudi2 accelerator cards. Refer to the docker compose yaml files in the AgentQnA example for more details on the configurations.
+
+For the tests of conventional RAG, we used the script in the `run_benchmark` folder: `run_conv_rag.sh`. And we used the same LLM, serving configs and generation parameters as the RAG agent.
+
+
+|Setup           |Mean RAGAS `answer_correctness` score|
+|----------------|------------------------------|
+|Conventional RAG|0.42|
+|Single RAG agent|0.43|
+|Hierachical ReAct agent|To come soon...|
+
+Note: Currently OPEA agents do not support tool selection (i.e., only give a subset of tools to agent based on query), which we found can boost agent performance when the number of tools is large. We are in the process of enabling tool selection and will report the performance of Hierachical ReAct agent once tool selection is enabled. 
+
