@@ -4,6 +4,7 @@
 dockerfile=Dockerfile
 
 docker build \
+    --no-cache \
     -f ${dockerfile} . \
     -t crag-eval:v1.1 \
     --network=host \

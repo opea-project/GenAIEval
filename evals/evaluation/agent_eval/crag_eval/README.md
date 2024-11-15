@@ -57,7 +57,7 @@ Here we showcase a RAG agent in GenAIExample repo. Please refer to the README in
 
 > **Please note**: This is an example. You can build your own agent systems using OPEA components, then expose your own systems as an endpoint for this benchmark.
 
-To launch the agent in our AgentQnA example, open another terminal and follow the instructions below.
+To launch the agent in our AgentQnA example on Intel Gaudi accelerators, open another terminal and follow the instructions below.
 1. Build images
 ```
 export $WORKDIR=<your-work-directory>
@@ -86,7 +86,7 @@ python3 index_data.py --host_ip $host_ip --filedir ${WORKDIR}/datasets/crag_docs
 ```
 # Go to the terminal where you launched the AgentQnA example
 cd $WORKDIR/GenAIExamples/AgentQnA/tests/
-bash step4_launch_and_validate_agent.sh
+bash step4_launch_and_validate_agent_gaudi.sh
 ```
 
 ## Run CRAG benchmark
