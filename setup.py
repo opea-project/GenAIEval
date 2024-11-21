@@ -3,8 +3,9 @@
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-from setuptools import find_packages, setup
 import re
+
+from setuptools import find_packages, setup
 
 try:
     filepath = "./evals/version.py"
