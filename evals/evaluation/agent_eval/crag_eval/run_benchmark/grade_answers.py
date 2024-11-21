@@ -79,7 +79,7 @@ if __name__ == "__main__":
     # print(test_case)
 
     scores = grade_answers(args, test_case)
-    print(scores)
+    #print(scores)
 
     # save the scores
     if args.batch_grade:
