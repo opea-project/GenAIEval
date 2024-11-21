@@ -23,8 +23,9 @@ def respStatics(environment, req, resp):
 
 
         print("xzz-----------------------------", req)
-        content = " ".join([msg["content"] for msg in req["messages"]])
-        num_token_input_prompt = len(tokenizer.encode(content))
+        num_token_input_prompt=1024
+        #content = " ".join([msg["content"] for msg in req["messages"]])
+        #num_token_input_prompt = len(tokenizer.encode(content))
     else:
         num_token_input_prompt = -1
 

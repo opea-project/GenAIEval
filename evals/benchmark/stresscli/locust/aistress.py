@@ -164,8 +164,10 @@ class AiStressUser(HttpUser):
                                 try:
                                     data = json.loads(event.data)
                                     if "choices" in data and len(data["choices"]) > 0:
-                                        delta = data["choices"][0].get("delta", {})
-                                        content = delta.get("content", "")
+                                        delta = data["choices"][0]
+                                        #delta = data["choices"][0].get("delta", {})
+                                        content = delta.get("text", "")
+                                        #content = delta.get("content", "")
                                         complete_response += content
                                 except json.JSONDecodeError:
                                     continue
