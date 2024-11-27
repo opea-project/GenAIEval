@@ -99,7 +99,7 @@ test_cases:
       service_name: "retriever-svc"
       parameters:
         search_type: "similarity"
-        k: 4
+        k: 1
         fetch_k: 20
         lambda_mult: 0.5
         score_threshold: 0.2
@@ -121,5 +121,6 @@ test_cases:
       dataset: # Activate if random_prompt=true: leave blank = default dataset(WebQuestions) or sharegpt
       prompts: # User-customized prompts, activate if random_prompt=false.
       max_output: 128  # max number of output tokens
+      k: 1 # number of retrieved documents
 ```
 If you'd like to use sharegpt dataset, please download the dataset according to the [guide](https://github.com/lm-sys/FastChat/issues/90#issuecomment-1493250773). Merge all downloaded data files into one file named sharegpt.json and put the file at `evals/benchmark/stresscli/dataset`.
