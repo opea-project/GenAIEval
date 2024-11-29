@@ -50,6 +50,13 @@ jobs:
         with:
           submodules: "recursive"
           fetch-tags: true
+      
+      - name: Check Dangerous Command Injection
+        if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
+        uses: opea-project/validation/actions/check-cmd@main
+        with:
+          work_dir: ${{ github.workspace }}
+          
     # We need this because GitHub needs to clone the branch to pipeline
       - name: Docker Build
         run: |
