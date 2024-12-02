@@ -13,9 +13,17 @@ from langchain_huggingface import HuggingFaceEndpoint
 
 # import * is only allowed at module level according to python syntax
 try:
-    from ragas.metrics import *
+    # from ragas.metrics import *
     from ragas import evaluate
-    from ragas.metrics import __all__ 
+    from ragas.metrics import (
+                answer_correctness,
+                answer_relevancy,
+                answer_similarity,
+                context_precision,
+                context_recall,
+                context_utilization,
+                faithfulness,
+            )
 except ModuleNotFoundError:
     raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
 
@@ -24,6 +32,25 @@ try:
 except ModuleNotFoundError:
     raise ModuleNotFoundError("Please install dataset")
 
+VALIDATED_LIST = [
+    "answer_correctness",
+    "answer_relevancy",
+    "answer_similarity",
+    "context_precision",
+    "context_recall",
+    "faithfulness",
+    "context_utilization",
+]
+
+metrics_mapping = {
+        "answer_correctness": answer_correctness,
+        "answer_relevancy": answer_relevancy,
+        "answer_similarity": answer_similarity,
+        "context_precision": context_precision,
+        "context_recall": context_recall,
+        "faithfulness": faithfulness,
+        "context_utilization": context_utilization,
+    }
 
 
 def format_ragas_metric_name(name: str):
@@ -45,21 +72,6 @@ class RagasMetric:
         self.embeddings = embeddings
         self.metrics = metrics
 
-        ALL_METRICS=__all__   
-            
-        print("ALL METRICS: ", ALL_METRICS)
-        self.metric_names = list(set(ALL_METRICS))
-        # Note - summarization score metric is not working with best open-source LLMs
-        # Note - which is why we are removing it from our offering at the moment.
-        self.metric_names.remove("summarization_score")
-        self.metric_instances = {}
-        for metric in self.metric_names:
-            try:
-                self.metric_instances[metric] = eval(metric)
-            except:
-                pass
-
-
         openai_key = os.getenv("OPENAI_API_KEY", None)
         if openai_key is not None:
             print("OPENAI_API_KEY is provided, ragas initializes the model by OpenAI.")
@@ -78,9 +90,9 @@ class RagasMetric:
             tmp_metrics = []
             # check supported list
             for metric in self.metrics:
-                if metric not in self.metric_names:
+                if metric not in VALIDATED_LIST:
                     raise ValueError(
-                        "metric should be in supported list {}. ".format(self.metric_names)
+                        "metric should be in supported list {}. ".format(VALIDATED_LIST)
                         + "ClientResponseError raised with LangchainLLM "
                         + "when context_precision, context_recall ran. "
                         + "Here are the related issues described in ragas "
@@ -88,12 +100,12 @@ class RagasMetric:
                         + "https://github.com/explodinggradients/ragas/issues/664."
                     )
                 else:
-                    if metric == "AnswerRelevancy" and self.embeddings is None:
+                    if metric == "answer_relevancy" and self.embeddings is None:
                         raise ValueError("AnswerRelevancy metric need provide embeddings model.")
-                    tmp_metrics.append(self.metric_instances[metric])
+                    tmp_metrics.append(metrics_mapping[metric])
             self.metrics = tmp_metrics
         else:
-            self.metrics = list(self.metric_instances.values())
+            self.metrics = [metrics_mapping[metric] for metric in VALIDATED_LIST]
 
         # Find necessary input fields using the given metrics
         _required_columns = set()
