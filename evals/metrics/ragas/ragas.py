@@ -21,7 +21,6 @@ try:
                 answer_similarity,
                 context_precision,
                 context_recall,
-                context_utilization,
                 faithfulness,
             )
 except ModuleNotFoundError:
@@ -39,7 +38,6 @@ VALIDATED_LIST = [
     "context_precision",
     "context_recall",
     "faithfulness",
-    "context_utilization",
 ]
 
 metrics_mapping = {
@@ -49,7 +47,6 @@ metrics_mapping = {
         "context_precision": context_precision,
         "context_recall": context_recall,
         "faithfulness": faithfulness,
-        "context_utilization": context_utilization,
     }
 
 
