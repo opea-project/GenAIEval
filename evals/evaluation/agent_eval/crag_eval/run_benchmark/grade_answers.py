@@ -79,14 +79,14 @@ if __name__ == "__main__":
     # print(test_case)
 
     scores = grade_answers(args, test_case)
-    #print(scores)
+    # print(scores)
 
     # save the scores
     if args.batch_grade:
         print("Aggregated answer correctness score: ", scores)
     else:
         data["answer_correctness"] = scores
-        output_file = args.filename.replace(".csv", "_graded.csv") 
+        output_file = args.filename.replace(".csv", "_graded.csv")
         data.to_csv(os.path.join(args.filedir, output_file), index=False)
         print("Scores saved to ", os.path.join(args.filedir, output_file))
 

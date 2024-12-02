@@ -127,11 +127,11 @@ bash run_grading.sh
 ```
  
 ### Validation of LLM-as-judge
-We validated RAGAS answer correctness as the metric to evaluate agents. We sampled 92 queries from the full music domain dataset (up to 5 questions per sub-category for all 32 sub-categories), and conducted human evaluations on the conventional RAG answers, the single RAG agent answers and the hierachical ReAct agent answers of the 92 queries. 
+We validated RAGAS answer correctness as the metric to evaluate agents. We sampled 92 queries from the full music domain dataset (up to 5 questions per sub-category for all 32 sub-categories), and conducted human evaluations on the conventional RAG answers, the single RAG agent answers and the hierarchical ReAct agent answers of the 92 queries. 
 
 We followed the criteria in the [CRAG paper](https://arxiv.org/pdf/2406.04744) to get human scores: 
 1. score 1 if the answer matches the golden answer or semantically similar.
-2. score 0 if the asnwer misses information, or is "I don't know", “I’m sorry I can’t find ...”, a system error such as recursion limit is hit, or a request from the system to clarify the original question.
+2. score 0 if the answer misses information, or is "I don't know", “I’m sorry I can’t find ...”, a system error such as recursion limit is hit, or a request from the system to clarify the original question.
 3. score -1 if the answer contains incorrect information.
 
 On the other hand, RAGAS `answer_correctness` score is on a scale of 0-1 and is a weighted average of 1) an F1 score and 2) similarity between answer and golden answer. The F1 score is based on the number of statements in the answer supported or not supported by the golden answer, and the number of statements in the golden answer appeared or did not appear in the answer. Please refer to [RAGAS source code](https://github.com/explodinggradients/ragas/blob/main/src/ragas/metrics/_answer_correctness.py) for the implementation of its `answer_correctness` score. We ran RAGAS on Intel Gaudi2 accelerators. We used `meta-llama/Meta-Llama-3.1-70B-Instruct` as the LLM judge.
@@ -140,7 +140,7 @@ On the other hand, RAGAS `answer_correctness` score is on a scale of 0-1 and is 
 |----------------|-----------|------------------------------|
 |Conventional RAG|0.05       |0.37|
 |Single RAG agent|0.18       |0.43|
-|Hierachical ReAct agent|0.22|0.54|
+|Hierarchical ReAct agent|0.22|0.54|
 
 We can see that the human scores and the RAGAS `answer_correctness` scores follow the same trend, although the two scoring methods used different grading criteria and methods. Since LLM-as-judge is more scalable for larger datasets, we decided to use RAGAS `answer_correctness` scores (produced by `meta-llama/Meta-Llama-3-70B-Instruct` as the LLM judge) for the evaluation of OPEA agents on the full CRAG music domain dataset.
 
@@ -159,7 +159,7 @@ The Conventional RAG and Single RAG agent use the same retriever. The Hierarchic
 |----------------|------------------------------|
 |Conventional RAG|0.42|
 |Single RAG agent|0.43|
-|Hierachical ReAct agent|0.53|
+|Hierarchical ReAct agent|0.53|
 
 From the results, we can see that the single RAG agent performs better than conventional RAG, while the hierarchical ReAct agent has the highest `answer_correctness` score. The reasons for such performance improvements:
 1. RAG agent rewrites query and checks the quality of retrieved documents before feeding the docs to generation. It can get docs that are more relevant to generate answers. It can also decompose complex questions into modular tasks and get related docs for each task and then aggregate info to come up with answers.
@@ -170,7 +170,7 @@ Note: The performance result for the hierarchical ReAct agent is with tool selec
 ### Comparison with GPT-4o-mini
 Open-source LLM serving libraries (tgi and vllm) have limited capabilities in producing tool-call objects. Although vllm improved its tool-calling capabilities recently, parallel tool calling is still not well supported. Therefore, we had to write our own prompts and output parsers for the `rag_agent_llama` and `react_llama` strategies for using open-source LLMs served with open-source serving frameworks for OPEA agent microservices.
 
-Below we show the comparisons of `meta-llama/Meta-Llama-3.1-70B-Instruct` versus OpenAI's `gpt-4o-mini-2024-07-18` on 20 sampled queries from the CRAG music domain dataset. We used human evaluation criteria outlined above. The numbers are the average scores graged by human. The parathesis denotes the OPEA agent strategy used.
+Below we show the comparisons of `meta-llama/Meta-Llama-3.1-70B-Instruct` versus OpenAI's `gpt-4o-mini-2024-07-18` on 20 sampled queries from the CRAG music domain dataset. We used human evaluation criteria outlined above. The numbers are the average scores graged by human. The parenthesis denotes the OPEA agent strategy used.
 
 |Setup|Llama3.1-70B-Instruct|gpt-4o-mini|
 |-----|---------------------|-----------|
@@ -179,7 +179,3 @@ Below we show the comparisons of `meta-llama/Meta-Llama-3.1-70B-Instruct` versus
 |Hierarchical ReAct agent|0.55 (`react_llama`)|0.75 (`react_langgraph`)|
 
 From the comparisons on this small subset, we can see that OPEA agents using `meta-llama/Meta-Llama-3.1-70B-Instruct` with calibrated prompt templates and output parsers are only slightly behind `gpt-4o-mini-2024-07-18` with proprietary tool-calling capabilities.
-
-
-
-

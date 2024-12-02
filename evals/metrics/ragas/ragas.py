@@ -16,13 +16,13 @@ try:
     # from ragas.metrics import *
     from ragas import evaluate
     from ragas.metrics import (
-                answer_correctness,
-                answer_relevancy,
-                answer_similarity,
-                context_precision,
-                context_recall,
-                faithfulness,
-            )
+        answer_correctness,
+        answer_relevancy,
+        answer_similarity,
+        context_precision,
+        context_recall,
+        faithfulness,
+    )
 except ModuleNotFoundError:
     raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
 
@@ -41,13 +41,13 @@ VALIDATED_LIST = [
 ]
 
 metrics_mapping = {
-        "answer_correctness": answer_correctness,
-        "answer_relevancy": answer_relevancy,
-        "answer_similarity": answer_similarity,
-        "context_precision": context_precision,
-        "context_recall": context_recall,
-        "faithfulness": faithfulness,
-    }
+    "answer_correctness": answer_correctness,
+    "answer_relevancy": answer_relevancy,
+    "answer_similarity": answer_similarity,
+    "context_precision": context_precision,
+    "context_recall": context_recall,
+    "faithfulness": faithfulness,
+}
 
 
 def format_ragas_metric_name(name: str):
@@ -82,7 +82,7 @@ class RagasMetric:
         else:
             print("Accepting user-initialized model as we could not detect OpenAI key or HuggingFace Endpoint URL.")
             self.chat_model = self.model
-        
+
         if self.metrics is not None:
             tmp_metrics = []
             # check supported list
@@ -131,7 +131,7 @@ class RagasMetric:
     async def a_measure(self, test_case: Dict):
         return self.measure(test_case)
 
-    def measure(self, test_case: Dict):        
+    def measure(self, test_case: Dict):
         # get only necessary columns from test case
         data = {column: test_case[column] for column in self._required_columns}
         dataset = Dataset.from_dict(data)

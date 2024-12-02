@@ -4,7 +4,7 @@ jieba
 langchain-community
 langchain-huggingface
 langchain-openai
+nltk
 pandas
 ragas
 sentence_transformers
-nltk
