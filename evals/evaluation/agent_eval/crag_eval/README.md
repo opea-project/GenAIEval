@@ -88,18 +88,19 @@ python3 index_data.py --host_ip $host_ip --filedir ${WORKDIR}/datasets/crag_docs
 cd $WORKDIR/GenAIExamples/AgentQnA/tests/
 bash step4_launch_and_validate_agent_gaudi.sh
 ```
-Note: There are two agents in the agent system: a RAG agent (as the worker agent) and a ReAct agent (as the supervisor agent). For CRAG benchmark, we will use the RAG agent.
+Note: There are two agents in the agent system: a RAG agent (as the worker agent) and a ReAct agent (as the supervisor agent). We can evaluate both agents - just need to specify the agent endpoint url in the scripts - see instructions below.
 
 ## Run CRAG benchmark
-Once you have your agent system up and running, the next step is to generate answers with agent. Change the variables in the script below and run the script. By default, it will run a sampled set of queries in music domain.
+Once you have your agent system up and running, the next step is to generate answers with agent. Change the variables in the script below and run the script. By default, it will run the entire set of queries in the music domain (in total 373 queries). You can choose to run other domains or just run a sampled subset of music domain.
 ```
 # Come back to the interactive crag-eval docker container
 cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/crag_eval/run_benchmark
+# Remember to specify the agent endpoint url in the script.
 bash run_generate_answer.sh
 ```
 
 ## Use LLM-as-judge to grade the answers
-1. Launch llm endpoint with HF TGI: in another terminal, run the command below. By default, `meta-llama/Meta-Llama-3-70B-Instruct` is used as the LLM judge.
+1. Launch llm endpoint with HF TGI: in another terminal, run the command below. By default, `meta-llama/Meta-Llama-3.1-70B-Instruct` is used as the LLM judge.
 ```
 cd llm_judge
 bash launch_llm_judge_endpoint.sh
@@ -133,7 +134,7 @@ We followed the criteria in the [CRAG paper](https://arxiv.org/pdf/2406.04744) t
 2. score 0 if the asnwer misses information, or is "I don't know", “I’m sorry I can’t find ...”, a system error such as recursion limit is hit, or a request from the system to clarify the original question.
 3. score -1 if the answer contains incorrect information.
 
-On the other hand, RAGAS `answer_correctness` score is on a scale of 0-1 and is a weighted average of 1) an F1 score and 2) similarity between answer and golden answer. The F1 score is based on the number of statements in the answer supported or not supported by the golden answer, and the number of statements in the golden answer appeared or did not appear in the answer. Please refer to [RAGAS source code](https://github.com/explodinggradients/ragas/blob/main/src/ragas/metrics/_answer_correctness.py) for the implementation of its `answer_correctness` score. We ran RAGAS on Intel Gaudi2 accelerators. We used `meta-llama/Meta-Llama-3-70B-Instruct` as the LLM judge.
+On the other hand, RAGAS `answer_correctness` score is on a scale of 0-1 and is a weighted average of 1) an F1 score and 2) similarity between answer and golden answer. The F1 score is based on the number of statements in the answer supported or not supported by the golden answer, and the number of statements in the golden answer appeared or did not appear in the answer. Please refer to [RAGAS source code](https://github.com/explodinggradients/ragas/blob/main/src/ragas/metrics/_answer_correctness.py) for the implementation of its `answer_correctness` score. We ran RAGAS on Intel Gaudi2 accelerators. We used `meta-llama/Meta-Llama-3.1-70B-Instruct` as the LLM judge.
 
 |Setup           |Mean Human score|Mean RAGAS `answer_correctness` score|
 |----------------|-----------|------------------------------|
@@ -146,12 +147,12 @@ We can see that the human scores and the RAGAS `answer_correctness` scores follo
 We have made available our scripts to calculate the mean RAGAS scores. Refer to the `run_compare_scores.sh` script in the `run_benchmark` folder.
 
 
-## Benchmark results for OPEA RAG Agent
-We have evaluated the agents (`rag_agent_llama` strategy) in the OPEA AgentQnA example on CRAG music domain dataset (373 questions in total). We used `meta-llama/Meta-Llama-3-70B-Instruct` and we served the LLM with tgi-gaudi on 4 Intel Gaudi2 accelerator cards. Refer to the docker compose yaml files in the AgentQnA example for more details on the configurations.
+## Benchmark results for OPEA RAG Agents
+We have evaluated the agents (`rag_agent_llama` and `react_llama` strategies) in the OPEA AgentQnA example on CRAG music domain dataset (373 questions in total). We used `meta-llama/Meta-Llama-3.1-70B-Instruct` and we served the LLM with tgi-gaudi on 4 Intel Gaudi2 accelerator cards. Refer to the docker compose yaml files in the AgentQnA example for more details on the configurations.
 
 For the tests of conventional RAG, we used the script in the `run_benchmark` folder: `run_conv_rag.sh`. And we used the same LLM, serving configs and generation parameters as the RAG agent.
 
-The Conventional RAG and Single RAG agent use the same retriever. The Hierarchical ReAct agent uses the Single RAG agent as its tool.
+The Conventional RAG and Single RAG agent use the same retriever. The Hierarchical ReAct agent uses the Single RAG agent as its retrieval tool and also has access to CRAG APIs provided by Meta as part of the CRAG benchmark.
 
 
 |Setup           |Mean RAGAS `answer_correctness` score|
@@ -165,4 +166,20 @@ From the results, we can see that the single RAG agent performs better than conv
 2. Hierarchical ReAct agent was supplied with APIs to get information from knowledge graphs, and thus can supplement info to the knowledge in the retrieval vector database. So it can answer questions where conventional RAG or Single RAG agent cannot due to the lack of relevant info in vector database.
 
 Note: The performance result for the hierarchical ReAct agent is with tool selection, i.e., only give a subset of tools to agent based on query, which we found can boost agent performance when the number of tools is large. However, currently OPEA agents do not support tool selection yet. We are in the process of enabling tool selection. 
+
+### Comparison with GPT-4o-mini
+Open-source LLM serving libraries (tgi and vllm) have limited capabilities in producing tool-call objects. Although vllm improved its tool-calling capabilities recently, parallel tool calling is still not well supported. Therefore, we had to write our own prompts and output parsers for the `rag_agent_llama` and `react_llama` strategies for using open-source LLMs served with open-source serving frameworks for OPEA agent microservices.
+
+Below we show the comparisons of `meta-llama/Meta-Llama-3.1-70B-Instruct` versus OpenAI's `gpt-4o-mini-2024-07-18` on 20 sampled queries from the CRAG music domain dataset. We used human evaluation criteria outlined above. The numbers are the average scores graged by human. The parathesis denotes the OPEA agent strategy used.
+
+|Setup|Llama3.1-70B-Instruct|gpt-4o-mini|
+|-----|---------------------|-----------|
+|Conventional RAG|0.15|0.05|
+|Single RAG agent|0.45 (`rag_agent_llama`)|0.65 (`rag_agent`)|
+|Hierarchical ReAct agent|0.55 (`react_llama`)|0.75 (`react_langgraph`)|
+
+From the comparisons on this small subset, we can see that OPEA agents using `meta-llama/Meta-Llama-3.1-70B-Instruct` with calibrated prompt templates and output parsers are only slightly behind `gpt-4o-mini-2024-07-18` with proprietary tool-calling capabilities.
+
+
+
 

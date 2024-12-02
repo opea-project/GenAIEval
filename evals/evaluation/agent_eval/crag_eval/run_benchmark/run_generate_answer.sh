@@ -7,8 +7,8 @@ endpoint=${port}/v1/chat/completions # change this to the endpoint of the agent
 URL="http://${host_ip}:${endpoint}"
 echo "AGENT ENDPOINT URL: ${URL}"
 
-QUERYFILE=$WORKDIR/datasets/crag_qas/crag_qa_music_sampled.jsonl
-OUTPUTFILE=$WORKDIR/datasets/crag_results/crag_music_sampled_results.jsonl
+QUERYFILE=$WORKDIR/datasets/crag_qas/crag_qa_music.jsonl
+OUTPUTFILE=$WORKDIR/datasets/crag_results/ragagent_crag_music_results.jsonl
 
 python3 generate_answers.py \
 --endpoint_url ${URL} \

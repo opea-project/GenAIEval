@@ -115,8 +115,10 @@ if __name__ == "__main__":
     print(args)
 
     df = get_test_dataset(args)
-    df=df.head(3)
     print(df.shape)
+
+    if not os.path.exists(os.path.dirname(args.output)):
+        os.makedirs(os.path.dirname(args.output))
 
     llm = setup_chat_model(args)
 
