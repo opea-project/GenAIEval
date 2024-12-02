@@ -1,25 +1,31 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 import argparse
 import json
 import os
+
 import pandas as pd
 import requests
 
 
 def get_test_dataset(args):
     filepath = os.path.join(args.filedir, args.filename)
-    if filepath.endswith('.jsonl'):
+    if filepath.endswith(".jsonl"):
         df = pd.read_json(filepath, lines=True, convert_dates=False)
-    elif filepath.endswith('.csv'):
+    elif filepath.endswith(".csv"):
         df = pd.read_csv(filepath)
     else:
         raise ValueError("Invalid file format")
     return df
+
 
 def save_results(output_file, output_list):
     with open(output_file, "w") as f:
         for output in output_list:
             f.write(json.dumps(output))
             f.write("\n")
+
 
 def save_as_csv(output):
     df = pd.read_json(output, lines=True, convert_dates=False)
@@ -62,6 +68,7 @@ def search_knowledge_base(query: str) -> str:
     else:
         return "Error parsing response from the knowledge base."
 
+
 PROMPT = """\
 ### You are a helpful, respectful and honest assistant.
 You are given a Question and the time when it was asked in the Pacific Time Zone (PT), referred to as "Query
@@ -78,8 +85,10 @@ Please follow these guidelines when formulating your answer:
 ### Answer:
 """
 
+
 def setup_chat_model(args):
     from langchain_openai import ChatOpenAI
+
     params = {
         "temperature": args.temperature,
         "max_tokens": args.max_new_tokens,
@@ -95,10 +104,11 @@ def setup_chat_model(args):
     )
     return llm
 
+
 def generate_answer(llm, query, context, time):
     prompt = PROMPT.format(context=context, question=query, time=time)
     response = llm.invoke(prompt)
-    return response.content 
+    return response.content
 
 
 if __name__ == "__main__":
@@ -130,7 +140,7 @@ if __name__ == "__main__":
         print("========== Query: ", q)
         context = search_knowledge_base(q)
         print("========== Context:\n", context)
-        answer = generate_answer(llm, q, context, t)  
+        answer = generate_answer(llm, q, context, t)
         print("========== Answer:\n", answer)
         contexts.append(context)
         output_list.append(
@@ -146,6 +156,3 @@ if __name__ == "__main__":
         save_results(args.output, output_list)
 
     save_as_csv(args.output)
-
-
-

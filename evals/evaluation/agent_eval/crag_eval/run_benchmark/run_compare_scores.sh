@@ -1,3 +1,6 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 filedir=$WORKDIR/datasets/crag_results/
 conv_rag="conv_rag_graded.csv" # replace with your file name
 ragagent="ragagent_graded.csv" # replace with your file name

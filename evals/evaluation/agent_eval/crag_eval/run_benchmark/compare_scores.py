@@ -1,6 +1,10 @@
-import pandas as pd
-from scipy.stats import spearmanr, pearsonr
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 import argparse
+
+import pandas as pd
+from scipy.stats import pearsonr, spearmanr
 
 
 def get_args():
@@ -12,10 +16,11 @@ def get_args():
     parser.add_argument("--human_scores_file", type=str, help="file with human scores for 3 setups")
     return parser.parse_args()
 
+
 def merge_and_get_stats(filedir, conv_rag, ragagent, reactagent, prefix=""):
-    conv_rag_df = pd.read_csv(filedir+conv_rag)
-    ragagent_df = pd.read_csv(filedir+ragagent)
-    reactagent_df = pd.read_csv(filedir+reactagent)
+    conv_rag_df = pd.read_csv(filedir + conv_rag)
+    ragagent_df = pd.read_csv(filedir + ragagent)
+    reactagent_df = pd.read_csv(filedir + reactagent)
 
     conv_rag_df = conv_rag_df.rename(columns={"answer_correctness": "conv_rag_score"})
     ragagent_df = ragagent_df.rename(columns={"answer_correctness": "ragagent_score"})
@@ -24,7 +29,7 @@ def merge_and_get_stats(filedir, conv_rag, ragagent, reactagent, prefix=""):
     merged_df = pd.merge(merged_df, reactagent_df, on="query")
     print(merged_df.shape)
     print(merged_df.describe())
-    merged_df.to_csv(filedir+prefix+"merged_scores.csv", index=False)
+    merged_df.to_csv(filedir + prefix + "merged_scores.csv", index=False)
 
     # drop rows with nan
     merged_df_dropped = merged_df.dropna()
@@ -33,7 +38,7 @@ def merge_and_get_stats(filedir, conv_rag, ragagent, reactagent, prefix=""):
 
     # compare scores
     print(merged_df_dropped.describe())
-    merged_df_dropped.to_csv(filedir+prefix+"merged_scores_nadropped.csv", index=False)
+    merged_df_dropped.to_csv(filedir + prefix + "merged_scores_nadropped.csv", index=False)
     return merged_df, merged_df_dropped
 
 
@@ -45,22 +50,36 @@ if __name__ == "__main__":
     reactagent = args.reactagent
     human_scores_file = args.human_scores_file
 
-    #RAGAS scores
+    # RAGAS scores
     print("===============RAGAS scores==================")
     merged_df, merged_df_dropped = merge_and_get_stats(filedir, conv_rag, ragagent, reactagent)
 
     # human scores
     print("===============Human scores==================")
-    human_scores_df = pd.read_csv(filedir+human_scores_file)
+    human_scores_df = pd.read_csv(filedir + human_scores_file)
     print(human_scores_df.describe())
 
     human_scores_df_dropped = human_scores_df.loc[human_scores_df["query"].isin(merged_df_dropped["query"])]
     print(human_scores_df_dropped.describe())
-    human_scores_df_dropped.to_csv(filedir+"human_scores_dropped.csv", index=False)
+    human_scores_df_dropped.to_csv(filedir + "human_scores_dropped.csv", index=False)
 
     # concat conv_rag, ragagent, reactagent scores in merged_df_dropped
-    ragas_scores = pd.concat([merged_df_dropped["conv_rag_score"], merged_df_dropped["ragagent_score"], merged_df_dropped["reactagent_score"]], axis=0)
-    human_scores = pd.concat([human_scores_df_dropped["conv_rag"], human_scores_df_dropped["ragagent"], human_scores_df_dropped["reactagent"]], axis=0)
+    ragas_scores = pd.concat(
+        [
+            merged_df_dropped["conv_rag_score"],
+            merged_df_dropped["ragagent_score"],
+            merged_df_dropped["reactagent_score"],
+        ],
+        axis=0,
+    )
+    human_scores = pd.concat(
+        [
+            human_scores_df_dropped["conv_rag"],
+            human_scores_df_dropped["ragagent"],
+            human_scores_df_dropped["reactagent"],
+        ],
+        axis=0,
+    )
 
     # calculate spearman correlation
     print("===============Spearman correlation==================")
@@ -69,6 +88,3 @@ if __name__ == "__main__":
     # pearson correlation
     print("===============Pearson correlation==================")
     print(pearsonr(ragas_scores, human_scores))
-
-
-
