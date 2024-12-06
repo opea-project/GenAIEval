@@ -12,7 +12,42 @@ from langchain_core.language_models import BaseLanguageModel
 from langchain_huggingface import HuggingFaceEndpoint
 
 # import * is only allowed at module level according to python syntax
-from ragas.metrics import *
+try:
+    # from ragas.metrics import *
+    from ragas import evaluate
+    from ragas.metrics import (
+        answer_correctness,
+        answer_relevancy,
+        answer_similarity,
+        context_precision,
+        context_recall,
+        faithfulness,
+    )
+except ModuleNotFoundError:
+    raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
+
+try:
+    from datasets import Dataset
+except ModuleNotFoundError:
+    raise ModuleNotFoundError("Please install dataset")
+
+VALIDATED_LIST = [
+    "answer_correctness",
+    "answer_relevancy",
+    "answer_similarity",
+    "context_precision",
+    "context_recall",
+    "faithfulness",
+]
+
+metrics_mapping = {
+    "answer_correctness": answer_correctness,
+    "answer_relevancy": answer_relevancy,
+    "answer_similarity": answer_similarity,
+    "context_precision": context_precision,
+    "context_recall": context_recall,
+    "faithfulness": faithfulness,
+}
 
 
 def format_ragas_metric_name(name: str):
@@ -34,64 +69,6 @@ class RagasMetric:
         self.embeddings = embeddings
         self.metrics = metrics
 
-        # self.validated_list = [
-        #     "answer_correctness",
-        #     "answer_relevancy",
-        #     "answer_similarity",
-        #     "context_precision",
-        #     "context_recall",
-        #     "faithfulness",
-        #     "context_utilization",
-        #     # "reference_free_rubrics_score",
-        # ]
-
-    async def a_measure(self, test_case: Dict):
-        return self.measure(test_case)
-
-    def measure(self, test_case: Dict):
-        # sends to server
-        try:
-            from ragas import evaluate
-            from ragas.metrics import ALL_METRICS
-
-            self.metric_names = [metric.__class__.__name__ for metric in ALL_METRICS]
-            self.metric_names = [re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower() for name in self.metric_names]
-            self.metric_names = list(set(self.metric_names))
-            # Note - summarization score metric is not working with best open-source LLMs
-            # Note - which is why we are removing it from our offering at the moment.
-            self.metric_names.remove("summarization_score")
-            self.metric_instances = {}
-            for metric in self.metric_names:
-                try:
-                    self.metric_instances[metric] = eval(metric)
-                except:
-                    pass
-            # from ragas.metrics import (
-            #     answer_correctness,
-            #     answer_relevancy,
-            #     answer_similarity,
-            #     context_precision,
-            #     context_recall,
-            #     context_utilization,
-            #     faithfulness,
-            # )
-        except ModuleNotFoundError:
-            raise ModuleNotFoundError("Please install ragas to use this metric. `pip install ragas`.")
-        try:
-            from datasets import Dataset
-        except ModuleNotFoundError:
-            raise ModuleNotFoundError("Please install dataset")
-        # self.metrics_instance = {
-        #     "answer_correctness": answer_correctness,
-        #     "answer_relevancy": answer_relevancy,
-        #     "answer_similarity": answer_similarity,
-        #     "context_precision": context_precision,
-        #     "context_recall": context_recall,
-        #     "faithfulness": faithfulness,
-        #     "context_utilization": context_utilization,
-        #     # "reference_free_rubrics_score": reference_free_rubrics_score,
-        # }
-        # Set LLM model
         openai_key = os.getenv("OPENAI_API_KEY", None)
         if openai_key is not None:
             print("OPENAI_API_KEY is provided, ragas initializes the model by OpenAI.")
@@ -105,15 +82,14 @@ class RagasMetric:
         else:
             print("Accepting user-initialized model as we could not detect OpenAI key or HuggingFace Endpoint URL.")
             self.chat_model = self.model
-        # Create a dataset from the test case
-        # Convert the Dict to a format compatible with Dataset
+
         if self.metrics is not None:
             tmp_metrics = []
             # check supported list
             for metric in self.metrics:
-                if metric not in self.metric_names:
+                if metric not in VALIDATED_LIST:
                     raise ValueError(
-                        "metric should be in supported list {}. ".format(self.metric_names)
+                        "metric should be in supported list {}. ".format(VALIDATED_LIST)
                         + "ClientResponseError raised with LangchainLLM "
                         + "when context_precision, context_recall ran. "
                         + "Here are the related issues described in ragas "
@@ -121,20 +97,13 @@ class RagasMetric:
                         + "https://github.com/explodinggradients/ragas/issues/664."
                     )
                 else:
-                    if metric == "AnswerRelevancy" and self.embeddings is None:
+                    if metric == "answer_relevancy" and self.embeddings is None:
                         raise ValueError("AnswerRelevancy metric need provide embeddings model.")
-                    tmp_metrics.append(self.metric_instances[metric])
+                    tmp_metrics.append(metrics_mapping[metric])
             self.metrics = tmp_metrics
         else:
-            self.metrics = list(self.metric_instances.values())
-            # self.metrics = [
-            #     answer_relevancy,
-            #     faithfulness,
-            #     answer_correctness,
-            #     answer_similarity,
-            #     context_precision,
-            #     context_recall,
-            # ]
+            self.metrics = [metrics_mapping[metric] for metric in VALIDATED_LIST]
+
         # Find necessary input fields using the given metrics
         _required_columns = set()
         column_map = {  # this column maps new naming style in ragas to their old naming style
@@ -157,9 +126,14 @@ class RagasMetric:
                 print("metric has no attribute denoting required columns")
 
         print("Required columns for given list of metrics are = {}".format(_required_columns))
+        self._required_columns = _required_columns
 
+    async def a_measure(self, test_case: Dict):
+        return self.measure(test_case)
+
+    def measure(self, test_case: Dict):
         # get only necessary columns from test case
-        data = {column: test_case[column] for column in _required_columns}
+        data = {column: test_case[column] for column in self._required_columns}
         dataset = Dataset.from_dict(data)
 
         # evaluate
