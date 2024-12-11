@@ -10,6 +10,7 @@ from typing import Dict, Optional, Union
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseLanguageModel
 from langchain_huggingface import HuggingFaceEndpoint
+from langchain_openai import ChatOpenAI
 
 # import * is only allowed at module level according to python syntax
 try:
@@ -61,11 +62,14 @@ class RagasMetric:
         self,
         threshold: float = 0.3,
         model: Optional[Union[str, BaseLanguageModel]] = None,
+        model_name: Optional[str] = None,
         embeddings: Optional[Embeddings] = None,
         metrics: Optional[list[str]] = None,
+        use_vllm: Optional[bool] = False,
     ):
         self.threshold = threshold
         self.model = model
+        self.model_name = model_name
         self.embeddings = embeddings
         self.metrics = metrics
 
@@ -75,10 +79,20 @@ class RagasMetric:
             self.chat_model = None
         elif isinstance(self.model, str):
             print("LLM endpoint: ", self.model)
-            self.chat_model = HuggingFaceEndpoint(
-                endpoint_url=self.model,
-                timeout=600,
-            )
+            
+            if use_vllm:
+                openai_endpoint = f"{self.model}/v1"
+                self.chat_model = ChatOpenAI(
+                    openai_api_key="EMPTY",
+                    openai_api_base=openai_endpoint,
+                    model_name=self.model_name,
+                )
+            else:
+                self.chat_model = HuggingFaceEndpoint(
+                    endpoint_url=self.model,
+                    timeout=600,
+                )
+
         else:
             print("Accepting user-initialized model as we could not detect OpenAI key or HuggingFace Endpoint URL.")
             self.chat_model = self.model

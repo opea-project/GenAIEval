@@ -4,6 +4,7 @@
 
 #set -xe
 echo $WORKDIR
+EVALDIR=${WORKDIR}/GenAIEval/evals/evaluation/agent_eval/TAG-Bench
 
 # agent vars
 export agent_image="opea/agent-langchain:comps"
@@ -20,7 +21,7 @@ export temperature=0.01
 export max_new_tokens=4096
 
 # Tools
-export TOOLSET_PATH=${WORKDIR}/GenAIEval/evals/evaluation/agent_eval/TAG-Bench/opea_sql_agent_llama/tools/ 
+export TOOLSET_PATH=${EVALDIR}/opea_sql_agent_llama/tools/ 
 ls ${TOOLSET_PATH}
 # for using Google search API
 export GOOGLE_CSE_ID=${GOOGLE_CSE_ID}
@@ -29,7 +30,7 @@ export GOOGLE_API_KEY=${GOOGLE_API_KEY}
 function start_sql_agent_llama_service(){
     export db_name=$1
     export db_path=/home/user/TAG-Bench/dev_folder/dev_databases/${db_name}/${db_name}.sqlite
-    docker compose -f sql_agent_llama.yaml up -d
+    docker compose -f ${EVALDIR}/opea_sql_agent_llama/sql_agent_llama.yaml up -d
     # sleep 1m
 }
 

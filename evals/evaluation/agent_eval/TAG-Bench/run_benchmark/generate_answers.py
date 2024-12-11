@@ -19,7 +19,7 @@ def generate_answer_agent_api(url, prompt):
 
 
 def save_json_lines(json_lines, args):
-    outfile = "sql_agent_results.json"
+    outfile = f"sql_agent_{args.db_name}_results.json"
     output = os.path.join(args.output_dir, outfile)
     with open(output, "w") as f:
         for line in json_lines:
@@ -31,6 +31,7 @@ if __name__ == "__main__":
     parser.add_argument("--query_file", type=str)
     parser.add_argument("--output_dir", type=str)
     parser.add_argument("--output_file", type=str)
+    parser.add_argument("--db_name", type=str)
     args = parser.parse_args()
 
     df = pd.read_csv(args.query_file)

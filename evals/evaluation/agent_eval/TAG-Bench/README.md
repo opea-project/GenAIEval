@@ -17,7 +17,7 @@ export HUGGINGFACEHUB_API_TOKEN=$HF_TOKEN
 cd $WORKDIR
 git clone https://github.com/opea-project/GenAIEval.git
 ```
-3. Launch an interactive docker container for running this benchmark
+<!-- 3. Launch an interactive docker container for running this benchmark
 ```bash
 # first build docker image
 cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/docker
@@ -27,10 +27,14 @@ Then launch the `agent-eval` container.
 ```bash
 bash launch_eval_container.sh
 ```
-You will be taken inside the `agent-eval` container. Then you can run the commands below inside the container.
+You will be taken inside the `agent-eval` container. Then you can run the commands below inside the container. -->
+3. Create a conda environment
+```
+conda create -n agent-eval-env python=3.10
+conda activate agent-eval-env
+pip install -r $WORKDIR/GenAIEval/evals/evaluation/agent_eval/docker/requirements.txt
+```
 4. Download data
-```bash
-# Inside agent-eval container
 ```bash
 cd $WORKDIR
 git clone https://github.com/TAG-Research/TAG-Bench.git
@@ -50,7 +54,7 @@ python3 generate_hints.py
 The hints are generated from the description files that come with the TAG-Bench dataset. The hints are simply the column descriptions provided in the dataset. They can be used by the SQL agent to improve performance.
 
 ## Launch your SQL agent
-You can create and launch your own SQL agent. Here we show an example of OPEA `sql_agent_llama`. Follow the steps below to launch OPEA `sql_agent_llama`. Run the commands in a second terminal, separate from the one where the interactive agent-eval container is running.
+You can create and launch your own SQL agent. Here we show an example of OPEA `sql_agent_llama`. Follow the steps below to launch OPEA `sql_agent_llama`.
 1. Download OPEA GenAIComps repo
 ```bash
 cd $WORKDIR
@@ -83,6 +87,7 @@ bash launch_vllm_gaudi.sh
 cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/TAG-Bench/opea_sql_agent_llama
 bash launch_sql_agent.sh california_schools
 ```
+The command above will launch a SQL agent that interacts with the `california_schools` database. We also have a script to run benchmarks on all databases.
 
 ## Run the benchmark
 1. Generate answers
