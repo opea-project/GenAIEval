@@ -11,7 +11,7 @@ git clone https://github.com/opea-project/GenAIEval.git
 ```
 2. Build docker image
 ```
-cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/crag_eval/docker/
+cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/docker/
 bash build_image.sh
 ```
 3. Set environment vars for downloading models from Huggingface
@@ -75,7 +75,7 @@ bash step2_start_retrieval_tool.sh
 # As an example, we will use the index_data.py script in AgentQnA example.
 # You can write your own script to ingest data.
 # As an example, We will ingest the docs of the music domain.
-# We will use the crag-eval docker container to run the index_data.py script.
+# We will use the agent-eval docker container to run the index_data.py script.
 # The index_data.py is a client script.
 # it will send data-indexing requests to the dataprep server that is part of the retrieval tool.
 # So you need to switch back to the terminal where the crag-eval container is running.
@@ -93,7 +93,7 @@ Note: There are two agents in the agent system: a RAG agent (as the worker agent
 ## Run CRAG benchmark
 Once you have your agent system up and running, the next step is to generate answers with agent. Change the variables in the script below and run the script. By default, it will run the entire set of queries in the music domain (in total 373 queries). You can choose to run other domains or just run a sampled subset of music domain.
 ```
-# Come back to the interactive crag-eval docker container
+# Come back to the interactive agent-eval docker container
 cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/crag_eval/run_benchmark
 # Remember to specify the agent endpoint url in the script.
 bash run_generate_answer.sh
@@ -102,8 +102,8 @@ bash run_generate_answer.sh
 ## Use LLM-as-judge to grade the answers
 1. Launch llm endpoint with HF TGI: in another terminal, run the command below. By default, `meta-llama/Meta-Llama-3.1-70B-Instruct` is used as the LLM judge.
 ```
-cd llm_judge
-bash launch_llm_judge_endpoint.sh
+cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/tgi-gaudi
+bash launch_tgi_gaudi.sh
 ```
 2. Validate that the llm endpoint is working properly.
 ```
@@ -113,10 +113,10 @@ curl ${host_ip}:8085/generate_stream \
     -d '{"inputs":"What is Deep Learning?","parameters":{"max_new_tokens":20}}' \
     -H 'Content-Type: application/json'
 ```
-And then go back to the interactive crag-eval docker, run command below.
+And then go back to the interactive agent-eval docker container, run command below.
 ```
 # Inside the crag-eval container
-cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/crag_eval/run_benchmark/llm_judge/
+cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/crag_eval/tgi_gaudi/
 python3 test_llm_endpoint.py
 ```
 3. Grade the answer correctness using LLM judge. We use `answer_correctness` metrics from [ragas](https://github.com/explodinggradients/ragas/blob/main/src/ragas/metrics/_answer_correctness.py).
