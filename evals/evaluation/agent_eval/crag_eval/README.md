@@ -4,62 +4,86 @@
 
 ## Getting started
 1. Setup a work directory and download this repo into your work directory.
-```
+```bash
 export $WORKDIR=<your-work-directory>
 cd $WORKDIR
 git clone https://github.com/opea-project/GenAIEval.git
 ```
-2. Build docker image
+<!-- 2. Build docker image
 ```
 cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/docker/
 bash build_image.sh
+``` -->
+2. Create a conda environment
+```bash
+conda create -n agent-eval-env python=3.10
+conda activate agent-eval-env
+pip install -r $WORKDIR/GenAIEval/evals/evaluation/agent_eval/docker/requirements.txt
 ```
 3. Set environment vars for downloading models from Huggingface
-```
+```bash
 mkdir $WORKDIR/hf_cache 
 export HF_CACHE_DIR=$WORKDIR/hf_cache
 export HF_HOME=$HF_CACHE_DIR
 export HUGGINGFACEHUB_API_TOKEN=<your-hf-api-token>
+export host_ip=$(hostname -I | awk '{print $1}')
+export PYTHONPATH=$PYTHONPATH:$WORKDIR/GenAIEval/
 ```
-4. Start docker container
+<!-- 4. Start docker container
 This container will be used to preprocess dataset and run benchmark scripts.
 ```
 bash launch_eval_container.sh
+``` -->
+4. Start vllm container on Intel Gaudi2. 
+
+By default, `meta-llama/Meta-Llama-3.1-70B-Instruct` model will be served using 4 Gaudi cards. This LLM will be used by agent as well as used as LLM-judge in scoring agent's answers.
+```bash
+# First build vllm image for Gaudi
+cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/vllm-gaudi
+bash build_image.sh
+```
+Then launch vllm endpoint. The default model is `meta-llama/Meta-Llama-3.1-70B-Instruct`.
+```bash
+bash launch_vllm_gaudi.sh
+```
+5. Validate vllm endpoint is working properly.
+```bash
+python3 test_vllm_endpoint.py
 ```
 
 ## CRAG dataset
 1. Download original data and process it with commands below.
 You need to create an account on the Meta CRAG challenge [website](https://www.aicrowd.com/challenges/meta-comprehensive-rag-benchmark-kdd-cup-2024). After login, go to this [link](https://www.aicrowd.com/challenges/meta-comprehensive-rag-benchmark-kdd-cup-2024/problems/meta-kdd-cup-24-crag-end-to-end-retrieval-augmented-generation/dataset_files) and download the `crag_task_3_dev_v4.tar.bz2` file. Then make a `datasets` directory in your work directory using the commands below.
-```
+```bash
 cd $WORKDIR
 mkdir datasets
 ```
 Then put the `crag_task_3_dev_v4.tar.bz2` file in the `datasets` directory, and decompress it by running the command below.
-```
+```bash
 cd $WORKDIR/datasets
 tar -xf crag_task_3_dev_v4.tar.bz2
 ```
 2. Preprocess the CRAG data
 Data preprocessing directly relates to the quality of retrieval corpus and thus can have significant impact on the agent QnA system. Here, we provide one way of preprocessing the data where we simply extracts all the web search snippets as-is from the dataset per domain. We also extract all the query-answer pairs along with other meta data per domain. You can run the command below to use our method. The data processing will take some time to finish.
-```
+```bash
 cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/crag_eval/preprocess_data
 bash run_data_preprocess.sh
 ```
 **Note**: This is an example of data processing. You can develop and optimize your own data processing for this benchmark.
 3. (Optional) Sample queries for benchmark
 The CRAG dataset has more than 4000 queries, and running all of them can be very expensive and time-consuming. You can sample a subset for benchmark. Here we provide a script to sample up to 5 queries per question_type per dynamism in each domain. For example, we were able to get 92 queries from the music domain using the script.
-```
+```bash
 bash run_sample_data.sh
 ```
 
-## Launch agent QnA system
+## Launch Agent QnA system
 Here we showcase an agent system in OPEA GenAIExamples repo. Please refer to the README in the [AgentQnA example](https://github.com/opea-project/GenAIExamples/tree/main/AgentQnA/README.md) for more details.
 
 > **Please note**: This is an example. You can build your own agent systems using OPEA components, then expose your own systems as an endpoint for this benchmark.
 
-To launch the agent in our AgentQnA example on Intel Gaudi accelerators, open another terminal and follow the instructions below.
+To launch the agent in our AgentQnA example on Intel Gaudi accelerators, follow the instructions below.
 1. Build images
-```
+```bash
 export $WORKDIR=<your-work-directory>
 cd $WORKDIR
 git clone https://github.com/opea-project/GenAIExamples.git
@@ -67,61 +91,43 @@ cd GenAIExamples/AgentQnA/tests/
 bash step1_build_images.sh
 ```
 2. Start retrieval tool
-```
+```bash
 bash step2_start_retrieval_tool.sh
 ```
 3. Ingest data into vector database and validate retrieval tool
-```
+```bash
 # As an example, we will use the index_data.py script in AgentQnA example.
 # You can write your own script to ingest data.
 # As an example, We will ingest the docs of the music domain.
-# We will use the agent-eval docker container to run the index_data.py script.
-# The index_data.py is a client script.
-# it will send data-indexing requests to the dataprep server that is part of the retrieval tool.
-# So you need to switch back to the terminal where the crag-eval container is running.
 cd $WORKDIR/GenAIExamples/AgentQnA/retrieval_tool/
+export host_ip=$(hostname -I | awk '{print $1}')
 python3 index_data.py --host_ip $host_ip --filedir ${WORKDIR}/datasets/crag_docs/ --filename crag_docs_music.jsonl
 ```
-4. Launch and validate agent endpoint
+
+4. Start CRAG API container
+```bash
+docker run -d --runtime=runc --name=kdd-cup-24-crag-service -p=8080:8000 docker.io/aicrowd/kdd-cup-24-crag-mock-api:v0
 ```
-# Go to the terminal where you launched the AgentQnA example
-cd $WORKDIR/GenAIExamples/AgentQnA/tests/
-bash step4_launch_and_validate_agent_gaudi.sh
+
+5. Launch the agent microservices
+```bash
+cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/crag_eval/opea_rag_agent/
+bash launch_agent.sh
 ```
 Note: There are two agents in the agent system: a RAG agent (as the worker agent) and a ReAct agent (as the supervisor agent). We can evaluate both agents - just need to specify the agent endpoint url in the scripts - see instructions below.
 
 ## Run CRAG benchmark
 Once you have your agent system up and running, the next step is to generate answers with agent. Change the variables in the script below and run the script. By default, it will run the entire set of queries in the music domain (in total 373 queries). You can choose to run other domains or just run a sampled subset of music domain.
-```
-# Come back to the interactive agent-eval docker container
+```bash
 cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/crag_eval/run_benchmark
 # Remember to specify the agent endpoint url in the script.
 bash run_generate_answer.sh
 ```
 
 ## Use LLM-as-judge to grade the answers
-1. Launch llm endpoint with HF TGI: in another terminal, run the command below. By default, `meta-llama/Meta-Llama-3.1-70B-Instruct` is used as the LLM judge.
-```
-cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/tgi-gaudi
-bash launch_tgi_gaudi.sh
-```
-2. Validate that the llm endpoint is working properly.
-```
-export host_ip=$(hostname -I | awk '{print $1}')
-curl ${host_ip}:8085/generate_stream \
-    -X POST \
-    -d '{"inputs":"What is Deep Learning?","parameters":{"max_new_tokens":20}}' \
-    -H 'Content-Type: application/json'
-```
-And then go back to the interactive agent-eval docker container, run command below.
-```
-# Inside the crag-eval container
-cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/crag_eval/tgi_gaudi/
-python3 test_llm_endpoint.py
-```
-3. Grade the answer correctness using LLM judge. We use `answer_correctness` metrics from [ragas](https://github.com/explodinggradients/ragas/blob/main/src/ragas/metrics/_answer_correctness.py).
-```
-# Inside the crag-eval container
+Grade the answer correctness using LLM judge. We use `answer_correctness` metrics from [ragas](https://github.com/explodinggradients/ragas/blob/main/src/ragas/metrics/_answer_correctness.py).
+
+```bash
 cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/crag_eval/run_benchmark/
 bash run_grading.sh
 ```

@@ -11,6 +11,7 @@ export HF_CACHE_DIR=$WORKDIR/hf_cache
 export HF_HOME=$HF_CACHE_DIR
 export HF_TOKEN=<your-huggingface-api-token>
 export HUGGINGFACEHUB_API_TOKEN=$HF_TOKEN
+export PYTHONPATH=$PYTHONPATH:$WORKDIR/GenAIEval/
 ```
 2. Download this repo in your work directory
 ```bash
@@ -29,7 +30,7 @@ bash launch_eval_container.sh
 ```
 You will be taken inside the `agent-eval` container. Then you can run the commands below inside the container. -->
 3. Create a conda environment
-```
+```bash
 conda create -n agent-eval-env python=3.10
 conda activate agent-eval-env
 pip install -r $WORKDIR/GenAIEval/evals/evaluation/agent_eval/docker/requirements.txt
@@ -53,6 +54,24 @@ python3 generate_hints.py
 ```
 The hints are generated from the description files that come with the TAG-Bench dataset. The hints are simply the column descriptions provided in the dataset. They can be used by the SQL agent to improve performance.
 
+7. Launch LLM endpoint on Gaudi.
+
+This LLM will be used by agent as well as used as LLM-judge in scoring agent's answers. By default, `meta-llama/Meta-Llama-3.1-70B-Instruct` model will be served using 4 Gaudi cards.
+```bash
+# First build vllm image for Gaudi
+cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/vllm-gaudi
+bash build_image.sh
+```
+Then launch vllm endpoint with the command below.
+```bash
+bash launch_vllm_gaudi.sh
+```
+
+8. Validate vllm endpoint is working properly.
+```bash
+python3 test_vllm_endpoint.py
+```
+
 ## Launch your SQL agent
 You can create and launch your own SQL agent. Here we show an example of OPEA `sql_agent_llama`. Follow the steps below to launch OPEA `sql_agent_llama`.
 1. Download OPEA GenAIComps repo
@@ -73,16 +92,6 @@ export GOOGLE_API_KEY=<your-GOOGLE_API_KEY>
 ```
 For intructions on how to obtain your `GOOGLE_CSE_ID` and `your-GOOGLE_API_KEY`, refer to instructions [here](https://python.langchain.com/docs/integrations/tools/google_search/).
 
-4. Launch LLM endpoint on Gaudi
-```bash
-# First build vllm image for Gaudi
-cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/vllm-gaudi
-bash build_image.sh
-```
-Then launch vllm endpoint. The default model is `meta-llama/Meta-Llama-3.1-70B-Instruct`.
-```bash
-bash launch_vllm_gaudi.sh
-```
 5. Launch SQL agent
 ```bash
 cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/TAG-Bench/opea_sql_agent_llama
@@ -109,3 +118,25 @@ If you want to run all the 80 questions spanning all the 5 different databases, 
 bash run_all_databases.sh
 ```
 This script will iteratively generate answers and grade answers for questions regarding each database.
+
+## Benchmark results
+We tested OPEA `sql_agent_llama` on all 80 questions in TAG-Bench. 
+
+Human grading criteria:
+- Score 1: exact match with golden answer
+- Score 0.7: match with golden answer except for the ordering of the entities
+- Score 0.5: missing info, and does not contain info not present in the golden answer
+- Score 0: otherwise
+
+|Database|Average human score|Average ragas `answer_correctness`|
+|--------|-------------------|----------------------------------|
+|california_schools|0.264|0.415|
+|codebase_community|0.262|0.404|
+|debit_card_specializing|0.75|0.753|
+|formula_1|0.389|0.596|
+|european_football_2|0.25|0.666|
+|**Overall Average (ours)**|0.31 (0.28 if strict exact match)|0.511|
+|**Text2SQL (TAG-Bench paper)**|0.17||
+|**Human performance (TAG-Bench paper)**|0.55||
+
+We can see that our SQL agent achieved much higher accuracy than Text2SQL, although still lower than human experts.

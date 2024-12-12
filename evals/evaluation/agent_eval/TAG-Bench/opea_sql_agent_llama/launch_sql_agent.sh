@@ -29,7 +29,7 @@ export GOOGLE_API_KEY=${GOOGLE_API_KEY}
 
 function start_sql_agent_llama_service(){
     export db_name=$1
-    export db_path=/home/user/TAG-Bench/dev_folder/dev_databases/${db_name}/${db_name}.sqlite
+    export db_path="sqlite:////home/user/TAG-Bench/dev_folder/dev_databases/${db_name}/${db_name}.sqlite"
     docker compose -f ${EVALDIR}/opea_sql_agent_llama/sql_agent_llama.yaml up -d
     # sleep 1m
 }
