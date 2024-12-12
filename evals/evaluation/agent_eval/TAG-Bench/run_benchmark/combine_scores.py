@@ -13,5 +13,10 @@ print("Number of score files found: ", len(csv_files))
 print(csv_files)
 
 df = pd.concat([pd.read_csv(f) for f in csv_files], ignore_index=True)
-
+print(df.columns)
 print("Average score of all questions: ", df["answer_correctness"].mean())
+
+# average score per csv file
+for f in csv_files:
+    df = pd.read_csv(f)
+    print(f, df["answer_correctness"].mean())

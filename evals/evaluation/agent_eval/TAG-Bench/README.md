@@ -1,6 +1,6 @@
 # TAG-Bench for evaluating SQL agents
 ## Overview of TAG-Bench
-[TAG-Bench](https://github.com/TAG-Research/TAG-Bench)is a benchmark published by Stanford University and University of California Berkeley and advocated by Databricks to evaluate GenAI systems in answering challenging questions over SQL databases. The questions in TAG-Bench require the GenAI systems to not only able to translate natural language queries into SQL queries, but to combine information from other sources and do reasoning. There are 80 questions in total with 20 in each sub-category of match-based, comparison, ranking, and aggregation queries. The questions are about 5 databases selected from Alibaba's [BIRD](https://bird-bench.github.io/) Text2SQL benchmark: california_schools, debit_card_specializing, formula_1, codebase_community, and european_football_2. For more information, please read the [paper](https://arxiv.org/pdf/2408.14717).
+[TAG-Bench](https://github.com/TAG-Research/TAG-Bench) is a benchmark published by Stanford University and University of California Berkeley and advocated by Databricks to evaluate GenAI systems in answering challenging questions over SQL databases. The questions in TAG-Bench require the GenAI systems to not only able to translate natural language queries into SQL queries, but to combine information from other sources and do reasoning. There are 80 questions in total with 20 in each sub-category of match-based, comparison, ranking, and aggregation queries. The questions are about 5 databases selected from Alibaba's [BIRD](https://bird-bench.github.io/) Text2SQL benchmark: california_schools, debit_card_specializing, formula_1, codebase_community, and european_football_2. For more information, please read the [paper](https://arxiv.org/pdf/2408.14717).
 
 ## Getting started
 1. Set up the environment
@@ -71,7 +71,8 @@ docker build --no-cache -t $agent_image --build-arg http_proxy=$http_proxy --bui
 export GOOGLE_CSE_ID=<your-GOOGLE_CSE_ID>
 export GOOGLE_API_KEY=<your-GOOGLE_API_KEY>
 ```
-For intructions on how to obtain your `GOOGLE_CSE_ID` and `your-GOOGLE_API_KEY`, refer to instructions [here](https://python.langchain.com/docs/integrations/tools/google_search/)
+For intructions on how to obtain your `GOOGLE_CSE_ID` and `your-GOOGLE_API_KEY`, refer to instructions [here](https://python.langchain.com/docs/integrations/tools/google_search/).
+
 4. Launch LLM endpoint on Gaudi
 ```bash
 # First build vllm image for Gaudi
@@ -99,7 +100,10 @@ bash run_generate_answer.sh california_schools
 ```bash
 bash run_grading.sh california_schools
 ```
+Here we use ragas `answer_correctness` metric to measure the performance. By default, we use `meta-llama/Meta-Llama-3.1-70B-Instruct` as the LLM judge. We use the vllm endpoint launched in the previous [section](#launch-your-sql-agent).
+
 3. Run the benchmark on all databases
+
 If you want to run all the 80 questions spanning all the 5 different databases, run the command below.
 ```bash
 bash run_all_databases.sh
