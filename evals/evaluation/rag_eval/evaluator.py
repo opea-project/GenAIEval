@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
@@ -132,23 +133,68 @@ class Evaluator:
     def get_template(self):
         raise NotImplementedError("Depends on the specific dataset.")
 
+    def extract_chunk_str(self, chunk_str):
+        if chunk_str == "data: [DONE]\n\n":
+            return ""
+        prefix = "data: "
+        prefix_2 = 'data: '
+        suffix = "\n\n"
+        suffix_2 = '\n\n'
+        if chunk_str.startswith(prefix) or chunk_str.startswith(prefix_2):
+            chunk_str = chunk_str[len(prefix) :]
+        # print(chunk_str)
+        if chunk_str.endswith(suffix) or chunk_str.endswith(suffix_2):
+            chunk_str = chunk_str[: -len(suffix)]
+        # print(chunk_str)
+        chunk_str = eval(chunk_str)
+        # print(chunk_str)
+        # print(type(chunk_str))
+        chunk_str = chunk_str.decode("utf-8")
+        # print(chunk_str)
+        # exit()
+        return chunk_str
+
     def send_request(self, data, arguments):
         service_url = arguments.service_url
         headers = {"Content-Type": "application/json"}
         json_data = {}
         query = self.get_query(data)
         json_data["messages"] = query
-        json_data["stream"] = False
-        json_data["temperature"] = arguments.temperature
+        json_data["stream"] = True
+        json_data["top_n"] = 2
+        #json_data["temperature"] = arguments.temperature
+        json_data["temperature"] = 0
+        print("arguments.temperature", json_data['temperature'])
         json_data["max_new_tokens"] = arguments.max_new_tokens
+        print("arguments.max_new_tokens", json_data['max_new_tokens'])
         json_data["chat_template"] = self.get_template()
         json_data = json.dumps(json_data)
-        response = requests.post(service_url, data=json_data, headers=headers)
+        # print("==*"*20)
+        # print('json_data=', json_data)
+        chat_response = ""
+        with requests.post(service_url, data=json_data, headers=headers, stream=True) as response:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    chunk = chunk.decode("utf-8")
+                    print("chunk = ", chunk)
+                    chat_response += self.extract_chunk_str(chunk)
+                # print(chunk.decode("utf-8"), end="", flush=True)  # Flush to ensure immediate output
+
+        print("chat response = ", chat_response)
+        return chat_response
+        # response = requests.post(service_url, data=json_data, headers=headers)
+        #print("==*"*20)
+        #print(response)
+        #print(response.text)
+        #exit()
+        # print(response.json())
+        """
         if response.ok:
             return self.post_process(response.json()["choices"][0]["message"]["content"])
         else:
             print(f"Request for pipeline failed due to {response.text}.")
             return ""
+        """
 
     def post_process(self, result):
         return result
@@ -208,9 +254,31 @@ class Evaluator:
             try:
                 retrieved_documents = self.get_retrieved_documents(data, arguments)
                 data["retrieved_documents"] = retrieved_documents
-                generated_text = self.send_request(data, arguments)
+                #generated_text = self.send_request(data, arguments)
+                #generated_text="response> 《关于恢复和扩大消费措施》中提到的优化汽车购买使用管理的具体政策包括：\n\n1. 各地区不得新增汽车限购措施，已实施限购的地区需要因地制宜优化汽车限购措施。\n2. 着力推动全面取消二手车限迁政策，便利二手车交易登记，确保已出台的政策落地见效。\n3. 鼓励汽车更新消费，支持以旧换新，促进汽车市场的活跃度和消费潜力的释放。"
+
+                #generated_text="国务院办公厅转发国家发展改革委《关于恢复和扩大消费的措施》中，关于汽车购买使用管理的措施包括以下几点：\n\n1. **优化汽车限购措施**：各地区不得新增汽车限购措施，对于已经实施限购的地区，应根据实际情况优化限购措施。\n\n2. **促进新能源汽车消费**：落实构建高质量充电基础设施体系、支持新能源汽车下乡、延续和优化新能源汽车车辆购置税减免等政策，以促进新能源汽车的消费。\n\n3. **全面取消二手车限迁**：推动全面取消二手车限迁政策的落地，便利二手车交易登记。\n\n4. **鼓励汽车更新消费**：鼓励以旧换新，通过政策激励促进汽车更新消费。\n\n这些措施旨在通过优化汽车购买和使用环境，促进汽车消费，特别是新能源汽车和二手车市场的健康发展，从而对整体消费市场产生积极影响。"
+
+                generated_text="### 回答：\n\n根据国务院办公厅转发的《关于恢复和扩大消费的措施》通知，针对汽车购买使用管理，主要提出了以下政策：\n\n1. **优化汽车限购措施**：各地区不得新增汽车限购措施，对于已经实施限购的地区，应因地制宜优化汽车限购措施。\n\n2. **扩大新能源汽车消费**：落实构建高质量充电基础设施体系、支持新能源汽车下乡、延续和优化新能源汽车车辆购置税减免等政策。\n\n这些措施旨在通过优化限购政策、支持新能源汽车发展和消费，促进汽车市场的稳定和扩大，同时推动新能源汽车的普及和使用。"
+
+                #generated_text = "根据检索到的文档，国家卫生健康委员会于2023年8月8日启动的“启明行动”活动，主要针对的是儿童青少年近视问题。这项活动旨在开展儿童眼保健、保护儿童视力健康的相关知识宣传和教育，通过多种渠道向公众传播开展儿童眼保健、保护儿童视力健康的重要意义。同时，活动强调医疗机构应重点面向儿童家长和养育人，提供个性化咨询指导，针对儿童常见眼病和近视防控等重点问题，通过面对面咨询指导，帮助儿童家长树立近视防控意识，改变不良生活方式，增加户外活动时间，培养良好的爱眼护眼习惯。\n\n这项活动的依据文件可能包括《防控儿童青少年近视核心知识十条》等指导性文件，旨在通过综合措施来预防和控制儿童青少年近视问题，促进儿童青少年的视力健康。"
+
+                #generated_text = "根据您提供的信息，国家卫生健康委员会在2023年8月8日启动的“启明行动”活动，主要针对的是儿童青少年近视防控问题。这项活动依据的指导文件名称可能是《防控儿童青少年近视核心知识十条》。该文件旨在向公众传播开展儿童眼保健、保护儿童视力健康的重要意义，并普及预防近视的科学知识。通过社会宣传和健康教育，活动将强调儿童家长和养育人应提高近视防控意识，改变不良生活方式，增加户外活动时间，培养儿童形成良好的爱眼护眼习惯。同时，医疗机构将通过面对面咨询指导，为儿童家长提供个性化建议，以促进儿童青少年的视力健康。"
+
+                #generated_text = "response> 国家卫生健康委员会于2023年7月28日启动的名为“启明行动”的专项活动，主要针对儿童青少年的近视防控健康问题。该活动所依据的指导性文件名称为《防控儿童青少年近视核心知识十条》。"
+
+                #generated_text = "根据检索到的文档，国家卫生健康委员会于2023年8月8日启动了名为“启明行动”的专项活动，主要针对儿童青少年近视问题。这项活动旨在通过开展儿童青少年近视知识的宣传教育、视力筛查、提供视力保健服务等，以预防和控制儿童青少年近视。活动依据的指导文件名称为《防控儿童青少年近视核心知识十条》。"
+
+                #generated_text = "\n\n回答：根据国家卫生健康委员会在2023年8月8日启动的“启明行动”活动，该活动主要针对儿童青少年视力健康问题。活动旨在通过社会宣传和健康教育，提高公众对儿童眼保健和保护视力健康的认识。具体措施包括：\n\n1. **社会宣传和健康教育**：通过网络、广播电视、报刊杂志、海报墙报、培训讲座等多种形式，普及儿童眼保健和视力保护的科学知识，特别是强调《防控儿童青少年近视核心知识十条》的重要性。\n\n2. **发放体育消费券**：上海市体育局联合美团、大众点评发放500万元的体育消费券，覆盖3000多家本地运动门店，提供不同面额的消费券供消费者领取，以促进体育消费和全民健身运动的热情。\n\n3. **成都体育消费促进活动**：成都市体育局利用成都大运会的契机，发放各类体育消费券和惠民运动券，通过举办主题体育消费促进活动，如“爱成都·迎大运”、“运动成都·悦动生活”等，促进体育消费持续增长。\n\n4. **体育消费平台建设**：成都计划通过举办大型体育展会活动，如中国（成都）生活体育大会、“巴山蜀水·运动川渝”体育旅游休闲消费季、世界赛事名城发展大会、中国国际体育用品博览会等，进一步推动“体育+会展+消费”平台建设，促进体育消费的提质扩容。\n\n5. **儿童青少年近视防控**：国家卫生健康委员会启动的“启明行动”活动，针对儿童青少年视力健康问题，通过开展儿童眼病筛查、视力检查等服务，提供专业指导和预防措施，旨在防控儿童青少年近视。\n\n这些活动和措施旨在通过多渠道、多形式的干预，提高公众对儿童青少年视力健康问题的认识，促进健康生活方式的形成，以及通过政策和经济激励手段，鼓励参与体育活动和预防近视，从而全面促进儿童青少年的视力健康。"
+
+                #generated_text = "\n\n回答：根据国家卫生健康委员会在2023年8月8日启动的“启明行动”活动，该活动主要针对儿童青少年视力健康问题。活动旨在通过社会宣传和健康教育，提高公众对儿童眼保健和保护视力健康的认识。具体措施包括：\n\n1. **社会宣传与健康教育**：通过网络、广播电视、报刊杂志、海报墙报、培训讲座等多种形式，普及儿童眼保健和视力保护的重要性，重点宣传《防控儿童青少年近视核心知识十条》。\n\n2. **发放体育消费券**：上海市体育局联合美团和大众点评发放总额为500万元的体育消费券，覆盖3000多家本地运动门店，提供不同面额的消费券供消费者领取，以促进体育消费和全民健身运动。\n\n3. **成都体育消费促进活动**：成都市体育局利用成都大运会的契机，发放各类体育消费券和惠民运动券，同时计划通过举办大型体育展会活动和推动“体育+会展+消费”平台建设来促进体育消费的提质扩容。\n\n4. **儿童青少年视力健康活动**：国家卫生健康委员会启动的“启明行动”活动，针对儿童青少年视力健康问题，通过开展儿童眼病筛查、视力检查等服务，旨在防控儿童青少年近视，提供专业指导和干预措施。\n\n这些活动和措施旨在通过多渠道、多形式的宣传和实践，提高公众对儿童青少年视力健康问题的认识，促进健康生活方式的形成，以及提供必要的服务和资源，以有效防控和改善儿童青少年的视力健康状况。"
+
+                #generated_text = "\n\n回答：根据国家卫生健康委员会在2023年8月8日启动的“启明行动”活动，该活动主要针对的是儿童青少年群体，旨在防控儿童青少年近视问题。活动内容包括开展社会宣传和健康教育，通过网络、广播电视、报刊杂志、海报墙报、培训讲座等多种形式，向社会公众传播儿童眼保健和保护视力健康的重要性。同时，活动强调普及预防近视的科学知识，如《防控儿童青少年近视核心知识十条》。\n\n在医疗机构层面，活动要求以儿童家长和养育人为重点，结合眼保健和眼科临床服务，提供个性化咨询指导，帮助家长和养育人树立近视防控意识，改变不良生活方式，鼓励儿童进行户外活动，培养良好的爱眼护眼习惯。\n\n此外，成都市体育局还利用成都大运会的契机，发放各类体育消费券和惠民运动券，通过举办大型体育展会活动和推动“体育+会展+消费”平台建设，进一步促进体育消费的提质扩容，以持续激发体育消费活力和增长潜力。\n\n综上所述，这些活动和措施旨在通过教育、政策支持和市场激励等多方面手段，共同促进儿童青少年的视力健康和体育活动参与，以预防近视和其他眼健康问题。"
+
                 data["generated_text"] = generated_text
+                print(f"generated_text = {generated_text}, \n\n\n\n retrieved_documents = {retrieved_documents}")
                 result = {"id": data["ID"], **self.scoring(data)}
+                print(f"\n\n\nresult = {result} \n")
                 if contain_original_data:
                     result["original_data"] = data
                 results.append(result)

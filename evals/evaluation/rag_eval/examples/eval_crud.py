@@ -200,7 +200,7 @@ def main():
         results = evaluator.evaluate(
             args, show_progress_bar=args.show_progress_bar, contain_original_data=args.contain_original_data
         )
-        print(results["overall"])
+        print("result overall= ", results["overall"])
         if args.ragas_metrics:
             ragas_metrics = evaluator.get_ragas_metrics(results, args)
             print(ragas_metrics)
