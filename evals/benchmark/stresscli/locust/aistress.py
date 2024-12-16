@@ -131,7 +131,8 @@ class AiStressUser(HttpUser):
                 timeout=self.environment.parsed_options.http_timeout,
             ) as resp:
                 logging.debug("Got response...........................")
-
+                #print("resp", resp)
+                #print("resp", resp.status_code)
                 if resp.status_code >= 200 and resp.status_code < 400:
                     if self.environment.parsed_options.bench_target in [
                         "embedservefixed",
@@ -154,33 +155,72 @@ class AiStressUser(HttpUser):
                             "test_start_time": test_start_time,
                         }
                     else:
+                        #print("----------0")
                         first_token_ts = None
                         complete_response = ""
                         if self.environment.parsed_options.bench_target == "llmservefixed":
-                            client = sseclient.SSEClient(resp)
-                            for event in client.events():
-                                if first_token_ts is None:
-                                    first_token_ts = time.perf_counter()
-                                try:
-                                    data = json.loads(event.data)
-                                    if "choices" in data and len(data["choices"]) > 0:
-                                        delta = data["choices"][0].get("delta", {})
-                                        content = delta.get("content", "")
-                                        complete_response += content
-                                except json.JSONDecodeError:
+
+                            print("--------------------------------------llmservifxed")
+                            print("resp = ", resp)
+                            if resp.status_code == 200:
+                              print("Streaming response received:")
+                              for line in resp.iter_lines(decode_unicode=True):
+                                if line:
+                                  line = line[6:]
+                                  if line == "[DONE]":
                                     continue
+                                  print("line", line, type(line))
+                                  data=json.loads(line)
+                                  print("data", data, type(data))
+                                  if first_token_ts is None:
+                                    first_token_ts = time.perf_counter()
+
+                                  print("len(line)", len(data["choices"]))
+                                  if "choices" in data and len(data["choices"]) > 0:
+                                    delta = data["choices"][0].get("delta", {})
+                                    print("delta = ", delta)
+
+                                    print("content", delta.get("content", ""))
+                                    content = delta.get("content", "")
+                                    complete_response += content
+                            #      print(line)
+                            #try:
+                            #  with sseclient.SSEClient(resp) as client:
+                            #    for event in client.events():
+                            #      print("client=", client)
+                            #except Exception as e:
+                            #  print("Error occurred:", e)
                         else:
-                            client = sseclient.SSEClient(resp)
-                            for event in client.events():
-                                if event.data == "[DONE]":
+                            #print("complete response = 00000", complete_response)
+                            for line in resp.iter_lines(decode_unicode=True):
+                                if line:
+                                  chunk = line.strip()[8:-1]
+                                  #print("chunk = ", chunk)
+                                  if chunk == "[DONE]":
                                     break
-                                else:
-                                    if first_token_ts is None:
-                                        first_token_ts = time.perf_counter()
-                                    chunk = event.data.strip()
-                                    if chunk.startswith("b'") and chunk.endswith("'"):
-                                        chunk = chunk[2:-1]
-                                complete_response += chunk
+                                  if first_token_ts is None:
+                                    first_token_ts = time.perf_counter()
+                                  complete_response += chunk
+                                  #print("complete resonse = 11111111", complete_response)
+                            #print("complete resonse = ", complete_response)
+                                #data=json.loads(line)
+                                #if first_token_ts is None:
+                                #  first_token_ts = time.perf_counter()
+                                #chunk = data.strip()
+
+
+
+                            #client = sseclient.SSEClient(resp)
+                            #for event in client.events():
+                            #    if event.data == "[DONE]":
+                            #        break
+                            #    else:
+                            #        if first_token_ts is None:
+                            #            first_token_ts = time.perf_counter()
+                            #        chunk = event.data.strip()
+                            #        if chunk.startswith("b'") and chunk.endswith("'"):
+                            #            chunk = chunk[2:-1]
+                            #    complete_response += chunk
                         end_ts = time.perf_counter()
                         respData = {
                             "response_string": complete_response,
@@ -285,3 +325,4 @@ def checker(environment):
             time.sleep(5)
             environment.runner.quit()
             return
+
