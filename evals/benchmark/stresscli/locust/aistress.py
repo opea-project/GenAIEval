@@ -120,12 +120,16 @@ class AiStressUser(HttpUser):
             "faqgenfixed",
             "faqgenbench",
         ]
+        if self.environment.parsed_options.bench_target in ["faqgenfixed", "faqgenbench"]:
+            req_params = {"data": reqData}
+        else:
+            req_params = {"json": reqData}
         test_start_time = time.time()
         try:
             start_ts = time.perf_counter()
             with self.client.post(
                 url,
-                json=reqData,
+                **req_params,
                 stream=True if self.environment.parsed_options.bench_target in streaming_bench_target else False,
                 catch_response=True,
                 timeout=self.environment.parsed_options.http_timeout,
