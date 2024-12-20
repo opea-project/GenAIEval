@@ -173,6 +173,22 @@ class AiStressUser(HttpUser):
                                         complete_response += content
                                 except json.JSONDecodeError:
                                     continue
+                        elif self.environment.parsed_options.bench_target in ["faqgenfixed", "faqgenbench"]:
+                            client = sseclient.SSEClient(resp)
+                            for event in client.events():
+                                if first_token_ts is None:
+                                    first_token_ts = time.perf_counter()
+                                try:
+                                    data = json.loads(event.data)
+                                    for op in data['ops']:
+                                        if op['path'] == '/logs/HuggingFaceEndpoint/final_output':
+                                            generations = op['value'].get('generations', [])
+                                            for generation in generations:
+                                                for item in generation:
+                                                    text = item.get("text", "")
+                                                    complete_response += text
+                                except json.JSONDecodeError:
+                                    continue
                         else:
                             client = sseclient.SSEClient(resp)
                             for event in client.events():
