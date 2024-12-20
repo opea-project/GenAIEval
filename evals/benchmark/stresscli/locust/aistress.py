@@ -180,9 +180,9 @@ class AiStressUser(HttpUser):
                                     first_token_ts = time.perf_counter()
                                 try:
                                     data = json.loads(event.data)
-                                    for op in data['ops']:
-                                        if op['path'] == '/logs/HuggingFaceEndpoint/final_output':
-                                            generations = op['value'].get('generations', [])
+                                    for op in data["ops"]:
+                                        if op["path"] == "/logs/HuggingFaceEndpoint/final_output":
+                                            generations = op["value"].get("generations", [])
                                             for generation in generations:
                                                 for item in generation:
                                                     text = item.get("text", "")
