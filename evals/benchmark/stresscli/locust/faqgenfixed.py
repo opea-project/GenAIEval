@@ -9,12 +9,7 @@ def getUrl():
 
 
 def getReqData():
-    # return {
-    #     "inputs": "What is the revenue of Nike in last 10 years before 2023? Give me detail",
-    #     "parameters": {"max_new_tokens": 128, "do_sample": True},
-    # }
-    # return {"query": "What is the revenue of Nike in last 10 years before 2023? Give me detail", "max_tokens": 128}
-    return {"messages": "What is the revenue of Nike in last 10 years before 2023? Give me detail", "max_tokens": 128}
+    return {"messages": "Text Embeddings Inference (TEI) is a toolkit for deploying and serving open source text embeddings and sequence classification models. TEI enables high-performance extraction for the most popular models, including FlagEmbedding, Ember, GTE and E6.", "max_tokens": 128}
 
 
 def respStatics(environment, reqData, respData):
