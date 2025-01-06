@@ -32,6 +32,7 @@ if __name__ == "__main__":
     parser.add_argument("--output_dir", type=str)
     parser.add_argument("--output_file", type=str)
     parser.add_argument("--db_name", type=str)
+    parser.add_argument("--port", type=str, default="9095")
     args = parser.parse_args()
 
     df = pd.read_csv(args.query_file)
@@ -40,7 +41,8 @@ if __name__ == "__main__":
         os.makedirs(args.output_dir)
 
     ip_address = os.getenv("host_ip", "localhost")
-    url = f"http://{ip_address}:9095/v1/chat/completions"
+    port = args.port
+    url = f"http://{ip_address}:{port}/v1/chat/completions"
 
     json_lines = []
     answers = []
