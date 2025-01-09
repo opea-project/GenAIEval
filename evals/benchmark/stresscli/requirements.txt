@@ -5,8 +5,7 @@ flask
 kubernetes
 locust
 numpy
+prometheus_client
 pytest
 pyyaml
 requests
-prometheus_client
-kubernetes

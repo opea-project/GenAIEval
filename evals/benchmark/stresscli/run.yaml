@@ -21,7 +21,7 @@ profile:
       - "chatqna-tgi"
       - "chatqna-teirerank"
     utilization-metric-collect: False
-    utilization-metric-endpoint: 
+    utilization-metric-endpoint:
       - node-name: "node1"
         endpoint: "http://10.233.102.173:9101/metrics"
       - node-name: "node2"

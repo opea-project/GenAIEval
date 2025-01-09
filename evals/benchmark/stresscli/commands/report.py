@@ -17,14 +17,19 @@ KEYWORDS_SECTION_NAME = "output.log"
 CSV_SECTION_NAME = "stats.csv"
 TESTSPEC_SECTION_NAME = "testspec.yaml"
 METRICS_SECTION_NAME = "metrics.json"
-UTILIZATION_SECTION_NAME = 'utilization.json'
+UTILIZATION_SECTION_NAME = "utilization.json"
 
 
 @click.command()
 @click.option("--folder", type=click.Path(), required=True, help="Path to log folder")
 @click.option("--format", default="plain_text", help="Output format, plain_text or csv, default is plain_text")
 # @click.option('--include', default='testspec.yaml', help='Extract output data from output.log, stats.csv, and testspec.yaml, default is testspec.yaml')
-@click.option('--transformeddata', type=bool, default=False, help='If transformedData is True, transpose the data to have metrics as columns.')
+@click.option(
+    "--transformeddata",
+    type=bool,
+    default=False,
+    help="If transformedData is True, transpose the data to have metrics as columns.",
+)
 @click.option("-o", "--output", type=click.Path(), help="Save output to file")
 @click.pass_context
 def report(ctx, folder, format, output, transformeddata):
@@ -117,7 +122,7 @@ def export_testdata(testcase, folder, include="output.log|stats.csv|testspec.yam
     csv_path = os.path.join(folder, f"{testcase}_stats.csv")
     testspec_path = os.path.join(folder, f"{testcase}_testspec.yaml")
     metrics_path = os.path.join(folder, f"{testcase}_metrics.json")
-    utilization_path=os.path.join(folder, f'{testcase}_utilization.json')
+    utilization_path = os.path.join(folder, f"{testcase}_utilization.json")
     extracted_data = {}
     if os.path.exists(csv_path):
         if TESTSPEC_SECTION_NAME in include:
@@ -131,7 +136,7 @@ def export_testdata(testcase, folder, include="output.log|stats.csv|testspec.yam
         if METRICS_SECTION_NAME in include and os.path.exists(metrics_path):
             extract_json(extracted_data, metrics_path)
         if UTILIZATION_SECTION_NAME in include and os.path.exists(utilization_path):
-            extract_utilization_json(extracted_data,utilization_path)
+            extract_utilization_json(extracted_data, utilization_path)
     else:
         print("Test failure, no data")
     return extracted_data
@@ -193,15 +198,16 @@ def extract_json(extracted_data, json_file):
     except Exception as e:
         print(f"An error occurred: {e}")
 
+
 def extract_utilization_json(extracted_data, json_file):
     try:
-        with open(json_file, 'r') as file:
+        with open(json_file, "r") as file:
             data = json.load(file)
-            
+
             deployment_metrics = data.get("deployment_metrics", {})
 
             for key, value in deployment_metrics.items():
-#                print(f"Key: {key}, Value: {value}")
+                #                print(f"Key: {key}, Value: {value}")
                 extracted_data[key] = value
 
     except json.JSONDecodeError as e:
@@ -210,6 +216,7 @@ def extract_utilization_json(extracted_data, json_file):
         print("The specified file was not found.")
     except Exception as e:
         print(f"An error occurred: {e}")
+
 
 # Function to extract information based on keywords and patterns
 def extract_stdout(extracted_data, log):
