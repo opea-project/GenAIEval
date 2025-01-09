@@ -85,13 +85,14 @@ Usage: stresscli.py report [OPTIONS]
   Print the test report
 
 Options:
-  --folder PATH      Path to log folder  [required]
-  --format TEXT      Output format, plain_text or csv, default is plain_text
-  --include TEXT     Extract output data from output.log, stats.csv, and
-                     testspec.yaml, default is
-                     output.log|stats.csv|testspec.yaml
-  -o, --output PATH  Save output to file
-  --help             Show this message and exit.
+  --folder PATH              Path to log folder  [required]
+  --format TEXT              Output format, plain_text, html or csv, default
+                             is plain_text
+  --transformeddata BOOLEAN  If transformedData is True, transpose the data to
+                             have metrics as columns.
+  --profile PATH             Path to profile YAML file
+  -o, --output PATH          Save output to file
+  --help                     Show this message and exit.
 ```
 #### Dump the configuration
 

@@ -14,6 +14,7 @@ import yaml
 
 from .report import export_testdata
 from .utils import dump_k8s_config, generate_lua_script, generate_random_suffix
+from .utilization import  MetricFetcher
 
 # Default load shape
 DEFAULT_LOADSHAPE = "constant"
@@ -180,8 +181,6 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
             )
             exit()
 
-    # csv_output = os.path.join(output_folder, runspec['run_name'])
-    # json_output = os.path.join(output_folder, f"{runspec['run_name']}_output.log")
     csv_output = os.path.join(output_folder, f"{index}")
     json_output = os.path.join(output_folder, f"{index}_output.log")
 
@@ -283,9 +282,25 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
             collector = DockerMetricsCollector()
             collect_metrics(collector, services, start_output_folder)
 
+    utilization_metric = global_settings.get('utilization-metric-collect', False)
+    if utilization_metric:
+        services = global_settings.get('service-list') or []
+        metrics_endpoints = global_settings.get('utilization-metric-endpoint') or []
+        metrics_port = global_settings.get('utilization-metric-port', 9100)
+        metric_names = global_settings.get('utilization-metric-names') or []
+        fetcher = MetricFetcher(metrics_endpoints, metrics_port)
+        print(f"before start_collect_utilization:")
+        start_collect_utilization(fetcher,metric_names,namespace)
+
     runspec["starttest_time"] = datetime.now().isoformat()
     result = subprocess.run(cmd, capture_output=True, text=True)
     runspec["endtest_time"] = datetime.now().isoformat()
+
+    if utilization_metric:
+        util_output_folder = os.path.join(output_folder, f"{index}_utilization")
+        print(f"before stop_collect_utilization: {util_output_folder}")
+        os.makedirs(util_output_folder, exist_ok=True)
+        stop_collect_utilization(fetcher,util_output_folder,metric_names)
 
     if service_metric:
         from .metrics_util import export_metric
@@ -305,6 +320,20 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
     if runspec["deployment-type"] == "k8s":
         dump_test_spec(kubeconfig, runspec, runspec["namespace"], output_folder, index)
 
+def start_collect_utilization(fetcher,metric_names,namespace):
+    # Start the MetricFetcher
+    fetcher.start(
+        metric_names,
+        namespace=namespace,
+    )
+
+def stop_collect_utilization(fetcher,output_folder,metric_names):
+    # Stop the MetricFetcher
+    fetcher.stop()
+    # Save results to a file
+    print(f"Calculated Average and Max per Container:")
+    fetcher.save_results_to_file(output_folder)
+    print(f"after save_results_to_folder {output_folder}")
 
 def dump_test_spec(kubeconfig, run, namespace, output_folder, index):
     # Dump the k8s spec

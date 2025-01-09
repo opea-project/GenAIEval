@@ -20,6 +20,18 @@ profile:
       - "chatqna-tei"
       - "chatqna-tgi"
       - "chatqna-teirerank"
+    utilization-metric-collect: False
+    utilization-metric-endpoint: 
+      - node-name: "node1"
+        endpoint: "http://10.233.102.173:9101/metrics"
+      - node-name: "node2"
+        endpoint: "http://10.233.75.49:9101/metrics"
+    utilization-metric-port: 9101
+    utilization-metric-names:
+      - "cpu_utilization"
+      - "memory"
+      - "sum_local_memory_bandwidth"
+      - "sum_total_memory_bandwidth"
   runs:
   - name: sample
     users: 2

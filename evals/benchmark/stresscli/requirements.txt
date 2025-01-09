@@ -8,3 +8,5 @@ numpy
 pytest
 pyyaml
 requests
+prometheus_client
+kubernetes
