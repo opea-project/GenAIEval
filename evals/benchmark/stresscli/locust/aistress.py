@@ -120,12 +120,16 @@ class AiStressUser(HttpUser):
             "faqgenfixed",
             "faqgenbench",
         ]
+        if self.environment.parsed_options.bench_target in ["faqgenfixed", "faqgenbench"]:
+            req_params = {"data": reqData}
+        else:
+            req_params = {"json": reqData}
         test_start_time = time.time()
         try:
             start_ts = time.perf_counter()
             with self.client.post(
                 url,
-                json=reqData,
+                **req_params,
                 stream=True if self.environment.parsed_options.bench_target in streaming_bench_target else False,
                 catch_response=True,
                 timeout=self.environment.parsed_options.http_timeout,
@@ -167,6 +171,22 @@ class AiStressUser(HttpUser):
                                         delta = data["choices"][0].get("delta", {})
                                         content = delta.get("content", "")
                                         complete_response += content
+                                except json.JSONDecodeError:
+                                    continue
+                        elif self.environment.parsed_options.bench_target in ["faqgenfixed", "faqgenbench"]:
+                            client = sseclient.SSEClient(resp)
+                            for event in client.events():
+                                if first_token_ts is None:
+                                    first_token_ts = time.perf_counter()
+                                try:
+                                    data = json.loads(event.data)
+                                    for op in data["ops"]:
+                                        if op["path"] == "/logs/HuggingFaceEndpoint/final_output":
+                                            generations = op["value"].get("generations", [])
+                                            for generation in generations:
+                                                for item in generation:
+                                                    text = item.get("text", "")
+                                                    complete_response += text
                                 except json.JSONDecodeError:
                                     continue
                         else:
