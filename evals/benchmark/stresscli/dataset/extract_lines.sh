@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 # Check for the correct number of arguments
 if [ "$#" -ne 4 ]; then
     echo "Usage: $0 input_file output_file begin_id end_id"
