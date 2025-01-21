@@ -15,7 +15,7 @@ def testFunc():
 
 def respStatics(environment, req, resp):
     tokenizer = transformers.AutoTokenizer.from_pretrained(environment.parsed_options.llm_model)
-    if environment.parsed_options.bench_target in ["chatqnafixed", "chatqnabench", "faqgenfixed", "faqgenbench"]:
+    if environment.parsed_options.bench_target in ["chatqnafixed", "chatqnabench", "faqgenfixed", "faqgenbench", "chatqna_qlist_pubmed"]:
         num_token_input_prompt = len(tokenizer.encode(req["messages"]))
     elif environment.parsed_options.bench_target in ["llmfixed"]:
         num_token_input_prompt = len(tokenizer.encode(req["query"]))
