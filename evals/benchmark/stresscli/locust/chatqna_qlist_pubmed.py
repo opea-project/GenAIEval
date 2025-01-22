@@ -115,11 +115,11 @@ def getReqData():
     doc = getRandomDocument()
     message = f"{doc['title']}{prompt_suffix}"
     logging.debug(f"Selected document: {message}")
-    return {"messages": f"{message}", "max_tokens": int(MAX_TOKENS)}
+    return {"messages": f"{message}", "max_tokens": int(MAX_TOKENS), "top_k": 1, "temperature": 0}
 
 
-def respStatics(environment, resp):
-    return token.respStatics(environment, resp)
+def respStatics(environment, reqData, respData):
+    return token.respStatics(environment, reqData, respData)
 
 
 def staticsOutput(environment, reqlist):
