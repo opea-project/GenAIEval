@@ -18,17 +18,6 @@ export PYTHONPATH=$PYTHONPATH:$WORKDIR/GenAIEval/
 cd $WORKDIR
 git clone https://github.com/opea-project/GenAIEval.git
 ```
-<!-- 3. Launch an interactive docker container for running this benchmark
-```bash
-# first build docker image
-cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/docker
-bash build_image.sh
-```
-Then launch the `agent-eval` container.
-```bash
-bash launch_eval_container.sh
-```
-You will be taken inside the `agent-eval` container. Then you can run the commands below inside the container. -->
 3. Create a conda environment
 ```bash
 conda create -n agent-eval-env python=3.10
@@ -82,8 +71,8 @@ git clone https://github.com/opea-project/GenAIComps.git
 2. Build docker image for OPEA agent
 ```bash
 cd $WORKDIR/GenAIComps
-export agent_image="opea/agent-langchain:comps"
-docker build --no-cache -t $agent_image --build-arg http_proxy=$http_proxy --build-arg https_proxy=$https_proxy -f comps/agent/langchain/Dockerfile .
+export agent_image="opea/agent:comps"
+docker build --no-cache -t $agent_image --build-arg http_proxy=$http_proxy --build-arg https_proxy=$https_proxy -f comps/agent/src/Dockerfile .
 ``` 
 3. Set up environment for the `search_web` tool for agent.
 ```bash

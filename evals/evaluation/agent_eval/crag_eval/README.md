@@ -9,11 +9,7 @@ export $WORKDIR=<your-work-directory>
 cd $WORKDIR
 git clone https://github.com/opea-project/GenAIEval.git
 ```
-<!-- 2. Build docker image
-```
-cd $WORKDIR/GenAIEval/evals/evaluation/agent_eval/docker/
-bash build_image.sh
-``` -->
+
 2. Create a conda environment
 ```bash
 conda create -n agent-eval-env python=3.10
@@ -29,11 +25,7 @@ export HUGGINGFACEHUB_API_TOKEN=<your-hf-api-token>
 export host_ip=$(hostname -I | awk '{print $1}')
 export PYTHONPATH=$PYTHONPATH:$WORKDIR/GenAIEval/
 ```
-<!-- 4. Start docker container
-This container will be used to preprocess dataset and run benchmark scripts.
-```
-bash launch_eval_container.sh
-``` -->
+
 4. Start vllm container on Intel Gaudi2. 
 
 By default, `meta-llama/Meta-Llama-3.1-70B-Instruct` model will be served using 4 Gaudi cards. This LLM will be used by agent as well as used as LLM-judge in scoring agent's answers.

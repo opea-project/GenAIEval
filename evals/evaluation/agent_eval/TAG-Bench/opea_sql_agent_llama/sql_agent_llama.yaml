@@ -15,6 +15,7 @@ services:
     environment:
       ip_address: ${ip_address}
       strategy: sql_agent_llama
+      with_memory: false
       db_name: ${db_name}
       db_path: ${db_path}
       use_hints: true
@@ -26,7 +27,7 @@ services:
       model: ${LLM_MODEL_ID}
       temperature: ${temperature}
       max_new_tokens: ${max_new_tokens}
-      streaming: false
+      stream: false
       tools: /home/user/tools/sql_agent_tools.yaml
       require_human_feedback: false
       no_proxy: ${no_proxy}

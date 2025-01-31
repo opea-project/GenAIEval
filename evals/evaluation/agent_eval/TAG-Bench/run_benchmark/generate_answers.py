@@ -11,7 +11,8 @@ import requests
 def generate_answer_agent_api(url, prompt):
     proxies = {"http": ""}
     payload = {
-        "query": prompt,
+        "messages": prompt,
+        "stream": False
     }
     response = requests.post(url, json=payload, proxies=proxies)
     answer = response.json()["text"]

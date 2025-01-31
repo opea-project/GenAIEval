@@ -13,6 +13,7 @@ def search_knowledge_base(query: str) -> str:
     proxies = {"http": ""}
     payload = {
         "messages": query,
+        "stream": False
     }
     response = requests.post(url, json=payload, proxies=proxies)
     print(response)

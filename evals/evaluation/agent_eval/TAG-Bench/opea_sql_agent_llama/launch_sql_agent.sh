@@ -7,7 +7,7 @@ echo $WORKDIR
 EVALDIR=${WORKDIR}/GenAIEval/evals/evaluation/agent_eval/TAG-Bench
 
 # agent vars
-export agent_image="opea/agent-langchain:comps"
+export agent_image="opea/agent:comps"
 export recursion_limit=15
 
 # LLM endpoint
