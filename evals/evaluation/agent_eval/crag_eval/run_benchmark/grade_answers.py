@@ -37,6 +37,7 @@ def make_list_of_test_cases(data):
             )
     return output
 
+
 def read_data(args):
     data = pd.read_csv(os.path.join(args.filedir, args.filename))
     if "query" not in data.columns:
@@ -46,13 +47,21 @@ def read_data(args):
             raise ValueError("The query column is missing in the data")
     return data
 
+
 def grade_answers(args, test_case):
     from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 
     print("==============getting embeddings==============")
     embeddings = HuggingFaceBgeEmbeddings(model_name=args.embed_model)
     print("==============initiating metric==============")
-    metric = RagasMetric(threshold=0.5, metrics=["answer_correctness"], model=args.llm_endpoint, model_name=args.model_name,embeddings=embeddings, use_vllm=args.use_vllm)
+    metric = RagasMetric(
+        threshold=0.5,
+        metrics=["answer_correctness"],
+        model=args.llm_endpoint,
+        model_name=args.model_name,
+        embeddings=embeddings,
+        use_vllm=args.use_vllm,
+    )
     print("==============start grading==============")
 
     if args.batch_grade:
@@ -66,7 +75,7 @@ def grade_answers(args, test_case):
             score = metric.score["answer_correctness"][0]
             print(score)
             scores.append(score)
-                
+
             print("-" * 50)
         return scores
 

@@ -1,4 +1,7 @@
 #!/bin/bash
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 # This script is used to run benchmarks on all databases
 
 EVALDIR=$WORKDIR/GenAIEval/evals/evaluation/agent_eval/TAG-Bench

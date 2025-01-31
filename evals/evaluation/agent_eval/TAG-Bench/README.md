@@ -79,7 +79,7 @@ docker build --no-cache -t $agent_image --build-arg http_proxy=$http_proxy --bui
 export GOOGLE_CSE_ID=<your-GOOGLE_CSE_ID>
 export GOOGLE_API_KEY=<your-GOOGLE_API_KEY>
 ```
-For intructions on how to obtain your `GOOGLE_CSE_ID` and `your-GOOGLE_API_KEY`, refer to instructions [here](https://python.langchain.com/docs/integrations/tools/google_search/).
+For instructions on how to obtain your `GOOGLE_CSE_ID` and `your-GOOGLE_API_KEY`, refer to instructions [here](https://python.langchain.com/docs/integrations/tools/google_search/).
 
 5. Launch SQL agent
 ```bash

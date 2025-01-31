@@ -1,4 +1,7 @@
 
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 echo "Building the vllm docker image"
 cd $WORKDIR
 echo $WORKDIR

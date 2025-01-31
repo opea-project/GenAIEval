@@ -11,10 +11,7 @@ def search_knowledge_base(query: str) -> str:
     url = os.environ.get("RETRIEVAL_TOOL_URL")
     print(url)
     proxies = {"http": ""}
-    payload = {
-        "messages": query,
-        "stream": False
-    }
+    payload = {"messages": query, "stream": False}
     response = requests.post(url, json=payload, proxies=proxies)
     print(response)
     if "documents" in response.json():

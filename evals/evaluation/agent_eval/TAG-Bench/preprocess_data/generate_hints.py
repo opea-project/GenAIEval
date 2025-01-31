@@ -52,4 +52,4 @@ if __name__ == "__main__":
     for db_name in subfolders:
         print("Generating hints for database: ", db_name)
         generate_column_descriptions(db_name)
-        print("="*30)
+        print("=" * 30)
