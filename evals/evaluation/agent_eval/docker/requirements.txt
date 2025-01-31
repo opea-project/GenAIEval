@@ -6,5 +6,5 @@ langchain-huggingface
 langchain-openai
 nltk
 pandas
-ragas
+ragas==0.2.6
 sentence_transformers

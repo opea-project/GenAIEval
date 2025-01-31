@@ -20,7 +20,8 @@ def get_test_data(args):
 def generate_answer(url, prompt):
     proxies = {"http": ""}
     payload = {
-        "query": prompt,
+        "messages": prompt,
+        "stream": False,
     }
     response = requests.post(url, json=payload, proxies=proxies)
     answer = response.json()["text"]
