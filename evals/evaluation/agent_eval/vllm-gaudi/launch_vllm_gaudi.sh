@@ -1,3 +1,6 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 model="meta-llama/Meta-Llama-3.1-70B-Instruct"
 vllm_port=8085
 vllm_volume=${HF_CACHE_DIR}

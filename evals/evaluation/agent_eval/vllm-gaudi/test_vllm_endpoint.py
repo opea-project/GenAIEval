@@ -1,5 +1,9 @@
-from langchain_openai import ChatOpenAI
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 import os
+
+from langchain_openai import ChatOpenAI
 
 host_ip = os.getenv("host_ip", "localhost")
 model_name = "meta-llama/Meta-Llama-3.1-70B-Instruct"

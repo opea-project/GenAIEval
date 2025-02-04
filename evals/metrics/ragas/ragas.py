@@ -79,7 +79,7 @@ class RagasMetric:
             self.chat_model = None
         elif isinstance(self.model, str):
             print("LLM endpoint: ", self.model)
-            
+
             if use_vllm:
                 openai_endpoint = f"{self.model}/v1"
                 self.chat_model = ChatOpenAI(

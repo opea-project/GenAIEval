@@ -1,14 +1,18 @@
-import pandas as pd
-import os
-import glob
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 import argparse
+import glob
+import os
+
+import pandas as pd
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--filedir', type=str, required=True, help='Directory containing the csv files')
+parser.add_argument("--filedir", type=str, required=True, help="Directory containing the csv files")
 args = parser.parse_args()
 
 filedir = args.filedir
-csv_files = glob.glob(os.path.join(filedir, '*_graded.csv'))
+csv_files = glob.glob(os.path.join(filedir, "*_graded.csv"))
 print("Number of score files found: ", len(csv_files))
 print(csv_files)
 

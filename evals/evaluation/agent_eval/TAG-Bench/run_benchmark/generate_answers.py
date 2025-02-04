@@ -10,10 +10,7 @@ import requests
 
 def generate_answer_agent_api(url, prompt):
     proxies = {"http": ""}
-    payload = {
-        "messages": prompt,
-        "stream": False
-    }
+    payload = {"messages": prompt, "stream": False}
     response = requests.post(url, json=payload, proxies=proxies)
     answer = response.json()["text"]
     return answer
@@ -54,10 +51,10 @@ if __name__ == "__main__":
         res = generate_answer_agent_api(url, query)
         answers.append(res)
         print("******Answer:\n", res)
-        json_lines.append({"query": query,"ref_answer":ref_answer, "answer": res})
+        json_lines.append({"query": query, "ref_answer": ref_answer, "answer": res})
         save_json_lines(json_lines, args)
         print("=" * 20)
 
-    df.rename(columns={"Answer": "ref_answer", "Query":"query"}, inplace=True)
-    df['answer'] = answers
+    df.rename(columns={"Answer": "ref_answer", "Query": "query"}, inplace=True)
+    df["answer"] = answers
     df.to_csv(os.path.join(args.output_dir, args.output_file), index=False)

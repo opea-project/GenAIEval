@@ -21,7 +21,7 @@ export temperature=0.01
 export max_new_tokens=4096
 
 # Tools
-export TOOLSET_PATH=${EVALDIR}/opea_sql_agent_llama/tools/ 
+export TOOLSET_PATH=${EVALDIR}/opea_sql_agent_llama/tools/
 ls ${TOOLSET_PATH}
 # for using Google search API
 export GOOGLE_CSE_ID=${GOOGLE_CSE_ID}
