@@ -15,10 +15,7 @@ def search_knowledge_base(query: str) -> str:
     url = os.environ.get("WORKER_AGENT_URL")
     print(url)
     proxies = {"http": ""}
-    payload = {
-        "messages": query,
-        "stream": False
-    }
+    payload = {"messages": query, "stream": False}
     response = requests.post(url, json=payload, proxies=proxies)
     return response.json()["text"]
 
