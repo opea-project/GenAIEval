@@ -119,6 +119,7 @@ class AiStressUser(HttpUser):
             "codegenbench",
             "faqgenfixed",
             "faqgenbench",
+            "chatqna_qlist_pubmed",
         ]
         if self.environment.parsed_options.bench_target in ["faqgenfixed", "faqgenbench"]:
             req_params = {"data": reqData}
