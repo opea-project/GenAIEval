@@ -97,7 +97,7 @@ cat ${MODEL_PATH%%/*}/results/${MODEL_PATH##*/}_${DATASET}_accuracy/metrics.json
 * Poetry
 
 ### Dependencies Installation with Poetry
-Step 1: Allow poetry to create virtual envionment contained in `.venv` directory of current directory. 
+Step 1: Allow poetry to create virtual environment contained in `.venv` directory of current directory. 
 
 ```bash
 poetry lock

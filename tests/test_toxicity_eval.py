@@ -18,10 +18,12 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import pytest
+
 from evals.evaluation.toxicity_eval.classification_metrics.scripts.benchmark_classification_metrics import (
     load_model,
+    read_test_jigsaw_split,
     read_test_tc_split,
-    read_test_jigsaw_split)
+)
 
 MODEL_PATHS = ["dummy_model_path", "Intel/toxic-prompt-roberta"]
 
@@ -31,7 +33,7 @@ MODEL_PATHS = ["dummy_model_path", "Intel/toxic-prompt-roberta"]
     ("invalid_model_path", "valid_model_path"), [("dummy_model_path", "Intel/toxic-prompt-roberta")]
 )
 def test_model_loading(invalid_model_path, valid_model_path):
-    """Test Loading of HuggingFace model path"""
+    """Test Loading of HuggingFace model path."""
 
     assert load_model(valid_model_path)
     with pytest.raises(EnvironmentError) as exception_error:

@@ -17,18 +17,19 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
+import argparse
+import json
 import os
 from pathlib import Path
-import json
-import pandas as pd
-import numpy as np
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
 import evaluate
+import numpy as np
+import pandas as pd
 import torch
-from torch.utils.data import Dataset
+from sklearn.metrics import auc, precision_recall_curve
 from torch.nn.functional import softmax
-import argparse
-from sklearn.metrics import precision_recall_curve, auc
+from torch.utils.data import Dataset
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
@@ -39,21 +40,43 @@ def parse_args():
         prog="Test",
         description="Test model checkpoint with Beaver Tails, Jigsaw, OpenAI Mod, SurgeAI toxicity, \
                     ToxicChat, Toxigen, and XSTest from checkpoint.",
-        epilog="WIP"
+        epilog="WIP",
     )
 
-    parser.add_argument('-m', '--model-path', help='Path to the model checkpoint that \
-                        will be tested.')
-    parser.add_argument('-d', '--dataset-name', help='BeaverTails=\'bt\' \
-                        or Jigsaw Unintended Bias=\'jigsaw\' \
-                        or OpenAI Moderation=\'mod\' or SurgeAI Toxicity=\'surgetox\' \
-                        or ToxicChat=\'tc\' or ToxiGen=\'tgen\' \
-                        or XSTest=\'xst\'')
-    parser.add_argument('-r', '--results-path', help='Optional. Only set results path if you are \
-                        testing model from hugging face hub.')
-    parser.add_argument('-p', '--dataset-path', help='Required in case of Jigsaw, SurgeAI Toxicity and OpenAI Moderation.')
-    parser.add_argument('--device', type=str, default='hpu', help='Optional. Device Type: cpu or hpu. Will default to hpu.')
-    parser.add_argument('-g_config','--gaudi_config_name', type=str, default='Habana/roberta-base', help='Optional. Name of the gaudi configuration. Will Default to Habana/roberta-base.')
+    parser.add_argument(
+        "-m",
+        "--model-path",
+        help="Path to the model checkpoint that \
+                        will be tested.",
+    )
+    parser.add_argument(
+        "-d",
+        "--dataset-name",
+        help="BeaverTails='bt' \
+                        or Jigsaw Unintended Bias='jigsaw' \
+                        or OpenAI Moderation='mod' or SurgeAI Toxicity='surgetox' \
+                        or ToxicChat='tc' or ToxiGen='tgen' \
+                        or XSTest='xst'",
+    )
+    parser.add_argument(
+        "-r",
+        "--results-path",
+        help="Optional. Only set results path if you are \
+                        testing model from hugging face hub.",
+    )
+    parser.add_argument(
+        "-p", "--dataset-path", help="Required in case of Jigsaw, SurgeAI Toxicity and OpenAI Moderation."
+    )
+    parser.add_argument(
+        "--device", type=str, default="hpu", help="Optional. Device Type: cpu or hpu. Will default to hpu."
+    )
+    parser.add_argument(
+        "-g_config",
+        "--gaudi_config_name",
+        type=str,
+        default="Habana/roberta-base",
+        help="Optional. Name of the gaudi configuration. Will Default to Habana/roberta-base.",
+    )
     return parser.parse_args()
 
 
@@ -89,50 +112,44 @@ def validate_metrics(predict_results):
 
 
 def read_test_tc_split(csv_path):
-    """
-    Reads the test split for the ToxicChat dataset.
-    """
+    """Reads the test split for the ToxicChat dataset."""
     df = pd.read_csv(csv_path)
     texts = list(df.user_input)
     labels = list(df.toxicity)
 
     return texts, labels
 
+
 def read_test_xs_split(csv_path):
-    """
-    Reads the test split for the XSTest dataset.
-    """
+    """Reads the test split for the XSTest dataset."""
     df = pd.read_parquet(csv_path)
     texts = list(df["prompt"])
-    label_map = {"safe":0, "unsafe":1}
+    label_map = {"safe": 0, "unsafe": 1}
     labels = [label_map[label] for label in list(df["label"])]
 
     return texts, labels
 
+
 def read_test_tg_split(csv_path):
-    """
-    Reads the test split for the Toxigen dataset.
-    """
+    """Reads the test split for the Toxigen dataset."""
     df = pd.read_parquet(csv_path)
     texts = list(df["prompt"])
     labels = list(df["prompt_label"])
-    
+
     return texts, labels
 
-def read_test_bt_split(csv_path): 
-    """
-    Reads the test split for the Beaver Tails dataset.
-    """
+
+def read_test_bt_split(csv_path):
+    """Reads the test split for the Beaver Tails dataset."""
     df = pd.read_json(csv_path, lines=True)
     texts = list(df["prompt"])
     labels = list(df["is_safe"].astype(int))
 
     return texts, labels
 
+
 def read_test_jigsaw_split(csv_path):
-    """
-    Reads the test split for the Jigsaw dataset.
-    """
+    """Reads the test split for the Jigsaw dataset."""
     try:
         df = pd.read_csv(csv_path, index_col=0)
         df = df[~df.comment_text.isna()]
@@ -142,37 +159,38 @@ def read_test_jigsaw_split(csv_path):
         return texts, labels
     except:
         raise Exception(
-            f"Error loading test dataset for Jigsaw Unintended Bias. Please ensure the CSV file path is correct and the file contains the required columns: 'comment_text' and 'toxicity'."
+            "Error loading test dataset for Jigsaw Unintended Bias. Please ensure the CSV file path is correct and the file contains the required columns: 'comment_text' and 'toxicity'."
         )
-    
+
+
 def read_test_surge_split(csv_path):
-    """
-    Reads the test split for the SurgeAI Toxicity dataset.
-    """
+    """Reads the test split for the SurgeAI Toxicity dataset."""
     try:
         df = pd.read_csv(csv_path)
         texts = list(df["text"])
-        label_map = {"Not Toxic":0, "Toxic":1}
+        label_map = {"Not Toxic": 0, "Toxic": 1}
         labels = [label_map[label] for label in list(df["is_toxic"])]
-        
+
         return texts, labels
     except:
-        print(f"Error loading test dataset for SurgeAI Toxicity. Please ensure the CSV file path is correct \
-             and the file contains the required columns: 'text' and 'is_toxic'.")
+        print(
+            "Error loading test dataset for SurgeAI Toxicity. Please ensure the CSV file path is correct \
+             and the file contains the required columns: 'text' and 'is_toxic'."
+        )
+
 
 def read_test_openaimod_split(json_path):
-    """
-    Reads the test split for the OpeanAI Mod dataset.
-    """
+    """Reads the test split for the OpeanAI Mod dataset."""
     try:
         df = pd.read_json(json_path, lines=True)
         texts = list(df["prompt"])
         columns_to_check = ["S", "H", "V", "HR", "SH", "S3", "H2", "V2"]
         labels = list(df[columns_to_check].max(axis=1).astype(int))
-        
+
         return texts, labels
     except:
-        print(f"Error loading test dataset for SurgeAI Toxicity. Please ensure the CSV file path is correct.")
+        print("Error loading test dataset for SurgeAI Toxicity. Please ensure the CSV file path is correct.")
+
 
 def generate_datasets(test_texts, test_labels, tokenizer):
     test_encodings = tokenizer(test_texts, truncation=True, padding=True)
@@ -279,15 +297,15 @@ def main():
 
     if not os.path.exists(TEST_RESULTS_PATH):
         os.makedirs(TEST_RESULTS_PATH)
-    
+
     read_test_split = {
-    "tc": ("hf://datasets/lmsys/toxic-chat/data/0124/toxic-chat_annotation_test.csv", read_test_tc_split),
-    "xst": ("hf://datasets/walledai/XSTest/data/train-00000-of-00001.parquet", read_test_xs_split),
-    "bt": ("hf://datasets/PKU-Alignment/BeaverTails/round0/330k/test.jsonl.xz", read_test_bt_split),
-    "tgen": ("hf://datasets/toxigen/toxigen-data/train/train-00000-of-00001.parquet", read_test_tg_split),
-    "mod": read_test_openaimod_split,
-    "surgetox": read_test_surge_split,
-    "jigsaw": read_test_jigsaw_split
+        "tc": ("hf://datasets/lmsys/toxic-chat/data/0124/toxic-chat_annotation_test.csv", read_test_tc_split),
+        "xst": ("hf://datasets/walledai/XSTest/data/train-00000-of-00001.parquet", read_test_xs_split),
+        "bt": ("hf://datasets/PKU-Alignment/BeaverTails/round0/330k/test.jsonl.xz", read_test_bt_split),
+        "tgen": ("hf://datasets/toxigen/toxigen-data/train/train-00000-of-00001.parquet", read_test_tg_split),
+        "mod": read_test_openaimod_split,
+        "surgetox": read_test_surge_split,
+        "jigsaw": read_test_jigsaw_split,
     }
 
     if args.dataset_name in ["jigsaw", "tc", "surgetox", "mod", "xst", "tgen", "bt"]:
@@ -295,17 +313,17 @@ def main():
         if args.dataset_name == "jigsaw" or args.dataset_name == "surgetox" or args.dataset_name == "mod":
             DATA_PATH = args.dataset_path
             if not DATA_PATH or not os.path.exists(DATA_PATH):
-                raise FileNotFoundError(f"The specified dataset path does not exist or is not a directory.")
+                raise FileNotFoundError("The specified dataset path does not exist or is not a directory.")
             DATA_PATH = Path(DATA_PATH)
             read_test_split_fn = read_test_split[args.dataset_name]
         else:
             DATA_PATH = read_test_split[args.dataset_name][0]
             read_test_split_fn = read_test_split[args.dataset_name][1]
-        
+
         test_texts, test_labels = read_test_split_fn(DATA_PATH)
 
     else:
-        print(f"Support for dataset is coming soon...")
+        print("Support for dataset is coming soon...")
         exit(1)
 
     if CL:
@@ -327,19 +345,16 @@ def main():
             model=model,  # the instantiated 🤗 Transformers model to be trained
             args=training_args,  # training arguments, defined above
             eval_dataset=test_dataset,  # evaluation dataset
-            compute_metrics=compute_metrics
+            compute_metrics=compute_metrics,
         )
     else:
-        training_args = TrainingArguments(
-            output_dir=TEST_RESULTS_PATH
-        )
+        training_args = TrainingArguments(output_dir=TEST_RESULTS_PATH)
         trainer = Trainer(
             model=model,  # the instantiated 🤗 Transformers model to be trained
             args=training_args,  # training arguments, defined above
             eval_dataset=test_dataset,  # evaluation dataset
-            compute_metrics=compute_metrics
+            compute_metrics=compute_metrics,
         )
-
 
     results = trainer.predict(test_dataset)
 
