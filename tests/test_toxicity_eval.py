@@ -18,7 +18,10 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import pytest
-from scripts.benchmark_classification_metrics import load_model, read_test_tc_split, read_test_jigsaw_split
+from evals.evaluation.toxicity_eval.classification_metrics.scripts.benchmark_classification_metrics import (
+    load_model,
+    read_test_tc_split,
+    read_test_jigsaw_split)
 
 MODEL_PATHS = ["dummy_model_path", "Intel/toxic-prompt-roberta"]
 
