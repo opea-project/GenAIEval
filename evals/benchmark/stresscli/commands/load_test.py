@@ -236,7 +236,7 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         "--seed",
         str(runspec["seed"]),
         "--processes",
-        str(processes),
+        str(runspec["processes"]),
         "--users",
         str(runspec["users"]),
         "--spawn-rate",

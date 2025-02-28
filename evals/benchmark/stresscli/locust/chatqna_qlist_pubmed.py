@@ -24,7 +24,7 @@ PROMPT = os.getenv(
 
 # Initialize the data
 cwd = os.path.dirname(os.path.abspath(__file__))
-filename = os.path.join(cwd, "..", "dataset", DATASET)
+filename = os.path.abspath(DATASET)
 logging.info(f"The dataset filename: {filename}")
 logging.info(f"MAX_LINES: {MAX_LINES}")
 logging.info(f"MAX_TOKENS: {MAX_TOKENS}")

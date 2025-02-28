@@ -65,7 +65,7 @@ def staticsOutput(environment, reqlist):
         tokens_output += req["tokens_output"]
         tokens_input += req["tokens_input"]
         test_start_time = req["test_start_time"]
-    duration = environment.runner.stats.last_request_timestamp - test_start_time
+    duration = environment.runner.stats.last_request_timestamp - environment.runner.stats.start_time
 
     # Statistics for success response data only
     if tokens_output == 0:
