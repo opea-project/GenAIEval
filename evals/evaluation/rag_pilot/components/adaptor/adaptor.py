@@ -1,6 +1,7 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+from typing import Callable, Optional
 from components.adaptor.base import Module, Node, convert_tuple, get_support_modules
 
 
