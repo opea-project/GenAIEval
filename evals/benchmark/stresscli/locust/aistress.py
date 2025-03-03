@@ -10,6 +10,7 @@ import time
 
 import gevent
 import sseclient
+import transformers
 from locust import HttpUser, between, events, task
 from locust.runners import STATE_CLEANUP, STATE_STOPPED, STATE_STOPPING, MasterRunner, WorkerRunner
 
@@ -85,6 +86,7 @@ last_resp_ts = 0
 bench_package = ""
 console_logger = logging.getLogger("locust.stats_logger")
 
+tokenizer = transformers.AutoTokenizer.from_pretrained("meta-llama/Meta-Llama-3-8B-Instruct")
 
 class AiStressUser(HttpUser):
     request = 0
@@ -92,6 +94,8 @@ class AiStressUser(HttpUser):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        global tokenizer
+        self.environment.tokenizer = tokenizer
 
     @task
     def bench_main(self):
