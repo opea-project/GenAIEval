@@ -1,13 +1,18 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Optional, Dict
-import json
 import copy
+import json
+from typing import Dict, Optional
 
 from components.constructor.ecrag.api_schema import (
-    NodeParserIn, IndexerIn, RetrieverIn, PostProcessorIn, GeneratorIn,
-    ModelIn, PipelineCreateIn
+    GeneratorIn,
+    IndexerIn,
+    ModelIn,
+    NodeParserIn,
+    PipelineCreateIn,
+    PostProcessorIn,
+    RetrieverIn,
 )
 
 
@@ -36,39 +41,28 @@ def convert_dict_to_pipeline(pl: dict) -> PipelineCreateIn:
     return PipelineCreateIn(
         idx=pl.get("idx"),
         name=pl.get("name"),
-        node_parser=initialize_component(
-            NodeParserIn,
-            pl.get("node_parser"),
-            key_map={"idx": "idx"}
-        ),
+        node_parser=initialize_component(NodeParserIn, pl.get("node_parser"), key_map={"idx": "idx"}),
         indexer=initialize_component(
             IndexerIn,
             pl.get("indexer"),
             key_map={"model": "embedding_model", "idx": "idx"},
-            nested_fields={"embedding_model": ModelIn}
+            nested_fields={"embedding_model": ModelIn},
         ),
-        retriever=initialize_component(
-            RetrieverIn,
-            pl.get("retriever"),
-            key_map={"idx": "idx"}
-        ),
+        retriever=initialize_component(RetrieverIn, pl.get("retriever"), key_map={"idx": "idx"}),
         postprocessor=[
             initialize_component(
                 PostProcessorIn,
                 pp,
                 extra={"processor_type": pp.get("processor_type")},
                 key_map={"model": "reranker_model", "idx": "idx"},
-                nested_fields={"reranker_model": ModelIn}
+                nested_fields={"reranker_model": ModelIn},
             )
             for pp in pl.get("postprocessor", [])
         ],
         generator=initialize_component(
-            GeneratorIn,
-            pl.get("generator"),
-            key_map={"idx": "idx"},
-            nested_fields={"model": ModelIn}
+            GeneratorIn, pl.get("generator"), key_map={"idx": "idx"}, nested_fields={"model": ModelIn}
         ),
-        active=pl.get("status", {}).get("active", False)
+        active=pl.get("status", {}).get("active", False),
     )
 
 
@@ -121,11 +115,7 @@ class Constructor:
                 model_path += f"/{weight}_compressed_weights"
 
             return ModelIn(
-                model_type=model_type,
-                model_id=model_id,
-                model_path=model_path,
-                weight=weight,
-                device=device
+                model_type=model_type, model_id=model_id, model_path=model_path, weight=weight, device=device
             )
 
         if self.pl.indexer and isinstance(self.pl.indexer.embedding_model, str):
@@ -147,7 +137,7 @@ class Constructor:
 
     def export_pipeline(self):
         self._restore_model_instances()
-        exported_pl  = copy.deepcopy(self.pl)
+        exported_pl = copy.deepcopy(self.pl)
         self._replace_model_with_id()
         return exported_pl
 
@@ -157,7 +147,7 @@ class Constructor:
     def deactivate_pl(self):
         self.pl.active = False
 
-    def save_pipeline_to_json(self, save_path = "pipeline.json"):
+    def save_pipeline_to_json(self, save_path="pipeline.json"):
         if self.pl:
             pipeline_dict = self.export_pipeline().dict()
             with open(save_path, "w") as json_file:

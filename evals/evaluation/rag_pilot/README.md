@@ -60,7 +60,7 @@ Contains queries and optional ground truth answers. Below is a sample format:
 Run the following command to start the tuning process. The output RAG results will be stored in `rag_pipeline_out.json`:
 
 ```bash
-# Run pipleine tuning tool
+# Run pipeline tuning tool
 export ECRAG_SERVICE_HOST_IP="ecrag_host_ip"
 python3 -m pipeline_tune -q "your_qa_list.json" -o "rag_pipeline_out.json"
 ```

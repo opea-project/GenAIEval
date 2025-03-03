@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from enum import Enum
-from typing import Optional, Callable, Union, List, Tuple
+from typing import Callable, List, Optional, Tuple, Union
 
 from pydantic import BaseModel
 

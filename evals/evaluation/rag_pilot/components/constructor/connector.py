@@ -2,14 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
+
 import requests
-
 from components.constructor.constructor import convert_dict_to_pipeline
-
-from components.constructor.ecrag.api_schema import (
-    PipelineCreateIn, RagOut
-)
-
+from components.constructor.ecrag.api_schema import PipelineCreateIn, RagOut
 
 ECRAG_SERVICE_HOST_IP = os.getenv("ECRAG_SERVICE_HOST_IP", "127.0.0.1")
 ECRAG_SERVICE_PORT = int(os.getenv("ECRAG_SERVICE_PORT", 16010))
@@ -28,7 +24,9 @@ def get_active_pipeline() -> PipelineCreateIn:
 
 def update_pipeline(pipeline_conf):
     path = "/v1/settings/pipelines"
-    return requests.patch(f"{server_addr}{path}/{pipeline_conf.name}", json=pipeline_conf.dict(), proxies={"http": None})
+    return requests.patch(
+        f"{server_addr}{path}/{pipeline_conf.name}", json=pipeline_conf.dict(), proxies={"http": None}
+    )
 
 
 def get_ragqna(query):

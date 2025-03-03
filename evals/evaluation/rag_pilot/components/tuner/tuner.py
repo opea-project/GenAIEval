@@ -4,10 +4,15 @@
 from abc import ABC, abstractmethod
 
 from components.tuner.base import (
-    Question, QuestionType,
-    Feedback, ContentType,
-    Suggestion, SuggestionType, SuggestionValue, DirectionType,
-    RagResult
+    ContentType,
+    DirectionType,
+    Feedback,
+    Question,
+    QuestionType,
+    RagResult,
+    Suggestion,
+    SuggestionType,
+    SuggestionValue,
 )
 
 
@@ -58,28 +63,21 @@ def input_parser(qtype: QuestionType = QuestionType.BOOL):
 
 
 def display_ragqna(ragqna, content_type=ContentType.RESPONSE, context_idx=0):
-    print("\nRAG Query\n"
-          "---------\n"
-          f"{ragqna.query}\n\n"
-          "RAG Response\n"
-          "------------\n"
-          f"{ragqna.response}\n")
+    print("\nRAG Query\n" "---------\n" f"{ragqna.query}\n\n" "RAG Response\n" "------------\n" f"{ragqna.response}\n")
 
     if content_type == ContentType.ALL_CONTEXTS:
         if ragqna.contexts:
             for index, context in enumerate(ragqna.contexts):
-                cleaned_context = context.replace('\n', ' ')
-                print(f"RAG Context {index}\n"
-                      "-------------------\n"
-                      f"{cleaned_context}\n")
+                cleaned_context = context.replace("\n", " ")
+                print(f"RAG Context {index}\n" "-------------------\n" f"{cleaned_context}\n")
         else:
-            print("RAG Contexts\n"
-                  "------------\n"
-                  "None\n")
+            print("RAG Contexts\n" "------------\n" "None\n")
     elif content_type == ContentType.CONTEXT:
-        print(f"RAG Contexts {context_idx}\n"
-              "--------------------------\n"
-              f"{ragqna.contexts[context_idx] if context_idx in ragqna.contexts else 'None'}\n")
+        print(
+            f"RAG Contexts {context_idx}\n"
+            "--------------------------\n"
+            f"{ragqna.contexts[context_idx] if context_idx in ragqna.contexts else 'None'}\n"
+        )
 
 
 def display_list(list):
@@ -89,11 +87,7 @@ def display_list(list):
 
 class Tuner(ABC):
 
-    def __init__(self,
-                 ragqna: RagResult,
-                 question: str,
-                 question_type: QuestionType,
-                 content_type: ContentType):
+    def __init__(self, ragqna: RagResult, question: str, question_type: QuestionType, content_type: ContentType):
 
         self.question = Question(
             question=question,
@@ -140,10 +134,7 @@ class Tuner(ABC):
         if not valid:
             return False
 
-        self.user_feedback = Feedback(
-            type=self.question.question_type,
-            feedback=user_input
-        )
+        self.user_feedback = Feedback(type=self.question.question_type, feedback=user_input)
         self.get_suggestions_origval()
         return True
 
@@ -168,9 +159,11 @@ class Tuner(ABC):
                     if not choices:
                         continue
 
-                    print(f"{attr}'s current value: {origval}\n"
+                    print(
+                        f"{attr}'s current value: {origval}\n"
                         f"We suggest setting a new value from choices: {choices}\n"
-                        f"Please enter a new value: ")
+                        f"Please enter a new value: "
+                    )
                     valid, user_input = input_parser(QuestionType.SCORE)
                     if valid:
                         old_new_values[attr] = [origval, user_input]
@@ -190,8 +183,7 @@ class Tuner(ABC):
                         continue
 
                     display_list(choices)
-                    print(f"{attr}'s current value: {origval}\n"
-                        f"Please enter the index of a new value")
+                    print(f"{attr}'s current value: {origval}\n" f"Please enter the index of a new value")
                     valid, user_input = input_parser(QuestionType.SCORE)
                     if valid:
                         if user_input < 0 or user_input >= len(choices):
@@ -209,7 +201,7 @@ class Tuner(ABC):
 
         is_changed = False
         for k, v in old_new_values.items():
-            if self._confirm_suggestion(self.suggestions[k], v, skip_confirming = True):
+            if self._confirm_suggestion(self.suggestions[k], v, skip_confirming=True):
                 is_changed = True
 
         if is_changed:
@@ -221,7 +213,9 @@ class Tuner(ABC):
         svalue = suggestion.svalue
         origval, newval = old_new_value
 
-        print(f"Based on your feedback, {svalue.direction.value if svalue.direction else 'modify'} {suggestion.attribute} {origval} -> {newval}")
+        print(
+            f"Based on your feedback, {svalue.direction.value if svalue.direction else 'modify'} {suggestion.attribute} {origval} -> {newval}"
+        )
         if skip_confirming:
             valid, user_input = True, True
         else:
@@ -248,9 +242,8 @@ class Tuner(ABC):
 
 class SimpleNodeParserChunkTuner(Tuner):
 
-    def __init__(self,
-                 ragqna=None):
-        q = "Is each context split properly? \n -1) Incomplete \n 0) Good enough or skip currrent tuner \n 1) Includes too many contents"
+    def __init__(self, ragqna=None):
+        q = "Is each context split properly? \n -1) Incomplete \n 0) Good enough or skip current tuner \n 1) Includes too many contents"
         super().__init__(ragqna, q, QuestionType.MINUS_ONE_ZERO_ONE, ContentType.ALL_CONTEXTS)
 
         self.node_type = "node_parser"
@@ -258,39 +251,36 @@ class SimpleNodeParserChunkTuner(Tuner):
 
         attribute = "chunk_size"
         suggestion = Suggestion(
-            svalue=SuggestionValue(
-                suggestion_type=SuggestionType.OFFSET,
-                step=100),
+            svalue=SuggestionValue(suggestion_type=SuggestionType.OFFSET, step=100),
             attribute=attribute,
         )
         self.suggestions[attribute] = suggestion
 
         attribute = "chunk_overlap"
         suggestion = Suggestion(
-            svalue=SuggestionValue(
-                suggestion_type=SuggestionType.OFFSET,
-                step=8),
+            svalue=SuggestionValue(suggestion_type=SuggestionType.OFFSET, step=8),
             attribute=attribute,
         )
         self.suggestions[attribute] = suggestion
 
     def _feedback_to_suggestions(self):
         assert isinstance(self.user_feedback, Feedback)
-        if (self.user_feedback.type == QuestionType.MINUS_ONE_ZERO_ONE):
-            if (self.user_feedback.feedback == 1):
+        if self.user_feedback.type == QuestionType.MINUS_ONE_ZERO_ONE:
+            if self.user_feedback.feedback == 1:
                 for suggestion in self.suggestions.values():
                     suggestion.svalue.direction = DirectionType.DECREASE
-            elif (self.user_feedback.feedback == -1):
+            elif self.user_feedback.feedback == -1:
                 for suggestion in self.suggestions.values():
                     suggestion.svalue.direction = DirectionType.INCREASE
 
 
 class RerankerTopnTuner(Tuner):
 
-    def __init__(self,
-                 ragqna=None):
-        q = "Are the contexts not enough for answering the question or some of them contain irrelevant information?\n" + \
-            " -1) Not enough \n 0) Fine or skip currrent tuner \n 1) Too many contexts"
+    def __init__(self, ragqna=None):
+        q = (
+            "Are the contexts not enough for answering the question or some of them contain irrelevant information?\n"
+            + " -1) Not enough \n 0) Fine or skip current tuner \n 1) Too many contexts"
+        )
         super().__init__(ragqna, q, QuestionType.MINUS_ONE_ZERO_ONE, ContentType.ALL_CONTEXTS)
 
         self.node_type = "postprocessor"
@@ -298,30 +288,29 @@ class RerankerTopnTuner(Tuner):
 
         attribute = "top_n"
         suggestion = Suggestion(
-            svalue=SuggestionValue(
-                suggestion_type=SuggestionType.OFFSET,
-                step=1),
+            svalue=SuggestionValue(suggestion_type=SuggestionType.OFFSET, step=1),
             attribute=attribute,
         )
         self.suggestions[attribute] = suggestion
 
     def _feedback_to_suggestions(self):
         assert isinstance(self.user_feedback, Feedback)
-        if (self.user_feedback.type == QuestionType.MINUS_ONE_ZERO_ONE):
-            if (self.user_feedback.feedback == 1):
+        if self.user_feedback.type == QuestionType.MINUS_ONE_ZERO_ONE:
+            if self.user_feedback.feedback == 1:
                 for suggestion in self.suggestions.values():
                     suggestion.svalue.direction = DirectionType.DECREASE
-            elif (self.user_feedback.feedback == -1):
+            elif self.user_feedback.feedback == -1:
                 for suggestion in self.suggestions.values():
                     suggestion.svalue.direction = DirectionType.INCREASE
 
 
 class EmbeddingLanguageTuner(Tuner):
 
-    def __init__(self,
-                 ragqna=None):
-        q = "Does any context contain relevant information for the given RAG query?\n" + \
-            " y) yes or skip currrent tuner \n n) no"
+    def __init__(self, ragqna=None):
+        q = (
+            "Does any context contain relevant information for the given RAG query?\n"
+            + " y) yes or skip current tuner \n n) no"
+        )
         super().__init__(ragqna, q, QuestionType.BOOL, ContentType.ALL_CONTEXTS)
 
         self.node_type = "indexer"
@@ -338,7 +327,7 @@ class EmbeddingLanguageTuner(Tuner):
 
     def _feedback_to_suggestions(self):
         assert isinstance(self.user_feedback, Feedback)
-        if (self.user_feedback.type == QuestionType.BOOL):
+        if self.user_feedback.type == QuestionType.BOOL:
             if not self.user_feedback.feedback:
                 for suggestion in self.suggestions.values():
                     suggestion.svalue.choices = self.module.get_params(suggestion.attribute)
@@ -346,11 +335,12 @@ class EmbeddingLanguageTuner(Tuner):
 
 class NodeParserTypeTuner(Tuner):
 
-    def __init__(self,
-                 ragqna=None):
-        q = "Are all contexts split with similar amount of information? \n" + \
-            "y) All contexts contain similar amount of information or skip currrent tuner \n" + \
-            "n) Some contexts contain more information while some contain less"
+    def __init__(self, ragqna=None):
+        q = (
+            "Are all contexts split with similar amount of information? \n"
+            + "y) All contexts contain similar amount of information or skip current tuner \n"
+            + "n) Some contexts contain more information while some contain less"
+        )
         super().__init__(ragqna, q, QuestionType.BOOL, ContentType.ALL_CONTEXTS)
 
         self.node_type = "node_parser"
@@ -367,7 +357,7 @@ class NodeParserTypeTuner(Tuner):
 
     def _feedback_to_suggestions(self):
         assert isinstance(self.user_feedback, Feedback)
-        if (self.user_feedback.type == QuestionType.BOOL):
+        if self.user_feedback.type == QuestionType.BOOL:
             if not self.user_feedback.feedback:
                 for suggestion in self.suggestions.values():
                     suggestion.svalue.choices = self.module.get_params(suggestion.attribute)

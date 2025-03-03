@@ -1,9 +1,8 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-from components.adaptor.base import (
-    Module, Node, convert_tuple, get_support_modules
-)
+from components.adaptor.base import Module, Node, convert_tuple, get_support_modules
+
 
 class Adaptor:
 
@@ -18,7 +17,7 @@ class Adaptor:
             modules_dict = {
                 mod.get("module_type"): Module(
                     type=mod.get("module_type", ""),
-                    params={k: convert_tuple(v) for k, v in mod.items() if k not in ["module_type"]}
+                    params={k: convert_tuple(v) for k, v in mod.items() if k not in ["module_type"]},
                 )
                 for mod in node.get("modules", [])
                 if mod.get("module_type")
@@ -31,15 +30,15 @@ class Adaptor:
                 parsed_nodes[node_type] = [cur_node]
         return parsed_nodes
 
-    def get_node(self, node_type, idx = 0):
+    def get_node(self, node_type, idx=0):
         nodes = self.nodes[node_type] if node_type in self.nodes else None
         return nodes[idx] if nodes and idx < len(nodes) else None
 
-    def get_modules_from_node(self, node_type, idx = 0):
+    def get_modules_from_node(self, node_type, idx=0):
         node = self.get_node(node_type, idx)
         return node.modules if node else None
 
-    def get_module(self, node_type, module_type, idx = 0):
+    def get_module(self, node_type, module_type, idx=0):
         if module_type is None:
             return self.get_node(node_type, idx)
         else:

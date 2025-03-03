@@ -1,10 +1,10 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+import ast
 from copy import deepcopy
 from dataclasses import dataclass, field
-from typing import Dict, Callable, Tuple, Any, Optional
-import ast
+from typing import Any, Callable, Dict, Optional, Tuple
 
 
 def get_support_modules(module_name: str, module_map) -> Callable:
