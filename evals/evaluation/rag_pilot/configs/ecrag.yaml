@@ -1,0 +1,29 @@
+nodes:
+  - node: node_parser
+    modules:
+      - module_type: simple
+        chunk_size: 400
+        chunk_overlap: 48
+      - module_type: hierarchical
+        chunk_sizes: [256, 384, 512]
+  - node: indexer
+    embedding_model: [BAAI/bge-small-zh-v1.5, BAAI/bge-small-en-v1.5]
+    modules:
+      - module_type: vector
+      - module_type: faiss_vector
+  - node: retriever
+    retrieve_topk: 30
+    modules:
+      - module_type: vectorsimilarity
+      - module_type: auto_merge
+      - module_type: bm25
+  - node: postprocessor
+    modules:
+      - module_type: reranker
+        top_n: 3
+        reranker_model: BAAI/bge-reranker-large
+      - module_type: metadata_replace
+  - node: generator
+    model: [Qwen/Qwen2-7B-Instruct]
+    inference_type: [local, vllm]
+    prompt: null
