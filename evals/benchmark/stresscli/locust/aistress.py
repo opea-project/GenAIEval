@@ -88,6 +88,7 @@ console_logger = logging.getLogger("locust.stats_logger")
 
 tokenizer = transformers.AutoTokenizer.from_pretrained("meta-llama/Meta-Llama-3-8B-Instruct")
 
+
 class AiStressUser(HttpUser):
     request = 0
     _lock = threading.Lock()
