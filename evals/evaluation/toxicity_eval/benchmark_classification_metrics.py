@@ -80,7 +80,7 @@ class BertoxDataset(Dataset):
 
 
 def validate_metrics(predict_results):
-    roc_auc = load_metric("roc_auc")
+    roc_auc = evaluate.load("roc_auc")
     n_samples = len(predict_results.label_ids)
     probabilities = softmax(torch.Tensor(predict_results.predictions))[:, 1]
     auroc = roc_auc.compute(prediction_scores=probabilities, references=predict_results.label_ids)
