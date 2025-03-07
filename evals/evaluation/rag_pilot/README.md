@@ -42,7 +42,7 @@ pip install -r requirements.txt
 
 To launch RAG Pilot, create the following *required files* before running the command:
 
-##### QA List File (`your_qa_list.json`)
+#### QA List File (`your_qa_list.json`)
 Contains queries and optional ground truth answers. Below is a sample format:
 
 ```json
@@ -77,10 +77,10 @@ Refer to [Create Running Environment](#create-running-environment) in the Online
 
 To launch RAG Pilot, create the following *required files* before running the command:
 
-##### RAG Configuration File (`your_rag_pipeline.json`)
+#### RAG Configuration File (`your_rag_pipeline.json`)
 Settings for the RAG pipeline. Please follow the format of file `configs/pipeline_sample.json`, which is compatible with [EdgeCraftRAG](https://github.com/opea-project/GenAIExamples/tree/main/EdgeCraftRAG)
 
-##### RAG Results File (`your_rag_results.json`)
+#### RAG Results File (`your_rag_results.json`)
 Contains queries, responses, lists of contexts, and optional ground truth. Below is a sample format:
 
 ```json
