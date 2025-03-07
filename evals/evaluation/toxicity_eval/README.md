@@ -2,7 +2,7 @@
 
 Toxicity detection plays a critical role in guarding the inputs and outputs of large language models (LLMs) to ensure safe, respectful, and responsible content. Given the widespread use of LLMs in applications like customer service, education, and social media, there's a significant risk that they could inadvertently produce or amplify harmful language if toxicity is not detected effectively. 
 
-To evaluate a target toxicity detection LLM, we use seven datasets: BeaverTails, Jigsaw Unintended Bias, OpenAI Moderation, SurgeAI Toxicity, ToxicChat, ToxiGen, and XSTest. We also employ the most commonly used metrics in toxicity classification to provide a comprehensive assessment. Currently, the benchmark script supports benchmarking only one dataset at a time. Future work includes enabling benchmarking on multiple datasets simultaneously. The Gaudi 2 accelerator is deployed in the benchmark to address the high demand of the AI workload while balancing power efficiency.
+To evaluate a target toxicity detection LLM, we use multiple datasets: BeaverTails, Jigsaw Unintended Bias, OpenAI Moderation, SurgeAI Toxicity, ToxicChat, ToxiGen, and XSTest. We also employ the most commonly used metrics in toxicity classification to provide a comprehensive assessment. Currently, the benchmark script supports benchmarking only one dataset at a time. Future work includes enabling benchmarking on multiple datasets simultaneously. The Gaudi 2 accelerator is deployed in the benchmark to address the high demand of the AI workload while balancing power efficiency.
 
 - Supported Datasets
     - [BeaverTails](https://huggingface.co/datasets/PKU-Alignment/BeaverTails)
@@ -27,14 +27,14 @@ To evaluate a target toxicity detection LLM, we use seven datasets: BeaverTails,
 ### Requirements
 If you are using an `hpu` device, then clone the `optimum-habana` and the `GenAIEval` repositories.
 ```bash
-git clone https://github.com/huggingface/optimum-habana.git
-git clone https://github.com/opea-project/GenAIEval
+git clone https://github.com/huggingface/optimum-habana.git --depth=1
+git clone https://github.com/opea-project/GenAIEval --depth=1
 ```
 
 ### Setup
 If you're running behind corporate proxy, run Gaudi Docker with additional proxies and volume mount.
 ```bash
-DOCKER_RUN_ENVS="--env ftp_proxy=${ftp_proxy} --env FTP_PROXY=${FTP_PROXY} --env http_proxy=${http_proxy} --env HTTP_PROXY=${HTTP_PROXY} --env https_proxy=${https_proxy} --env HTTPS_PROXY=${HTTPS_PROXY} --env no_proxy=${no_proxy} --env NO_PROXY=${NO_PROXY} --env socks_proxy=${socks_proxy} --env SOCKS_PROXY=${SOCKS_PROXY} --env TF_ENABLE_MKL_NATIVE_FORMAT=1"
+DOCKER_RUN_ENVS="--env http_proxy=${http_proxy} --env HTTP_PROXY=${HTTP_PROXY} --env https_proxy=${https_proxy} --env HTTPS_PROXY=${HTTPS_PROXY} --env no_proxy=${no_proxy} --env NO_PROXY=${NO_PROXY}"
 
 docker run --disable-content-trust ${DOCKER_RUN_ENVS} \
     -d --rm -it --name toxicity-detection-benchmark \
@@ -45,7 +45,7 @@ docker run --disable-content-trust ${DOCKER_RUN_ENVS} \
     --cap-add=sys_nice \
     --net=host \
     --ipc=host \
-    vault.habana.ai/gaudi-docker/1.16.2/ubuntu22.04/habanalabs/pytorch-installer-2.2.2:latest
+    vault.habana.ai/gaudi-docker/1.19.0/ubuntu22.04/habanalabs/pytorch-installer-2.5.1:latest
 ```
 
 ### Evaluation
@@ -99,9 +99,8 @@ cat results/${MODEL_PATH##*/}_${DATASET}_accuracy/metrics.json
 ## Get Started on CPU
 
 ### Requirements
-* Linux system or WSL2 on Windows (validated on Ubuntu* 20.04/22.04 LTS)
-* Python 3.9, 3.10
-* Poetry
+* Linux system or WSL2 on Windows (validated on Ubuntu* 22.04/24.04 LTS)
+* Python >=3.10
 
 ### Installation
 Follow the GenAIEval installation steps provided in the repository's main [README](https://github.com/daniel-de-leon-user293/GenAIEval/tree/daniel/toxicity-eval?tab=readme-ov-file#installation).
