@@ -323,7 +323,7 @@ def main():
             output_dir=TEST_RESULTS_PATH,
             use_habana=True,
             use_lazy_mode=True,
-            gaudi_config_name=args.g_config,
+            gaudi_config_name=args.gaudi_config_name,
         )
 
         trainer = GaudiTrainer(
