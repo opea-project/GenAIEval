@@ -1,0 +1,8 @@
+git+https://github.com/intel/intel-xai-tools.git@v1.2.0#subdirectory=model_card_gen
+scikit-learn==1.6.1
+numpy==1.24.4
+pandas==1.5.3
+lxml==4.9.1
+plotly==5.20.0
+kaleido==0.2.1
+lm-eval==0.4.3
