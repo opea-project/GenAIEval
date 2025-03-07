@@ -25,9 +25,10 @@ To evaluate a target toxicity detection LLM, we use seven datasets: BeaverTails,
 
 ## Get Started on Gaudi 2 Accelerator
 ### Requirements
-If you are using an `hpu` device, then clone the `optimum-habana` repository.
+If you are using an `hpu` device, then clone the `optimum-habana` and the `GenAIEval` repositories.
 ```bash
 git clone https://github.com/huggingface/optimum-habana.git
+git clone https://github.com/opea-project/GenAIEval
 ```
 
 ### Setup
@@ -55,19 +56,25 @@ docker exec -it toxicity-detection-benchmark bash
 #### Navigate to `workdir` and install required packages
 ```bash
 cd /workdir
-cd optimum-habana && pip install . && cd ..
+cd optimum-habana && pip install . && cd ../GenAIEval
 pip install -r requirements.txt
+pip install -e .
 ```
 
 In case of [Jigsaw Unintended Bias](https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification), [OpenAI Moderation](https://github.com/openai/moderation-api-release), and [Surge AI Toxicity](https://github.com/surge-ai/toxicity) datasets, make sure the datasets are downloaded and stored in current working directory.
 
 #### Test the model and confirm the results are saved correctly
+Navigate to the toxicity evaluation directory:
+```bash
+cd evals/evaluation/toxicity_eval
+```
+
 Replace `MODEL_PATH` and `DATASET` with the appropriate path for the model and the name of the dataset.
 ```bash
 MODEL_PATH=Intel/toxic-prompt-roberta
 DATASET=tc
-python ./classification_metrics/scripts/benchmark_classification_metrics.py -m ${MODEL_PATH} -d ${DATASET}
-cat ${MODEL_PATH%%/*}/results/${MODEL_PATH##*/}_${DATASET}_accuracy/metrics.json
+python benchmark_classification_metrics.py -m ${MODEL_PATH} -d ${DATASET}
+cat results/${MODEL_PATH##*/}_${DATASET}_accuracy/metrics.json
 ```
 
 If you are using an `hpu` device, you can instantiate the Gaudi configuration by passing the `GAUDI_CONFIG_NAME` variable with the appropriate configuration name. The default value for the device name (`device`) is `hpu`.
@@ -76,8 +83,8 @@ MODEL_PATH=Intel/toxic-prompt-roberta
 DATASET=tc
 GAUDI_CONFIG_NAME=Habana/roberta-base
 DEVICE_NAME=hpu
-python ./classification_metrics/scripts/benchmark_classification_metrics.py -m ${MODEL_PATH} -d ${DATASET} -g_config ${GAUDI_CONFIG_NAME} --device ${DEVICE_NAME}
-cat ${MODEL_PATH%%/*}/results/${MODEL_PATH##*/}_${DATASET}_accuracy/metrics.json 
+python benchmark_classification_metrics.py -m ${MODEL_PATH} -d ${DATASET} -g_config ${GAUDI_CONFIG_NAME} --device ${DEVICE_NAME}
+cat results/${MODEL_PATH##*/}_${DATASET}_accuracy/metrics.json 
 ```
 
 For the Jigsaw Unintended Bias, OpenAI Moderation, and Surge AI Toxicity datasets, pass the path of the stored dataset path in place of `DATASET_PATH`
@@ -86,7 +93,7 @@ MODEL_PATH=Intel/toxic-prompt-roberta
 DATASET=jigsaw
 DATASET_PATH=/path/to/dataset
 python ./classification_metrics/scripts/benchmark_classification_metrics.py -m ${MODEL_PATH} -d ${DATASET} -p ${DATASET_PATH} 
-cat ${MODEL_PATH%%/*}/results/${MODEL_PATH##*/}_${DATASET}_accuracy/metrics.json
+cat results/${MODEL_PATH##*/}_${DATASET}_accuracy/metrics.json
 ```
 
 ## Get Started on CPU
@@ -96,36 +103,14 @@ cat ${MODEL_PATH%%/*}/results/${MODEL_PATH##*/}_${DATASET}_accuracy/metrics.json
 * Python 3.9, 3.10
 * Poetry
 
-### Dependencies Installation with Poetry
-Step 1: Allow poetry to create virtual environment contained in `.venv` directory of current directory. 
-
-```bash
-poetry lock
-```
-In addition, you can explicitly tell poetry which python instance to use
-
-```bash
-poetry env use /full/path/to/python
-```
-
-Step 2: Use Poetry to install the required dependencies.
-```bash
-poetry install
-```
-
-Step 3: Running Tests (Optional)
-If you want to run the tests, you need to install the test dependencies. You can do this by specifying the --with option:
-```bash
-poetry install --with test
-```
-
-Step 4: Activate the environment:
-
-```bash
-source .venv/bin/activate
-```
+### Installation
+Follow the GenAIEval installation steps provided in the repository's main [README](https://github.com/daniel-de-leon-user293/GenAIEval/tree/daniel/toxicity-eval?tab=readme-ov-file#installation).
 
 ### Evaluation
+Navigate to the toxicity evaluation directory:
+```bash
+cd evals/evaluation/toxicity_eval
+```
 
 In case of [Jigsaw Unintended Bias](https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification), [OpenAI Moderation](https://github.com/openai/moderation-api-release), and [Surge AI Toxicity](https://github.com/surge-ai/toxicity), make sure the datasets are downloaded and stored in current working directory.
 
@@ -134,7 +119,7 @@ Replace `MODEL_PATH` and `DATASET` with the appropriate path for the model and t
 MODEL_PATH=Intel/toxic-prompt-roberta
 DATASET=tc
 DEVICE_NAME=cpu
-python ./classification_metrics/scripts/benchmark_classification_metrics.py -m ${MODEL_PATH} -d ${DATASET} --device ${DEVICE_NAME}
+python benchmark_classification_metrics.py -m ${MODEL_PATH} -d ${DATASET} --device ${DEVICE_NAME}
 ```
 You can find the evaluation results in the results folder:
 ```bash
@@ -147,7 +132,7 @@ MODEL_PATH=Intel/toxic-prompt-roberta
 DATASET=jigsaw
 DATASET_PATH=/path/to/dataset
 DEVICE_NAME=cpu
-python ./classification_metrics/scripts/benchmark_classification_metrics.py -m ${MODEL_PATH} -d ${DATASET} -p ${DATASET_PATH} --device ${DEVICE_NAME}
+python benchmark_classification_metrics.py -m ${MODEL_PATH} -d ${DATASET} -p ${DATASET_PATH} --device ${DEVICE_NAME}
 ```
 You can find the evaluation results in the results folder:
 ```bash
