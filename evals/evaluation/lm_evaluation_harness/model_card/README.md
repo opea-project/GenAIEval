@@ -82,7 +82,7 @@ Model Card Generator allows users to create interactive HTML and static Markdown
   </tr>
   <tr>
     <td class="tg-0pky">Graphics</td>
-    <td class="tg-0pky">Colleciton of performance graphics</td>
+    <td class="tg-0pky">Collection of performance graphics</td>
   </tr>
   <tr>
     <td class="tg-0pky" rowspan="5">Considerations</td>
@@ -122,7 +122,7 @@ git clone https://github.com/opea-project/GenAIEval.git
 cd evals/evaluation/lm_evaluation_harness/model_card/
 ```
 
-**Step 3**: Choose a virtual enviornment to use: eg. Using virtualenv:
+**Step 3**: Choose a virtual environment to use: eg. Using virtualenv:
 
 ```shell
 python3 -m virtualenv mg_venv

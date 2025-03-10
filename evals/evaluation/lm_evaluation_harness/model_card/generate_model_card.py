@@ -2,16 +2,19 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
+import json
+import os
+
 from intel_ai_safety.model_card_gen.model_card_gen import ModelCardGen
 from intel_ai_safety.model_card_gen.validation import validate_json_schema
-import os
-import json
 from jsonschema import ValidationError
 
-def generate_model_card(model_card_json_path, metric_by_threshold=None, metric_by_group=None, mc_template_type="html", output_dir=None):
-    """
-    Generates an HTML or Markdown representation of a model card.
-    
+
+def generate_model_card(
+    model_card_json_path, metric_by_threshold=None, metric_by_group=None, mc_template_type="html", output_dir=None
+):
+    """Generates an HTML or Markdown representation of a model card.
+
     Parameters:
     model_card_json_path (json, required): The model card JSON object containing the model's metadata and other details.
     metric_threshold_csv (str, optional): The file path to a CSV containing metric threshold data.
@@ -24,37 +27,39 @@ def generate_model_card(model_card_json_path, metric_by_threshold=None, metric_b
     """
     if output_dir is None:
         output_dir = os.getcwd()
-        
+
     if os.path.exists(model_card_json_path) and os.path.isfile(model_card_json_path):
         try:
-            with open(model_card_json_path, 'r') as file:
+            with open(model_card_json_path, "r") as file:
                 model_card_json = json.load(file)
-                
+
         except json.JSONDecodeError as e:
             raise ValueError("The file content is not valid JSON.") from e
     else:
         raise FileNotFoundError(f"The JSON file at {model_card_json_path} does not exist.")
-    
+
     try:
         validate_json_schema(model_card_json)
-        
-    except (ValidationError) as e:
+
+    except ValidationError as e:
         raise ValidationError(
             "Warning: The schema version of the uploaded JSON does not correspond to a model card schema version or "
             "the uploaded JSON does not follow the model card schema."
         )
-    
-    model_card = ModelCardGen.generate(model_card_json, 
-                                       metrics_by_threshold = metric_by_threshold, 
-                                       metrics_by_group = metric_by_group, 
-                                       template_type = mc_template_type)
-    
+
+    model_card = ModelCardGen.generate(
+        model_card_json,
+        metrics_by_threshold=metric_by_threshold,
+        metrics_by_group=metric_by_group,
+        template_type=mc_template_type,
+    )
+
     model_card_name = f"Model Card.{mc_template_type}"
-        
+
     full_path = os.path.join(output_dir, model_card_name)
     model_card.export_model_card(full_path)
-    
-    if mc_template_type=="html":
+
+    if mc_template_type == "html":
         return model_card._repr_html_()
     else:
         return model_card._repr_md_()
