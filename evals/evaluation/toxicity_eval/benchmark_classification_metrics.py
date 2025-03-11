@@ -221,7 +221,7 @@ def compute_metrics(eval_pred):
     true_negatives = np.sum((predictions == 0) & (labels == 0))
     fpr = false_positives / (false_positives + true_negatives)
 
-    precision_temp, recall_temp, thresholds = precision_recall_curve(labels, predictions)
+    precision_temp, recall_temp, thresholds = precision_recall_curve(labels, probabilities)
     auc_precision_recall = auc(recall_temp, precision_temp)
     return {
         "accuracy": acc["accuracy"],
