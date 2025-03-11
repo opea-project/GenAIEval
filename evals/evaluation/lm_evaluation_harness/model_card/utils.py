@@ -121,7 +121,7 @@ def generate_pred_prob(metric_results_path):
                     else:
                         class_label_index_map = {i: options[i] for i in range(num_labels)}
 
-            if has_diff_labels == True and are_labels_identical != True:
+            if has_diff_labels and not are_labels_identical:
                 arguments = [quest[1].strip() for quest in item["arguments"]]
 
                 if isinstance(target_label, int) and (isinstance(arguments[0], str)):
@@ -171,7 +171,7 @@ def generate_pred_prob(metric_results_path):
 
             if isinstance(item["target"], str):
                 target_label = target_label.strip()
-            if has_diff_labels == True:
+            if has_diff_labels:
                 option_resp = {i: item["filtered_resps"][i][0] for i in range(len(item["arguments"]))}
                 arguments = [quest[1].strip() for quest in item["arguments"]]
                 if target_label in arguments:
