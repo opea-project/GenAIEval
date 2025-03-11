@@ -86,7 +86,7 @@ class TestModelCardGen(unittest.TestCase):
         with self.assertRaises(AssertionError) as context:
             example_df = pd.DataFrame(data={"col1": [1, 2]})
             ModelCardGen.generate(metrics_by_threshold=example_df)
-        self.assertIn("No column named 'threshold'", str(context.exception))
+        self.assertTrue("No column named 'threshold'" in str(context.exception))
 
 
 if __name__ == "__main__":

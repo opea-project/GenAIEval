@@ -9,7 +9,7 @@ Model Card Generator allows users to create interactive HTML and static Markdown
   <tr>
     <th class="tg-0pky">Section<br></th>
     <th class="tg-0pky">Subsection</th>
-    <th class="tg-73oq">Decription</th>
+    <th class="tg-73oq">Description</th>
   </tr>
 </thead>
 <tbody>
