@@ -1,7 +1,6 @@
-FROM vault.habana.ai/gaudi-docker/1.20.0/ubuntu22.04/habanalabs/pytorch-installer-2.6.0:latest as hpu
+FROM python:3.11-slim AS base
 
 ENV LANG=en_US.UTF-8
-ENV PYTHONPATH=/root:/usr/lib/habanalabs/
 ARG REPO=https://github.com/opea-project/GenAIEval.git
 ARG REPO_PATH=""
 ARG BRANCH=main

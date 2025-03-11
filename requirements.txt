@@ -11,6 +11,7 @@ langchain_huggingface
 lm-eval==0.4.3
 locust
 numpy
+prometheus_client
 pytest
 pyyaml
 ragas==v0.1.19
