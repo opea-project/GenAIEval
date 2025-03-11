@@ -1,7 +1,6 @@
-FROM vault.habana.ai/gaudi-docker/1.18.0/ubuntu22.04/habanalabs/pytorch-installer-2.4.0:latest as hpu
+FROM python:3.11-slim AS base
 
 ENV LANG=en_US.UTF-8
-ENV PYTHONPATH=/root:/usr/lib/habanalabs/
 ARG REPO=https://github.com/opea-project/GenAIEval.git
 ARG REPO_PATH=""
 ARG BRANCH=main
@@ -21,8 +20,6 @@ RUN pip install --upgrade pip setuptools==69.5.1
 RUN cd /GenAIEval && \
     pip install -r requirements.txt && \
     python setup.py install && \
-    pip install --upgrade-strategy eager optimum[habana] && \
     pip list
 
-COPY hpu.benchmark.yaml /GenAIEval/evals/benchmark/benchmark.yaml
 WORKDIR /GenAIEval/
