@@ -303,9 +303,10 @@ def check_test_suite_config(test_suite_config):
         raise ValueError("Must specify either run_time or user_queries.")
 
 
-def run_benchmark(report=False):
+def run_benchmark(report=False, yaml=yaml):
     # Load test suit configuration
-    yaml_content = load_yaml("./benchmark.yaml")
+    print(yaml)
+    yaml_content = load_yaml(yaml)
     # Extract data
     parsed_data = extract_test_case_data(yaml_content)
     test_suite_config = {
@@ -372,6 +373,7 @@ def run_benchmark(report=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Read and parse JSON/YAML files and output JSON file")
     parser.add_argument("--report", help="Return the perf", action="store_true")
+    parser.add_argument("--yaml", help="Input benchmark yaml file", action="store", default="./benchmark.yaml")
     args = parser.parse_args()
 
-    run_benchmark(report=args.report)
+    run_benchmark(report=args.report, yaml=args.yaml)
