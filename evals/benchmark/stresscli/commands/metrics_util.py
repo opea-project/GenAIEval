@@ -34,6 +34,19 @@ def parse_metrics(file_path):
     return metrics
 
 
+def _write_average_latency(sum_value, count_value, service_name, f, new_metrics):
+    """Helper function to calculate and write average latency metrics."""
+    if count_value and count_value != 0:
+        average_latency = sum_value / count_value
+        new_metric = f"{service_name}_average_latency_per_request"
+        new_metrics[new_metric] = average_latency
+        f.write(f"{new_metric} {average_latency}\n")
+        f.write("\n")
+        logging.info(f"{new_metric} {average_latency}")
+        return True
+    return False
+
+
 def write_metrics(file_path, metrics, service_name):
     logging.debug(f"Writing metrics to {file_path}")
     new_metrics = {}
@@ -42,19 +55,33 @@ def write_metrics(file_path, metrics, service_name):
             f.write(f"{metric} {value}\n")
             if "count" in metric and "request_duration_count" not in metric:
                 f.write("\n")
+
+            # Handle VLLM metrics
+            if "vllm:e2e_request_latency_seconds_sum" in metric:
+                sum_value = value
+                count_value = next(
+                    (v for k, v in metrics.items() if "vllm:e2e_request_latency_seconds_count" in k), None
+                )
+                if count_value is not None:
+                    logging.info(f"Found VLLM metrics - sum: {sum_value}, count: {count_value}")
+                    _write_average_latency(sum_value, count_value, service_name, f, new_metrics)
+
             # Handle TGI/TEI
             if "request_duration_sum" in metric:
-                count_metric = metric.replace("request_duration_sum", "request_duration_count")
-                logging.info(f"match {metric} and {count_metric}")
-                if count_metric in metrics and metrics[count_metric] != 0:
-                    average_latency = metrics[metric] / metrics[count_metric]
-                    new_metric = f"{service_name}_average_latency_per_request"
-                    new_metrics[new_metric] = average_latency
-                    f.write(f"{new_metric} {average_latency}\n")
-                    f.write("\n")
+                count_value = next(
+                    (
+                        v
+                        for k, v in metrics.items()
+                        if k == metric.replace("request_duration_sum", "request_duration_count")
+                    ),
+                    None,
+                )
+                if count_value is not None:
+                    logging.info(f"match {metric} and count value: {count_value}")
+                    _write_average_latency(value, count_value, service_name, f, new_metrics)
+
             # Handle OPEA microservices
             if "http_request_duration_seconds_sum" in metric:
-                # Extract the part after '/v1/' and before comma as handler part
                 match = re.search(r'\{handler="/v1/([^"]*?)"', metric)
                 if match:
                     handler_part = match.group(1)  # Extract the part after '/v1/' and before comma
@@ -72,27 +99,13 @@ def write_metrics(file_path, metrics, service_name):
                     )
 
                     if sum_metric_key and count_metric_key:
-                        metric_value = metrics.get(sum_metric_key, "Not Found")
-                        count_metric_value = metrics.get(count_metric_key, "Not Found")
+                        metric_value = metrics.get(sum_metric_key, None)
+                        count_metric_value = metrics.get(count_metric_key, None)
                         logging.info(
                             f"Match {sum_metric_key}: {metric_value} and {count_metric_key}: {count_metric_value}"
                         )
-
-                        if count_metric_value != "Not Found" and count_metric_value != 0:
-                            average_latency = metric_value / count_metric_value
-                            new_metric = f"{service_name}_average_latency_per_request"
-                            new_metrics[new_metric] = average_latency
-                            f.write(f"{new_metric} {average_latency}\n")
-                            f.write("\n")
-                            logging.info(f"{new_metric} {average_latency}")
-                        else:
-                            logging.info(f"Count metric {count_metric_key} is either not found or zero.")
-                    else:
-                        logging.info("Could not find matching metrics for sum or count.")
-                else:
-                    logging.info("Handler part not found in metric.")
-            else:
-                logging.info("Metric does not contain 'http_request_duration_seconds_sum'.")
+                        if metric_value is not None and count_metric_value is not None:
+                            _write_average_latency(metric_value, count_metric_value, service_name, f, new_metrics)
 
     return new_metrics
 
