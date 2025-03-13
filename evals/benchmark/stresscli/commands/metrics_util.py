@@ -60,9 +60,7 @@ def write_metrics(file_path, metrics, service_name):
             if "vllm:e2e_request_latency_seconds_sum" in metric:
                 sum_value = value
                 count_value = next(
-                    (v for k, v in metrics.items()
-                     if "vllm:e2e_request_latency_seconds_count" in k),
-                    None
+                    (v for k, v in metrics.items() if "vllm:e2e_request_latency_seconds_count" in k), None
                 )
                 if count_value is not None:
                     logging.info(f"Found VLLM metrics - sum: {sum_value}, count: {count_value}")
@@ -71,9 +69,12 @@ def write_metrics(file_path, metrics, service_name):
             # Handle TGI/TEI
             if "request_duration_sum" in metric:
                 count_value = next(
-                    (v for k, v in metrics.items()
-                     if k == metric.replace("request_duration_sum", "request_duration_count")),
-                    None
+                    (
+                        v
+                        for k, v in metrics.items()
+                        if k == metric.replace("request_duration_sum", "request_duration_count")
+                    ),
+                    None,
                 )
                 if count_value is not None:
                     logging.info(f"match {metric} and count value: {count_value}")
