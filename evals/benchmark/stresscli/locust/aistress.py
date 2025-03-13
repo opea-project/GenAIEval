@@ -85,8 +85,8 @@ last_resp_ts = 0
 
 bench_package = ""
 console_logger = logging.getLogger("locust.stats_logger")
-
-tokenizer = transformers.AutoTokenizer.from_pretrained("meta-llama/Meta-Llama-3-8B-Instruct")
+LLM_MODEL = os.getenv("MODEL_NAME", "meta-llama/Meta-Llama-3-8B-Instruct")
+tokenizer = transformers.AutoTokenizer.from_pretrained(LLM_MODEL)
 
 
 class AiStressUser(HttpUser):

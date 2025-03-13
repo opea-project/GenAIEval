@@ -325,7 +325,7 @@ def run_benchmark(report=False):
         "namespace": parsed_data["namespace"],
     }
     check_test_suite_config(test_suite_config)
-
+    os.environ["MODEL_NAME"] = test_suite_config.get("llm_model", "meta-llama/Meta-Llama-3-8B-Instruct")
     # Mapping of example names to service types
     example_service_map = {
         "chatqna": [
