@@ -154,7 +154,18 @@ This ensures the system can handle high concurrency by allowing more open files 
 **Run the benchmark script**:
 
 ```bash
-python evals/benchmark/benchmark.py
+cd evals/benchmark/
+python benchmark.py
+```
+
+> NOTE: benchmark.py will take benchmark.yaml file as test case data.  
+> By giving a --yaml argument with a custom yaml file, benchmark.py could take a custom test case data.
+
+e.g.
+Test data for the examples starting by docker compose on HPU.  
+```bash
+cd evals/benchmark/
+python benchmark.py --yaml docker.hpu.benchmark.yaml
 ```
 
 Results will be saved in the directory specified by `test_output_dir` in the configuration.

@@ -4,7 +4,7 @@
 test_suite_config: # Overall configuration settings for the test suite
   examples: ["chatqna"]  # The specific test cases being tested, e.g., chatqna, codegen, codetrans, faqgen, audioqna, visualqna
   deployment_type: "docker"  # Default is "k8s", can also be "docker"
-  service_ip: 0.0.0.0  # Leave as None for k8s, specify for Docker
+  service_ip: "chatqna-xeon-nginx-server"  # Leave as None for k8s, specify for Docker
   service_port: 80  # Leave as None for k8s, specify for Docker
   warm_ups: 0  # Number of test requests for warm-up
   run_time: 60m  # The max total run time for the test suite
