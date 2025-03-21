@@ -4,7 +4,7 @@
 test_suite_config: # Overall configuration settings for the test suite
   examples: ["chatqna"]  # The specific test cases being tested, e.g., chatqna, codegen, codetrans, faqgen, audioqna, visualqna
   deployment_type: "docker"  # Default is "k8s", can also be "docker"
-  service_ip: 0.0.0.0  # Leave as None for k8s, specify for Docker
+  service_ip: "chatqna-gaudi-nginx-server"  # Leave as None for k8s, specify for Docker
   service_port: 80  # Leave as None for k8s, specify for Docker
   warm_ups: 0  # Number of test requests for warm-up
   run_time: 60m  # The max total run time for the test suite
@@ -14,8 +14,8 @@ test_suite_config: # Overall configuration settings for the test suite
   random_prompt: false  # Use random prompts if true, fixed prompts if false
   collect_service_metric: true  # Collect service metrics if true, do not collect service metrics if false
   data_visualization: true # Generate data visualization if true, do not generate data visualization if false
-  llm_model: "Intel/neural-chat-7b-v3-3"  # The LLM model used for the test
-  test_output_dir: "/home/sdp/benchmark_output"  # The directory to store the test output
+  llm_model: "meta-llama/Meta-Llama-3-8B-Instruct"  # The LLM model used for the test
+  test_output_dir: "./benchmark_output"  # The directory to store the test output
   load_shape:              # Tenant concurrency pattern
     name: constant           # poisson or constant(locust default load shape)
     params:                  # Loadshape-specific parameters
