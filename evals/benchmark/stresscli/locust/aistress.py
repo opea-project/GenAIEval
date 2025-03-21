@@ -74,6 +74,27 @@ def _(parser):
     parser.add_argument(
         "--max-output", type=int, env_var="OPEA_EVAL_MAX_OUTPUT_TOKENS", default=128, help="Max number of output tokens"
     )
+    parser.add_argument(
+        "--summary_type",
+        type=str,
+        env_var="OPEA_EVAL_SUMMARY_TYPE",
+        default="stuff",
+        help="Summary type for Docsum example",
+    )
+    parser.add_argument(
+        "--stream",
+        type=str,
+        env_var="OPEA_EVAL_STREAM",
+        default="true",
+        help="Stream output for Docsum example",
+    )
+    parser.add_argument(
+        "--max-new-tokens",
+        type=int,
+        env_var="OPEA_EVAL_MAX_NEW_TOKENS",
+        default=256,
+        help="Max new tokens for Docsum example output",
+    )
 
 
 reqlist = []
@@ -117,12 +138,15 @@ class AiStressUser(HttpUser):
             "chatqnabench",
             "codegenfixed",
             "codegenbench",
+            "docsumbench",
             "faqgenfixed",
             "faqgenbench",
             "chatqna_qlist_pubmed",
         ]
         if self.environment.parsed_options.bench_target in ["faqgenfixed", "faqgenbench"]:
             req_params = {"data": reqData}
+        elif self.environment.parsed_options.bench_target in ["docsumbench", "docsumfixed"]:
+            req_params = {"files": reqData}
         else:
             req_params = {"json": reqData}
         test_start_time = time.time()
@@ -248,7 +272,11 @@ def on_locust_init(environment, **_kwargs):
     os.environ["OPEA_EVAL_SEED"] = environment.parsed_options.seed
     os.environ["OPEA_EVAL_PROMPTS"] = environment.parsed_options.prompts
     os.environ["OPEA_EVAL_MAX_OUTPUT_TOKENS"] = str(environment.parsed_options.max_output)
-    os.environ["LLM_MODEL"] = environment.parsed_options.llm_model
+    os.environ["LLM_MODEL"] = environment.parsed_options.llm_model 
+    os.environ["OPEA_EVAL_SUMMARY_TYPE"] = environment.parsed_options.summary_type
+    os.environ["OPEA_EVAL_STREAM"] = environment.parsed_options.stream
+    os.environ["OPEA_EVAL_MAX_NEW_TOKENS"] = str(environment.parsed_options.max_new_tokens)
+
 
     bench_package = __import__(environment.parsed_options.bench_target)
 
