@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 test_suite_config: # Overall configuration settings for the test suite
-  examples: ["chatqna"]  # The specific test cases being tested, e.g., chatqna, codegen, codetrans, faqgen, audioqna, visualqna
+  examples: ["chatqna"]  # The specific test cases being tested, e.g., chatqna, codegen, codetrans, docsum, faqgen, audioqna, visualqna
   deployment_type: "k8s"  # Default is "k8s", can also be "docker"
   service_ip: None  # Leave as None for k8s, specify for Docker
   service_port: None  # Leave as None for k8s, specify for Docker
@@ -120,6 +120,19 @@ test_cases:
     e2e:
       run_test: true
       service_name: "codetrans-backend-server-svc"  # Replace with your service name
+
+  docsum:
+    e2e:
+      run_test: true
+      service_name: "docsum"  # Replace with your service name
+      stream: true  # Stream output, false is summary type is map_reduce or refine
+      max_new_tokens: 1024
+      summary_type: "stuff"   # Summary_types: stuff, truncate, map_reduce, refine
+      dataset:   # Path to document to be summarized when random promt is true
+      service_list:
+        - "docsum"
+        - "docsum-llm-uservice"
+        - "docsum-vllm"
 
   faqgen:
     llm:

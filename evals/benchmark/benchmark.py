@@ -23,6 +23,12 @@ service_endpoints = {
     },
     "codegen": {"llm": "/generate_stream", "llmserve": "/v1/chat/completions", "e2e": "/v1/codegen"},
     "codetrans": {"llm": "/generate", "llmserve": "/v1/chat/completions", "e2e": "/v1/codetrans"},
+    "docsum": {
+        "docsum": "/v1/docsum",
+        "docsum-vllm": "/generate",
+        "docsum-llm-uservice": "v1/chat/docsum",
+        "e2e": "/v1/docsum"
+    },
     "faqgen": {"llm": "/v1/chat/completions", "llmserve": "/v1/chat/completions", "e2e": "/v1/faqgen"},
     "audioqna": {
         "asr": "/v1/audio/transcriptions",
@@ -102,7 +108,10 @@ def create_run_yaml_content(service, base_url, bench_target, test_phase, num_que
                 "dataset": service.get("dataset", "default"),
                 "prompts": service.get("prompts", None),
                 "max-output": service.get("max_output", 128),
+                "max-new-tokens": service.get("max_new_tokens", 128),
                 "seed": test_params.get("seed", None),
+                "stream": service.get("stream", True),
+                "summary_type": service.get("summary_type", "stuff"),
                 "llm-model": test_params["llm_model"],
                 "deployment-type": test_params["deployment_type"],
                 "load-shape": test_params["load_shape"],
@@ -341,6 +350,7 @@ def run_benchmark(report=False, yaml=yaml):
         ],
         "codegen": ["llm", "llmserve", "e2e"],
         "codetrans": ["llm", "llmserve", "e2e"],
+        "docsum": ["e2e"],
         "faqgen": ["llm", "llmserve", "e2e"],
         "audioqna": ["asr", "llm", "llmserve", "tts", "e2e"],
         "visualqna": ["lvm", "lvmserve", "e2e"],
