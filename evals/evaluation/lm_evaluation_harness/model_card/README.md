@@ -135,20 +135,20 @@ source mg_venv/bin/activate
 pip install -r requirements.txt
 ```
 
-**Step 5**: Prepare Model Card JSON
+**Step 5**: Prepare the input Model Card metadata JSON
 
-Draft your Model Card by following the specified [JSON schema](https://github.com/intel/intel-xai-tools/blob/main/model_card_gen/intel_ai_safety/model_card_gen/schema/v0.0.1/model_card.schema.json) and save the content in a `.json` file. You can add any fields as long as they comply with the schema, but ensure required field of model name is included. 
-For guidance, refer to example Model Card JSONs available [here](https://github.com/intel/intel-xai-tools/tree/main/model_card_gen/intel_ai_safety/model_card_gen/docs/examples/json). The path to Model Card JSON should be provided to the `model_card_json_path` argument. 
+Draft your Model Card metadata by following the specified [JSON schema](https://github.com/intel/intel-xai-tools/blob/main/model_card_gen/intel_ai_safety/model_card_gen/schema/v0.0.1/model_card.schema.json) and save the content in a `.json` file. Refer to the above table for sections and fields to include in the JSON file. You can add any fields that comply with the schema, but ensure the required field 'model name' is included."
+For guidance, refer to example Model Card JSONs available [here](https://github.com/intel/intel-xai-tools/tree/main/model_card_gen/intel_ai_safety/model_card_gen/docs/examples/json). The path to Model Card metadata JSON should be provided to the `input_mc_metadata_json` argument. 
 
 Optionally, specify the template for rendering the model card by replacing `MODEL_CARD_TEMPLATE` with either "html" for an interactive HTML model card or "md" for a static Markdown version. By default, the template type is set to HTML. 
 Additionally, provide the directory path where the generated model card and related files should be saved using the `OUTPUT_DIRECTORY` argument.
 
 ```shell
-MC_JSON_PATH=/path/to/model_card.json
+INPUT_MC_METADATA_JSON_PATH=/path/to/model_card_metadata.json
 MODEL_CARD_TEMPLATE="html"
 OUTPUT_DIRECTORY=/path/to/output
 
-python examples/main.py --model_card_json_path ${MC_JSON_PATH} --mc_template_type ${MODEL_CARD_TEMPLATE} --output_dir ${OUTPUT_DIRECTORY}
+python examples/main.py --input_mc_metadata_json ${INPUT_MC_METADATA_JSON_PATH} --mc_template_type ${MODEL_CARD_TEMPLATE} --output_dir ${OUTPUT_DIRECTORY}
 ```
 
 **Step 6 (Optional)**: Generate Performance Metrics
@@ -162,13 +162,13 @@ Draft a Metrics by Group CSV file based on the generated metric results. To see 
 For a step-by-step guide on creating these files, follow this [link](https://github.com/intel/intel-xai-tools/blob/main/notebooks/model_card_gen/hugging_face_model_card/hugging-face-model-card.ipynb). The "Metrics by Group" section of Model Card is used to organize and display a model's performance metrics by distinct groups or subcategories within the data. Provide the path to the Metrics by Group CSV file using the `metrics_by_group` argument. 
 
 ```shell
-MC_JSON_PATH=/path/to/model_card.json
+INPUT_MC_METADATA_JSON_PATH=/path/to/model_card_metadata.json
 MODEL_CARD_TEMPLATE="html"
 OUTPUT_DIRECTORY=/path/to/output
 METRICS_BY_THRESHOLD=/path/to/metrics_by_threshold.csv
 METRICS_BY_GROUP=/path/to/metrics_by_group.csv
 
-python examples/main.py --model_card_json_path ${MC_JSON_PATH} --mc_template_type ${MODEL_CARD_TEMPLATE} --output_dir ${OUTPUT_DIRECTORY} --metrics_by_threshold ${METRICS_BY_THRESHOLD} --metrics_by_group ${METRICS_BY_GROUP}
+python examples/main.py --input_mc_metadata_json ${INPUT_MC_METADATA_JSON_PATH} --mc_template_type ${MODEL_CARD_TEMPLATE} --output_dir ${OUTPUT_DIRECTORY} --metrics_by_threshold ${METRICS_BY_THRESHOLD} --metrics_by_group ${METRICS_BY_GROUP}
 ```
 
 **Step 7 (Optional)**: Optional Step to generate Metrics by Threshold for `lm_evaluation_harness`
@@ -176,10 +176,10 @@ python examples/main.py --model_card_json_path ${MC_JSON_PATH} --mc_template_typ
 Additionally, you can generate a Metrics by Threshold CSV for some of the `lm_evaluation_harness` tasks by providing the path to the metric results JSONL file in place of `METRICS_RESULTS_PATH`.
 
 ```shell
-MC_JSON_PATH=/path/to/model_card.json
+INPUT_MC_METADATA_JSON_PATH=/path/to/model_card_metadata.json
 MODEL_CARD_TEMPLATE="html"
 OUTPUT_DIRECTORY=/path/to/output
 METRICS_RESULTS_PATH=/path/to/metrics_results.jsonl
 
-python ./examples/main.py --model_card_json_path ${MC_JSON_PATH} --mc_template_type ${MODEL_CARD_TEMPLATE} --output_dir ${OUTPUT_DIRECTORY} --metric_results_path ${METRICS_RESULTS_PATH}
+python ./examples/main.py --input_mc_metadata_json ${INPUT_MC_METADATA_JSON_PATH} --mc_template_type ${MODEL_CARD_TEMPLATE} --output_dir ${OUTPUT_DIRECTORY} --metric_results_path ${METRICS_RESULTS_PATH}
 ```

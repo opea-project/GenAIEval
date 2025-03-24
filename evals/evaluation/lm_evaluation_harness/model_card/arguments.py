@@ -7,7 +7,7 @@ import argparse
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Generate a model card with optional metrics processing.")
-    parser.add_argument("--model_card_json_path", type=str, required=True, help="Path to the model card JSON file.")
+    parser.add_argument("--input_mc_metadata_json", type=str, required=True, help="Path to the JSON file containing input model card metadata.")
     parser.add_argument(
         "--metrics_by_threshold",
         type=str,
