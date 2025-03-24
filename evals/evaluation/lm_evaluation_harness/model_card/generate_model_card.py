@@ -11,12 +11,12 @@ from jsonschema import ValidationError
 
 
 def generate_model_card(
-    model_card_json_path, metric_by_threshold=None, metric_by_group=None, mc_template_type="html", output_dir=None
+    input_mc_metadata_json_path, metric_by_threshold=None, metric_by_group=None, mc_template_type="html", output_dir=None
 ):
     """Generates an HTML or Markdown representation of a model card.
 
     Parameters:
-    model_card_json_path (json, required): The model card JSON object containing the model's metadata and other details.
+    input_mc_metadata_json_path (json, required): The model card JSON object containing the model's metadata and other details.
     metric_threshold_csv (str, optional): The file path to a CSV containing metric threshold data.
     metric_grp_csv (str, optional): The file path to a CSV containing metric group data.
     mc_template_type (str, optional): Template to use for rendering the model card. Options include "html" for an interactive HTML model card or "md" for a static Markdown version. Defaults to "html"
@@ -28,15 +28,15 @@ def generate_model_card(
     if output_dir is None:
         output_dir = os.getcwd()
 
-    if os.path.exists(model_card_json_path) and os.path.isfile(model_card_json_path):
+    if os.path.exists(input_mc_metadata_json_path) and os.path.isfile(input_mc_metadata_json_path):
         try:
-            with open(model_card_json_path, "r") as file:
+            with open(input_mc_metadata_json_path, "r") as file:
                 model_card_json = json.load(file)
 
         except json.JSONDecodeError as e:
             raise ValueError("The file content is not valid JSON.") from e
     else:
-        raise FileNotFoundError(f"The JSON file at {model_card_json_path} does not exist.")
+        raise FileNotFoundError(f"The JSON file at {input_mc_metadata_json_path} does not exist.")
 
     try:
         validate_json_schema(model_card_json)

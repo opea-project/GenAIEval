@@ -35,7 +35,7 @@ def main():
 
     # Generate the model card
     model_card = generate_model_card(
-        args.model_card_json_path,
+        args.input_mc_metadata_json,
         metrics_by_threshold,
         args.metrics_by_group,
         mc_template_type=args.mc_template_type,
