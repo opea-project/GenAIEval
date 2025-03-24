@@ -1,5 +1,5 @@
 bigcode-eval@git+https://github.com/bigcode-project/bigcode-evaluation-harness.git@e5c2f31625223431d7987f43b70b75b9d26ba118
-git+https://github.com/intel/intel-xai-tools.git@v1.2.0#subdirectory=model_card_gen
+intel-ai-safety-model-card-gen@git+https://github.com/intel/intel-xai-tools.git#subdirectory=model_card_gen
 jieba
 jsonlines
 langchain_community
