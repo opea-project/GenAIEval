@@ -11,7 +11,11 @@ from jsonschema import ValidationError
 
 
 def generate_model_card(
-    input_mc_metadata_json_path, metric_by_threshold=None, metric_by_group=None, mc_template_type="html", output_dir=None
+    input_mc_metadata_json_path,
+    metric_by_threshold=None,
+    metric_by_group=None,
+    mc_template_type="html",
+    output_dir=None,
 ):
     """Generates an HTML or Markdown representation of a model card.
 
