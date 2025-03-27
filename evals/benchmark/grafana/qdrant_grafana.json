@@ -29,10 +29,7 @@
     "liveNow": false,
     "panels": [
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P4169E866C3094E38"
-        },
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "mappings": [],
@@ -77,10 +74,7 @@
         "pluginVersion": "9.3.0",
         "targets": [
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "P4169E866C3094E38"
-            },
+            "datasource": "Prometheus",
             "editorMode": "code",
             "expr": "app_info{job=\"qdrant\"}",
             "legendFormat": "{{ version }}",
@@ -92,10 +86,7 @@
         "type": "stat"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P4169E866C3094E38"
-        },
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -142,10 +133,7 @@
         "pluginVersion": "9.3.0",
         "targets": [
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "P4169E866C3094E38"
-            },
+            "datasource": "Prometheus",
             "editorMode": "code",
             "expr": "collections_total{job=\"qdrant\"}",
             "legendFormat": "collection_total",
@@ -157,10 +145,7 @@
         "type": "stat"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P4169E866C3094E38"
-        },
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -207,10 +192,7 @@
         "pluginVersion": "9.3.0",
         "targets": [
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "P4169E866C3094E38"
-            },
+            "datasource": "Prometheus",
             "editorMode": "code",
             "expr": "cluster_peers_total{job=\"qdrant\"}",
             "legendFormat": "cluster_peers_total",
@@ -222,10 +204,7 @@
         "type": "stat"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P4169E866C3094E38"
-        },
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -272,10 +251,7 @@
         "pluginVersion": "9.3.0",
         "targets": [
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "P4169E866C3094E38"
-            },
+            "datasource": "Prometheus",
             "editorMode": "builder",
             "expr": "cluster_term{job=\"qdrant\"}",
             "legendFormat": "cluster term",
@@ -287,10 +263,7 @@
         "type": "stat"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P4169E866C3094E38"
-        },
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -337,10 +310,7 @@
         "pluginVersion": "9.3.0",
         "targets": [
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "P4169E866C3094E38"
-            },
+            "datasource": "Prometheus",
             "editorMode": "builder",
             "expr": "cluster_commit{job=\"qdrant\"}",
             "legendFormat": "cluster_commit",
@@ -352,10 +322,7 @@
         "type": "stat"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P4169E866C3094E38"
-        },
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -429,10 +396,7 @@
         },
         "targets": [
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "P4169E866C3094E38"
-            },
+            "datasource": "Prometheus",
             "editorMode": "code",
             "expr": "rate(cluster_pending_operations_total{job=\"qdrant\"}[5m])",
             "legendFormat": "cluster_pending_operations_total",
@@ -444,10 +408,7 @@
         "type": "timeseries"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P4169E866C3094E38"
-        },
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -522,10 +483,7 @@
         "pluginVersion": "9.3.0",
         "targets": [
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "P4169E866C3094E38"
-            },
+            "datasource": "Prometheus",
             "editorMode": "code",
             "expr": "collections_vector_total{job=\"qdrant\"}",
             "legendFormat": "collections_vector_total",
@@ -537,10 +495,7 @@
         "type": "timeseries"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P4169E866C3094E38"
-        },
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -615,10 +570,7 @@
         },
         "targets": [
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "P4169E866C3094E38"
-            },
+            "datasource": "Prometheus",
             "editorMode": "code",
             "expr": "rest_responses_total{job=\"qdrant\", exported_endpoint=\"/collections/{name}/points\", method=\"PUT\"}",
             "legendFormat": "{{label_name}}",
@@ -626,10 +578,7 @@
             "refId": "A"
           },
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "P4169E866C3094E38"
-            },
+            "datasource": "Prometheus",
             "editorMode": "code",
             "expr": "rest_responses_total{job=\"qdrant\", exported_endpoint=\"/collections/{name}/points/search\", method=\"POST\"}",
             "hide": false,

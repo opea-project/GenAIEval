@@ -46,10 +46,7 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": {
-          "type": "grafana",
-          "uid": "-- Grafana --"
-        },
+        "datasource": "Prometheus",
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -87,10 +84,7 @@
       "type": "row"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -171,10 +165,7 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "sum(increase(te_embed_success{namespace=\"\", job=\"$job\"}[1m]))",
           "legendFormat": "Success",
@@ -182,10 +173,7 @@
           "refId": "A"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "sum(increase(te_embed_count{namespace=\"\", job=\"$job\"}[1m]))",
           "hide": false,
@@ -198,10 +186,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -328,10 +313,7 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.5, sum by (le) (rate(te_embed_queue_duration_bucket{namespace=\"\", job=\"$job\"}[10m])))",
           "legendFormat": "p50",
@@ -339,10 +321,7 @@
           "refId": "A"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.9, sum by (le) (rate(te_embed_queue_duration_bucket{job=\"$job\"}[10m])))",
           "hide": false,
@@ -351,10 +330,7 @@
           "refId": "B"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.99, sum by (le) (rate(te_embed_queue_duration_bucket{job=\"$job\"}[10m])))",
           "hide": false,
@@ -377,10 +353,7 @@
         "mode": "opacity"
       },
       "dataFormat": "tsbuckets",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -455,10 +428,7 @@
       "reverseYBuckets": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "exemplar": true,
           "expr": "sum(increase(te_request_duration_bucket{namespace=\"\", job=\"$job\"}[5m])) by (le)",
@@ -487,10 +457,7 @@
       "yBucketBound": "auto"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -572,10 +539,7 @@
       "pluginVersion": "9.1.0",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "count(te_request_count{namespace=\"\", job=\"$job\"})",
           "legendFormat": "Replicas",
@@ -587,10 +551,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "mappings": [],
@@ -639,10 +600,7 @@
       "pluginVersion": "11.0.0",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "sum(te_queue_size{namespace=\"\", job=\"$job\"})",
           "legendFormat": "__auto",
@@ -654,10 +612,7 @@
       "type": "gauge"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -784,10 +739,7 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.5, sum by (le) (rate(te_embed_duration_bucket{namespace=\"\", job=\"$job\"}[10m])))",
           "legendFormat": "p50",
@@ -795,10 +747,7 @@
           "refId": "A"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.9, sum by (le) (rate(te_embed_duration_bucket{job=\"$job\"}[10m])))",
           "hide": false,
@@ -807,10 +756,7 @@
           "refId": "B"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.99, sum by (le) (rate(te_embed_duration_bucket{job=\"$job\"}[10m])))",
           "hide": false,
@@ -823,10 +769,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -953,10 +896,7 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.5, sum by (le) (rate(te_request_tokenization_duration_bucket{namespace=\"\", job=\"$job\"}[10m])))",
           "legendFormat": "p50",
@@ -964,10 +904,7 @@
           "refId": "A"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.9, sum by (le) (rate(te_request_tokenization_duration_bucket{job=\"$job\"}[10m])))",
           "hide": false,
@@ -976,10 +913,7 @@
           "refId": "B"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.99, sum by (le) (rate(te_request_tokenization_duration_bucket{job=\"$job\"}[10m])))",
           "hide": false,
@@ -992,10 +926,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1122,10 +1053,7 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.5, sum by (le) (rate(te_request_inference_duration_bucket{namespace=\"\", job=\"$job\"}[10m])))",
           "legendFormat": "p50",
@@ -1133,10 +1061,7 @@
           "refId": "A"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.9, sum by (le) (rate(te_request_inference_duration_bucket{job=\"$job\"}[10m])))",
           "hide": false,
@@ -1145,10 +1070,7 @@
           "refId": "B"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.99, sum by (le) (rate(te_request_inference_duration_bucket{job=\"$job\"}[10m])))",
           "hide": false,
@@ -1161,10 +1083,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1291,10 +1210,7 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.5, sum by (le) (rate(te_embed_tokenization_duration_bucket{namespace=\"\", job=\"$job\"}[10m])))",
           "legendFormat": "p50",
@@ -1302,10 +1218,7 @@
           "refId": "A"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.9, sum by (le) (rate(te_embed_tokenization_duration_bucket{job=\"$job\"}[10m])))",
           "hide": false,
@@ -1314,10 +1227,7 @@
           "refId": "B"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.99, sum by (le) (rate(te_embed_tokenization_duration_bucket{job=\"$job\"}[10m])))",
           "hide": false,
@@ -1343,10 +1253,7 @@
       "type": "row"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1424,10 +1331,7 @@
       "pluginVersion": "9.1.0",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "avg(te_batch_next_size_bucket{namespace=\"\", job=\"$job\"})",
           "legendFormat": "{{ pod }}",
@@ -1439,10 +1343,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1568,10 +1469,7 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.5, sum by (le) (rate(te_request_queue_duration_bucket{namespace=\"\", job=\"$job\"}[10m])))",
           "legendFormat": "p50",
@@ -1579,10 +1477,7 @@
           "refId": "A"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.9, sum by (le) (rate(te_request_queue_duration_bucket{job=\"$job\"}[10m])))",
           "hide": false,
@@ -1591,10 +1486,7 @@
           "refId": "B"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.99, sum by (le) (rate(te_request_queue_duration_bucket{job=\"$job\"}[10m])))",
           "hide": false,
@@ -1607,10 +1499,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1688,10 +1577,7 @@
       "pluginVersion": "9.1.0",
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "avg(te_request_input_length_bucket{namespace=\"\", job=\"$job\"})",
           "legendFormat": "{{ pod }}",
@@ -1716,10 +1602,7 @@
       "type": "row"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1845,10 +1728,7 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.5, sum by (le) (rate(te_embed_inference_duration_bucket{method=\"\", namespace=\"\", job=\"$job\"}[10m])))",
           "legendFormat": "p50",
@@ -1856,10 +1736,7 @@
           "refId": "A"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.9, sum by (le) (rate(te_embed_inference_duration_bucket{method=\"\", namespace=\"\", job=\"$job\"}[10m])))",
           "hide": false,
@@ -1868,10 +1745,7 @@
           "refId": "B"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.99, sum by (le) (rate(te_embed_inference_duration_bucket{method=\"\", namespace=\"\", job=\"$job\"}[10m])))",
           "hide": false,
@@ -1894,10 +1768,7 @@
         "mode": "opacity"
       },
       "dataFormat": "tsbuckets",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -1972,10 +1843,7 @@
       "reverseYBuckets": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "exemplar": true,
           "expr": "sum(increase(te_embed_inference_duration_bucket{method=\"\", namespace=\"\", job=\"$job\"}[5m])) by (le)",
@@ -2017,10 +1885,7 @@
       "type": "row"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -2146,10 +2011,7 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.5, sum by (le) (rate(te_embed_inference_duration_bucket{namespace=\"\", job=\"$job\"}[10m])))",
           "legendFormat": "p50",
@@ -2157,10 +2019,7 @@
           "refId": "A"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.9, sum by (le) (rate(te_embed_inference_duration_bucket{job=\"$job\"}[10m])))",
           "hide": false,
@@ -2169,10 +2028,7 @@
           "refId": "B"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "histogram_quantile(0.99, sum by (le) (rate(te_embed_inference_duration_bucket{job=\"$job\"}[10m])))",
           "hide": false,
@@ -2209,10 +2065,7 @@
           "text": "All",
           "value": "$__all"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
-        },
+        "datasource": "Prometheus",
         "definition": "label_values(te_request_count,namespace)",
         "hide": 0,
         "includeAll": false,
@@ -2235,10 +2088,7 @@
           "text": "chatqna-tei",
           "value": "chatqna-tei"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
-        },
+        "datasource": "Prometheus",
         "definition": "label_values(te_request_count{namespace=\"\"},job)",
         "hide": 0,
         "includeAll": false,

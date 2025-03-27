@@ -54,10 +54,7 @@
   "liveNow": false,
   "panels": [
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -140,10 +137,7 @@
       "targets": [
         {
           "$$hashKey": "object:638",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "rate(process_cpu_seconds_total{job=\"$job_name\"}[1m])",
@@ -162,10 +156,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -247,10 +238,7 @@
       "targets": [
         {
           "$$hashKey": "object:638",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "process_resident_memory_bytes{job=\"$job_name\"}",
@@ -269,10 +257,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -356,10 +341,7 @@
       "targets": [
         {
           "$$hashKey": "object:214",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "disableTextWrap": false,
           "editorMode": "code",
           "expr": "sum by(handler) (rate(http_requests_total{job=\"$job_name\", handler!~\"/metrics|/v1/health_check|none\"}[1m]))",
@@ -378,10 +360,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -496,10 +475,7 @@
       "targets": [
         {
           "$$hashKey": "object:140",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "sum by(status) (rate(http_requests_total{job=\"$job_name\"}[1m]))",
@@ -518,10 +494,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -621,10 +594,7 @@
       "targets": [
         {
           "$$hashKey": "object:766",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "sum(rate(http_requests_total{status=\"5xx\", job=\"$job_name\"}[30s]))",
@@ -643,10 +613,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "Prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -733,10 +700,7 @@
       "targets": [
         {
           "$$hashKey": "object:426",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "disableTextWrap": false,
           "editorMode": "code",
           "expr": "histogram_quantile(0.$Percentage, rate(http_request_duration_seconds_bucket{job=\"$job_name\", handler!~\"/metrics|/v1/health_check|none\"}[1m])) ",
@@ -755,10 +719,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -843,10 +804,7 @@
       "targets": [
         {
           "$$hashKey": "object:146",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "http_request_duration_seconds_sum{handler!=\"none\",job=\"$job_name\", handler!~\"/metrics|/v1/health_check|none\"} / http_request_duration_seconds_count",
           "format": "time_series",
@@ -868,10 +826,7 @@
     "list": [
       {
         "current": {},
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
-        },
+        "datasource": "Prometheus",
         "definition": "label_values(http_requests_total{},job)",
         "hide": 0,
         "includeAll": false,
