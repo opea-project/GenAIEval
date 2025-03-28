@@ -137,7 +137,7 @@ pip install -r requirements.txt
 
 **Step 5**: Prepare the input Model Card metadata JSON
 
-Draft your Model Card metadata by following the specified [JSON schema](https://github.com/intel/intel-xai-tools/blob/main/model_card_gen/intel_ai_safety/model_card_gen/schema/v0.0.1/model_card.schema.json) and save the content in a `.json` file. Refer to the above table for sections and fields to include in the JSON file. You can add any fields that comply with the schema, but ensure the required field 'model name' is included."
+Draft your Model Card metadata by following the specified [JSON schema](https://github.com/intel/intel-xai-tools/tree/main/model_card_gen/intel_ai_safety/model_card_gen/schema/v0.0.1/model_card.schema.json) and save the content in a `.json` file. Refer to the above table for sections and fields to include in the JSON file. You can add any fields that comply with the schema, but ensure the required field 'model name' is included."
 For guidance, refer to example Model Card JSONs available [here](https://github.com/intel/intel-xai-tools/tree/main/model_card_gen/intel_ai_safety/model_card_gen/docs/examples/json). The path to Model Card metadata JSON should be provided to the `input_mc_metadata_json` argument. 
 
 Optionally, specify the template for rendering the model card by replacing `MODEL_CARD_TEMPLATE` with either "html" for an interactive HTML model card or "md" for a static Markdown version. By default, the template type is set to HTML. 
@@ -154,12 +154,12 @@ python examples/main.py --input_mc_metadata_json ${INPUT_MC_METADATA_JSON_PATH} 
 **Step 6 (Optional)**: Generate Performance Metrics
 
 Draft a Metrics by Threshold CSV file based on the generated metric results. To see examples of metric files, click [here](https://github.com/intel/intel-xai-tools/tree/main/model_card_gen/intel_ai_safety/model_card_gen/docs/examples/csv). 
-For a step-by-step guide on creating these files, follow this [link](https://github.com/intel/intel-xai-tools/blob/main/notebooks/model_card_gen/hugging_face_model_card/hugging-face-model-card.ipynb). The "Metrics by Threshold" section of the Model Card enables you to visually analyze how metric values vary with different probability thresholds. 
+For a step-by-step guide on creating these files, follow this [link](https://github.com/intel/intel-xai-tools/tree/main/notebooks/model_card_gen/hugging_face_model_card/hugging-face-model-card.ipynb). The "Metrics by Threshold" section of the Model Card enables you to visually analyze how metric values vary with different probability thresholds. 
 Provide the path to the Metrics by Threshold CSV file using the `metrics_by_threshold` argument. 
 
 
 Draft a Metrics by Group CSV file based on the generated metric results. To see examples of metric files, click [here](https://github.com/intel/intel-xai-tools/tree/main/model_card_gen/intel_ai_safety/model_card_gen/docs/examples/csv). 
-For a step-by-step guide on creating these files, follow this [link](https://github.com/intel/intel-xai-tools/blob/main/notebooks/model_card_gen/hugging_face_model_card/hugging-face-model-card.ipynb). The "Metrics by Group" section of Model Card is used to organize and display a model's performance metrics by distinct groups or subcategories within the data. Provide the path to the Metrics by Group CSV file using the `metrics_by_group` argument. 
+For a step-by-step guide on creating these files, follow this [link](https://github.com/intel/intel-xai-tools/tree/main/notebooks/model_card_gen/hugging_face_model_card/hugging-face-model-card.ipynb). The "Metrics by Group" section of Model Card is used to organize and display a model's performance metrics by distinct groups or subcategories within the data. Provide the path to the Metrics by Group CSV file using the `metrics_by_group` argument. 
 
 ```shell
 INPUT_MC_METADATA_JSON_PATH=/path/to/model_card_metadata.json
@@ -171,7 +171,7 @@ METRICS_BY_GROUP=/path/to/metrics_by_group.csv
 python examples/main.py --input_mc_metadata_json ${INPUT_MC_METADATA_JSON_PATH} --mc_template_type ${MODEL_CARD_TEMPLATE} --output_dir ${OUTPUT_DIRECTORY} --metrics_by_threshold ${METRICS_BY_THRESHOLD} --metrics_by_group ${METRICS_BY_GROUP}
 ```
 
-**Step 7 (Optional)**: Optional Step to generate Metrics by Threshold for `lm_evaluation_harness`
+**Step 7 (Optional)**: Generate Metrics by Threshold for `lm_evaluation_harness`
 
 Additionally, you can generate a Metrics by Threshold CSV for some of the `lm_evaluation_harness` tasks by providing the path to the metric results JSONL file in place of `METRICS_RESULTS_PATH`.
 
@@ -183,3 +183,60 @@ METRICS_RESULTS_PATH=/path/to/metrics_results.jsonl
 
 python ./examples/main.py --input_mc_metadata_json ${INPUT_MC_METADATA_JSON_PATH} --mc_template_type ${MODEL_CARD_TEMPLATE} --output_dir ${OUTPUT_DIRECTORY} --metric_results_path ${METRICS_RESULTS_PATH}
 ```
+
+Consider an example of a result JSON file from an `lm_evaluation_harness` task as follows. 
+```
+[
+  {
+    "doc_id": 0,
+    "target": "Neither",
+    "arguments": [
+      ["Lorem ipsum dolor sit amet, consectetur adipiscing elit", " True"],
+      ["Lorem ipsum dolor sit amet, consectetur adipiscing elit", " Neither"],
+      ["Lorem ipsum dolor sit amet, consectetur adipiscing elit", " False"]
+    ],
+    "filtered_resps": [
+      [-10.0, false],
+      [-9.0, false],
+      [-11.0, false]
+    ],
+    "acc": 0.0
+  },
+  {
+    "doc_id": 1,
+    "target": "True",
+    "arguments": [
+     ["Lorem ipsum dolor sit amet, consectetur adipiscing elit", " True"],
+      ["Lorem ipsum dolor sit amet, consectetur adipiscing elit", " Neither"],
+      ["Lorem ipsum dolor sit amet, consectetur adipiscing elit", " False"]
+    ],
+    "filtered_resps": [
+      [-12.0, false],
+      [-10.5, false],
+      [-13.0, false]
+    ],
+    "acc": 1.0
+  },
+  ...
+]
+```
+The `filtered_resps` field contains log likelihoods for each response option, representing the model's confidence levels. When the path to this JSON file is specified in the `metric_results_path` argument, these log likelihood values are parsed and converted into probabilities using the softmax function. These probabilities are then used to calculate performance metrics across various thresholds, ranging from 0.0 to 1.0, and are compiled into the `metrics_by_threshold` CSV file which would look as follows:
+
+| Threshold | Precision | Recall | F1 Score | Accuracy | Label   |
+|-----------|-----------|--------|----------|----------|---------|
+| 0.000     | 0.500     | 0.600  | 0.545    | 0.550    | True    |
+| 0.001     | 0.510     | 0.610  | 0.556    | 0.560    | True    |
+| ...       | ...       | ...    | ...      | ...      | ...     |
+| 1.000     | 0.700     | 0.750  | 0.724    | 0.720    | True    |
+| 0.000     | 0.400     | 0.500  | 0.444    | 0.450    | False   |
+| 0.001     | 0.410     | 0.510  | 0.455    | 0.460    | False   |
+| ...       | ...       | ...    | ...      | ...      | ...     |
+| 1.000     | 0.600     | 0.650  | 0.624    | 0.620    | False   |
+| 0.000     | 0.300     | 0.400  | 0.345    | 0.350    | Neither |
+| 0.001     | 0.310     | 0.410  | 0.356    | 0.360    | Neither |
+| ...       | ...       | ...    | ...      | ...      | ...   |
+| 1.000     | 0.500     | 0.550  | 0.524    | 0.520    | Neither |
+
+The `model_card_gen` tool uses the generated `metrics_by_threshold` dataframe to format and present the evaluation results in a comprehensive model card. 
+
+You can find an example of a generated Model Card [here](https://github.com/intel/intel-xai-tools/tree/main/model_card_gen/intel_ai_safety/model_card_gen/docs/examples/html)
