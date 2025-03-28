@@ -41,18 +41,19 @@ class DockerMetricsCollector:
                 for host_info in host_infos:
                     host_ip = host_info["HostIp"]
                     host_port = host_info["HostPort"]
-
+                    container_port = container_port.split("/")[0]
+                    port = container_port
                     # Use localhost if the port is mapped to 0.0.0.0 or empty
                     if host_ip in ["0.0.0.0", ""]:
                         logging.debug(
                             f"Found host port {host_port} for container port {container_port} (mapped to all interfaces)"
                         )
-                        return ("localhost", host_port)
+                        return ("localhost", port)
                     else:
                         logging.debug(
                             f"Found host port {host_port} for container port {container_port} (mapped to {host_ip})"
                         )
-                        return (host_ip, host_port)
+                        return (host_ip, port)
 
             logging.error("No valid host port found.")
             return (None, None)
@@ -71,13 +72,13 @@ class DockerMetricsCollector:
                     return None
 
                 # Construct the URL
-                service_url = f"http://{host_ip}:{port}{metrics_path}"
+                service_url = f"http://{container_name}:{port}{metrics_path}"
                 logging.debug(f"Collecting metrics from {service_url}")
                 response = requests.get(service_url)
                 response.raise_for_status()
                 return response.text
             except requests.RequestException as e:
-                logging.error(f"Error collecting metrics from {container_name}: {e}")
+                logging.error(f"Error collecting metrics from {container_name} {service_url}: {e}")
         return None
 
     def start_collecting_data(self, services, output_dir="/data"):
