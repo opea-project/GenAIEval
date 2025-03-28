@@ -23,10 +23,7 @@
   "liveNow": false,
   "panels": [
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -109,10 +106,7 @@
       "targets": [
         {
           "$$hashKey": "object:638",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "e4584a9f-5364-4b3d-a851-7abbc5250820"
-          },
+          "datasource": "Prometheus",
           "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "rate(process_cpu_seconds_total{container=\"$container_name\"}[1m])",
@@ -131,10 +125,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -216,10 +207,7 @@
       "targets": [
         {
           "$$hashKey": "object:638",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "e4584a9f-5364-4b3d-a851-7abbc5250820"
-          },
+          "datasource": "Prometheus",
           "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "process_resident_memory_bytes{container=\"$container_name\"}",
@@ -238,10 +226,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -325,10 +310,7 @@
       "targets": [
         {
           "$$hashKey": "object:214",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "e4584a9f-5364-4b3d-a851-7abbc5250820"
-          },
+          "datasource": "Prometheus",
           "disableTextWrap": false,
           "editorMode": "code",
           "expr": "sum by(handler) (rate(http_requests_total{container=\"$container_name\", handler!~\"/metrics|/v1/health_check|none\"}[1m]))",
@@ -347,10 +329,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -465,10 +444,7 @@
       "targets": [
         {
           "$$hashKey": "object:140",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "e4584a9f-5364-4b3d-a851-7abbc5250820"
-          },
+          "datasource": "Prometheus",
           "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "sum by(status) (rate(http_requests_total{container=\"$container_name\"}[1m]))",
@@ -487,10 +463,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -590,10 +563,7 @@
       "targets": [
         {
           "$$hashKey": "object:766",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "e4584a9f-5364-4b3d-a851-7abbc5250820"
-          },
+          "datasource": "Prometheus",
           "disableTextWrap": false,
           "editorMode": "builder",
           "expr": "sum(rate(http_requests_total{status=\"5xx\", container=\"$container_name\"}[30s]))",
@@ -612,10 +582,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "Prometheus",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -702,10 +669,7 @@
       "targets": [
         {
           "$$hashKey": "object:426",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "e4584a9f-5364-4b3d-a851-7abbc5250820"
-          },
+          "datasource": "Prometheus",
           "disableTextWrap": false,
           "editorMode": "code",
           "expr": "histogram_quantile(0.$Percentage, rate(http_request_duration_seconds_bucket{container=\"$container_name\", handler!~\"/metrics|/v1/health_check|none\"}[1m])) ",
@@ -724,10 +688,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
-      },
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -812,10 +773,7 @@
       "targets": [
         {
           "$$hashKey": "object:146",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "e4584a9f-5364-4b3d-a851-7abbc5250820"
-          },
+          "datasource": "Prometheus",
           "editorMode": "code",
           "expr": "http_request_duration_seconds_sum{handler!=\"none\",container=\"$container_name\", handler!~\"/metrics|/v1/health_check|none\"} / http_request_duration_seconds_count",
           "format": "time_series",
@@ -841,10 +799,7 @@
           "text": "reranking-microservice",
           "value": "reranking-microservice"
         },
-        "datasource": {
-          "type": "prometheus",
-          "uid": "P1809F7CD0C75ACF3"
-        },
+        "datasource": "Prometheus",
         "definition": "label_values(http_requests_total{namespace=\"opea-rag\"},container)",
         "hide": 0,
         "includeAll": false,

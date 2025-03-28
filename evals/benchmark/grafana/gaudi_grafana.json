@@ -46,10 +46,7 @@
       "list": [
         {
           "builtIn": 1,
-          "datasource": {
-            "type": "datasource",
-            "uid": "grafana"
-          },
+          "datasource": "Prometheus",
           "enable": true,
           "hide": true,
           "iconColor": "rgba(0, 211, 255, 1)",
@@ -67,10 +64,7 @@
     "links": [],
     "panels": [
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
-        },
+        "datasource": "Prometheus",
         "description": "",
         "fieldConfig": {
           "defaults": {
@@ -122,10 +116,7 @@
         "pluginVersion": "11.0.0",
         "targets": [
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "${DS_PROMETHEUS}"
-            },
+            "datasource": "Prometheus",
             "editorMode": "code",
             "exemplar": true,
             "expr": "habanalabs_device_config{instance=\"$node\", UUID=\"$hpu\"}",
@@ -147,10 +138,7 @@
         "type": "stat"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
-        },
+        "datasource": "Prometheus",
         "description": "",
         "fieldConfig": {
           "defaults": {
@@ -207,10 +195,7 @@
         "pluginVersion": "11.0.0",
         "targets": [
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "${DS_PROMETHEUS}"
-            },
+            "datasource": "Prometheus",
             "editorMode": "code",
             "exemplar": false,
             "expr": "habanalabs_utilization{instance=\"$node\", UUID=\"$hpu\"}/100",
@@ -234,10 +219,7 @@
         "type": "gauge"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
-        },
+        "datasource": "Prometheus",
         "description": "",
         "fieldConfig": {
           "defaults": {
@@ -290,10 +272,7 @@
         "pluginVersion": "11.0.0",
         "targets": [
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "${DS_PROMETHEUS}"
-            },
+            "datasource": "Prometheus",
             "editorMode": "code",
             "exemplar": true,
             "expr": "habanalabs_power_mW{instance=\"$node\", UUID=\"$hpu\"}",
@@ -316,10 +295,7 @@
         "type": "gauge"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
-        },
+        "datasource": "Prometheus",
         "description": "PCIe Throughput.",
         "fieldConfig": {
           "defaults": {
@@ -396,10 +372,7 @@
         "pluginVersion": "11.1.0",
         "targets": [
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "${DS_PROMETHEUS}"
-            },
+            "datasource": "Prometheus",
             "editorMode": "code",
             "exemplar": false,
             "expr": "habanalabs_pcie_receive_throughput{UUID=\"$hpu\", instance=\"$node\"}",
@@ -411,10 +384,7 @@
             "refId": "A"
           },
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "${DS_PROMETHEUS}"
-            },
+            "datasource": "Prometheus",
             "editorMode": "code",
             "exemplar": false,
             "expr": "habanalabs_pcie_transmit_throughput{UUID=\"$hpu\", instance=\"$node\"}",
@@ -438,10 +408,7 @@
         "type": "timeseries"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
-        },
+        "datasource": "Prometheus",
         "description": "onchip temperature. in degrees C.",
         "fieldConfig": {
           "defaults": {
@@ -498,10 +465,7 @@
         "pluginVersion": "11.0.0",
         "targets": [
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "${DS_PROMETHEUS}"
-            },
+            "datasource": "Prometheus",
             "editorMode": "code",
             "exemplar": true,
             "expr": "habanalabs_temperature_onchip{UUID=\"$hpu\", instance=\"$node\"}",
@@ -516,10 +480,7 @@
         "type": "gauge"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
-        },
+        "datasource": "Prometheus",
         "description": "onboard temperature. in degrees C.",
         "fieldConfig": {
           "defaults": {
@@ -576,10 +537,7 @@
         "pluginVersion": "11.0.0",
         "targets": [
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "${DS_PROMETHEUS}"
-            },
+            "datasource": "Prometheus",
             "editorMode": "code",
             "exemplar": true,
             "expr": "habanalabs_temperature_onboard{UUID=\"$hpu\", instance=\"$node\"}",
@@ -594,10 +552,7 @@
         "type": "gauge"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
-        },
+        "datasource": "Prometheus",
         "description": "The BIOS of the hpu board.",
         "fieldConfig": {
           "defaults": {
@@ -649,10 +604,7 @@
         "pluginVersion": "11.0.0",
         "targets": [
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "${DS_PROMETHEUS}"
-            },
+            "datasource": "Prometheus",
             "editorMode": "code",
             "exemplar": true,
             "expr": "habanalabs_device_config{instance=\"$node\", UUID=\"$hpu\"}",
@@ -674,10 +626,7 @@
         "type": "stat"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
-        },
+        "datasource": "Prometheus",
         "description": "The Firmware of the HPU board.",
         "fieldConfig": {
           "defaults": {
@@ -729,10 +678,7 @@
         "pluginVersion": "11.0.0",
         "targets": [
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "${DS_PROMETHEUS}"
-            },
+            "datasource": "Prometheus",
             "editorMode": "code",
             "exemplar": true,
             "expr": "habanalabs_device_config{instance=\"$node\", UUID=\"$hpu\"}",
@@ -754,10 +700,7 @@
         "type": "stat"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
-        },
+        "datasource": "Prometheus",
         "description": "",
         "fieldConfig": {
           "defaults": {
@@ -835,10 +778,7 @@
         "pluginVersion": "11.1.0",
         "targets": [
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "${DS_PROMETHEUS}"
-            },
+            "datasource": "Prometheus",
             "editorMode": "code",
             "exemplar": true,
             "expr": "habanalabs_utilization{instance=\"$node\", UUID=\"$hpu\"}/100",
@@ -861,10 +801,7 @@
         "type": "timeseries"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
-        },
+        "datasource": "Prometheus",
         "description": "Core hpu temperature. in degrees C.",
         "fieldConfig": {
           "defaults": {
@@ -942,10 +879,7 @@
         "pluginVersion": "11.1.0",
         "targets": [
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "${DS_PROMETHEUS}"
-            },
+            "datasource": "Prometheus",
             "editorMode": "code",
             "exemplar": false,
             "expr": "habanalabs_temperature_onboard{UUID=\"$hpu\", instance=\"$node\"}",
@@ -957,10 +891,7 @@
             "refId": "A"
           },
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "${DS_PROMETHEUS}"
-            },
+            "datasource": "Prometheus",
             "editorMode": "code",
             "exemplar": false,
             "expr": "habanalabs_temperature_onchip{UUID=\"$hpu\", instance=\"$node\"}",
@@ -984,10 +915,7 @@
         "type": "timeseries"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
-        },
+        "datasource": "Prometheus",
         "description": "",
         "fieldConfig": {
           "defaults": {
@@ -1039,10 +967,7 @@
         "pluginVersion": "11.0.0",
         "targets": [
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "${DS_PROMETHEUS}"
-            },
+            "datasource": "Prometheus",
             "editorMode": "code",
             "expr": "habanalabs_clock_soc_mhz{UUID=\"$hpu\", instance=\"$node\"}",
             "format": "table",
@@ -1057,10 +982,7 @@
         "type": "stat"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
-        },
+        "datasource": "Prometheus",
         "description": "Total memory allocated by active contexts.",
         "fieldConfig": {
           "defaults": {
@@ -1141,10 +1063,7 @@
         "pluginVersion": "11.1.0",
         "targets": [
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "${DS_PROMETHEUS}"
-            },
+            "datasource": "Prometheus",
             "editorMode": "code",
             "exemplar": true,
             "expr": "habanalabs_memory_used_bytes{UUID=\"$hpu\", instance=\"$node\"}",
@@ -1167,10 +1086,7 @@
         "type": "timeseries"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
-        },
+        "datasource": "Prometheus",
         "description": "",
         "fieldConfig": {
           "defaults": {
@@ -1251,10 +1167,7 @@
         "pluginVersion": "11.1.0",
         "targets": [
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "${DS_PROMETHEUS}"
-            },
+            "datasource": "Prometheus",
             "editorMode": "code",
             "exemplar": true,
             "expr": "habanalabs_power_mW{instance=\"$node\", UUID=\"$hpu\"}",
@@ -1277,10 +1190,7 @@
         "type": "timeseries"
       },
       {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${DS_PROMETHEUS}"
-        },
+        "datasource": "Prometheus",
         "description": "",
         "fieldConfig": {
           "defaults": {
@@ -1358,10 +1268,7 @@
         "pluginVersion": "11.1.0",
         "targets": [
           {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "${DS_PROMETHEUS}"
-            },
+            "datasource": "Prometheus",
             "disableTextWrap": false,
             "editorMode": "code",
             "exemplar": true,
@@ -1399,10 +1306,7 @@
       "list": [
         {
           "current": {},
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "definition": "label_values(habanalabs_kube_info,hostname)",
           "hide": 0,
           "includeAll": false,
@@ -1426,10 +1330,7 @@
         },
         {
           "current": {},
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
+          "datasource": "Prometheus",
           "definition": "label_values(habanalabs_device_config{instance=\"$node\"},UUID)",
           "hide": 0,
           "includeAll": false,

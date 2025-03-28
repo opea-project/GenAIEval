@@ -1343,7 +1343,7 @@
         {
           "allValue": null,
           "current": {},
-          "datasource": "${DS_HOME_MAIN PROMETHEUS}",
+          "datasource": "Prometheus",
           "definition": "label_values(node_boot_time_seconds, instance)",
           "hide": 0,
           "includeAll": false,
@@ -1471,7 +1471,7 @@
         {
           "allValue": null,
           "current": {},
-          "datasource": "${DS_HOME_MAIN PROMETHEUS}",
+          "datasource": "Prometheus",
           "definition": "label_values(node_cpu_seconds_total, cpu)",
           "hide": 0,
           "includeAll": true,
