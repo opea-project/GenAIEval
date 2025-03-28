@@ -1,0 +1,8 @@
+intel-ai-safety-model-card-gen@git+https://github.com/intel/intel-xai-tools.git#subdirectory=model_card_gen
+kaleido
+lm-eval==0.4.3
+lxml
+numpy
+pandas
+plotly
+scikit-learn
