@@ -173,7 +173,9 @@ python examples/main.py --input_mc_metadata_json ${INPUT_MC_METADATA_JSON_PATH} 
 
 **Step 7 (Optional)**: Generate Metrics by Threshold for `lm_evaluation_harness`
 
-Additionally, you can generate a Metrics by Threshold CSV for some of the `lm_evaluation_harness` tasks by providing the path to the metric results JSONL file in place of `METRICS_RESULTS_PATH`.
+Additionally, you can generate a `Metrics by Threshold` CSV for some of the `lm_evaluation_harness` tasks. Currently, we support the tasks that produce numeric metrics, like log probabilities or log likelihoods, to determine the best label in text generation and question answering scenarios. In the future, we aim to expand our parsing logic and the Model Card Generator to support a wider array of text generation tasks.
+
+To generate Metrics by Threshold file for supported tasks, provide the path to the metric results JSONL file in place of `METRICS_RESULTS_PATH`.
 
 ```shell
 INPUT_MC_METADATA_JSON_PATH=/path/to/model_card_metadata.json
