@@ -78,7 +78,7 @@
     "panels": [
       {
         "collapsed": false,
-        "datasource": "${DS_REDIS}",
+        "datasource": "Prometheus",
         "gridPos": {
           "h": 1,
           "w": 24,
@@ -99,7 +99,7 @@
         "type": "row"
       },
       {
-        "datasource": "${DS_REDIS}",
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "custom": {
@@ -184,7 +184,7 @@
         "type": "stat"
       },
       {
-        "datasource": "${DS_REDIS}",
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "custom": {
@@ -281,7 +281,7 @@
         "type": "gauge"
       },
       {
-        "datasource": "${DS_REDIS}",
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "custom": {
@@ -441,7 +441,7 @@
         "type": "bargauge"
       },
       {
-        "datasource": "${DS_REDIS}",
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "custom": {
@@ -518,7 +518,7 @@
         "type": "stat"
       },
       {
-        "datasource": "${DS_REDIS}",
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "custom": {},
@@ -593,7 +593,7 @@
         "type": "stat"
       },
       {
-        "datasource": "${DS_REDIS}",
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "custom": {
@@ -668,7 +668,7 @@
         "type": "stat"
       },
       {
-        "datasource": "${DS_REDIS}",
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "custom": {
@@ -730,7 +730,7 @@
         "type": "stat"
       },
       {
-        "datasource": "${DS_REDIS}",
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "custom": {
@@ -818,7 +818,7 @@
         "type": "bargauge"
       },
       {
-        "datasource": "${DS_REDIS}",
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "custom": {
@@ -906,7 +906,7 @@
         "type": "bargauge"
       },
       {
-        "datasource": "${DS_REDIS}",
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "custom": {
@@ -983,7 +983,7 @@
       },
       {
         "collapsed": false,
-        "datasource": "${DS_REDIS}",
+        "datasource": "Prometheus",
         "gridPos": {
           "h": 1,
           "w": 24,
@@ -1004,7 +1004,7 @@
         "type": "row"
       },
       {
-        "datasource": "${DS_REDIS}",
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "custom": {
@@ -1144,7 +1144,7 @@
         "type": "table"
       },
       {
-        "datasource": "${DS_REDIS}",
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "custom": {
@@ -1295,7 +1295,7 @@
         "type": "table"
       },
       {
-        "datasource": "${DS_REDIS}",
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "custom": {
@@ -1434,7 +1434,7 @@
       },
       {
         "collapsed": false,
-        "datasource": "${DS_REDIS}",
+        "datasource": "Prometheus",
         "gridPos": {
           "h": 1,
           "w": 24,
@@ -1447,7 +1447,7 @@
         "type": "row"
       },
       {
-        "datasource": "${DS_REDIS}",
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "custom": {
@@ -1518,7 +1518,7 @@
         "type": "stat"
       },
       {
-        "datasource": "${DS_REDIS}",
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "custom": {
@@ -1590,7 +1590,7 @@
         "type": "stat"
       },
       {
-        "datasource": "${DS_REDIS}",
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "custom": {
@@ -1668,7 +1668,7 @@
         "type": "bargauge"
       },
       {
-        "datasource": "${DS_REDIS}",
+        "datasource": "Prometheus",
         "fieldConfig": {
           "defaults": {
             "custom": {
