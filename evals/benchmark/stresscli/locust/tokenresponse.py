@@ -14,7 +14,11 @@ def testFunc():
 
 
 def respStatics(environment, req, resp):
-    tokenizer = transformers.AutoTokenizer.from_pretrained(environment.parsed_options.llm_model)
+    if not hasattr(environment, "tokenizer"):
+        tokenizer = transformers.AutoTokenizer.from_pretrained(environment.parsed_options.llm_model)
+    else:
+        tokenizer = environment.tokenizer
+
     if environment.parsed_options.bench_target in [
         "chatqnafixed",
         "chatqnabench",
