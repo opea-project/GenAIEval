@@ -1,31 +1,33 @@
-# Copyright (C) 2024 Intel Corporation
-# SPDX-License-Identifier: Apache-2.0
-
 import argparse
 import collections
-import copy
 import json
-import logging
 import re
 import string
-import sys
-from collections import defaultdict
-
-import numpy as np
 import torch
+import copy
+
 from nltk import sent_tokenize
+import numpy as np
 from rouge_score import rouge_scorer, scoring
 from tqdm import tqdm
-
-logging.basicConfig(format="%(asctime)s - %(levelname)s - %(name)s - %(message)s", datefmt="%m/%d/%Y %H:%M:%S")
+import sys
+import logging
+from collections import defaultdict
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s',
+                    datefmt='%m/%d/%Y %H:%M:%S')
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, pipeline
-from utils import get_max_memory, normalize_answer, remove_citations
+from transformers import (
+    AutoModelForSeq2SeqLM,
+    AutoTokenizer,
+    pipeline
+)
 
-QA_MODEL = "gaotianyu1350/roberta-large-squad"
-AUTOAIS_MODEL = "google/t5_xxl_true_nli_mixture"
+from utils import normalize_answer, get_max_memory, remove_citations
+
+QA_MODEL="gaotianyu1350/roberta-large-squad"
+AUTOAIS_MODEL="google/t5_xxl_true_nli_mixture"
 
 global autoais_model, autoais_tokenizer
 autoais_model, autoais_tokenizer = None, None
@@ -67,7 +69,6 @@ def compute_exact(a_gold, a_pred):
 
 def exact_presence(short_answers, context):
     """Verify if any of the answers is present in the given context.
-
     Args:
         short_answers: list of short answers to look for in the context
         context: a paragraph to search for short answers
@@ -78,8 +79,8 @@ def exact_presence(short_answers, context):
     n_short_answers = [normalize_answer(sa) for sa in short_answers]
     n_context = normalize_answer(context)
 
-    for answer in n_short_answers:
-        if answer in n_context:
+    for ans in n_short_answers:
+        if ans in n_context:
             return True
 
     return False
@@ -87,7 +88,6 @@ def exact_presence(short_answers, context):
 
 def compute_rouge(data):
     """Main function for rouge scoring.
-
     If two references are provided,
     the best score is chosen for each instance.
     Args:
@@ -96,8 +96,10 @@ def compute_rouge(data):
     Returns:
         dictionary representation of rouge scores
     """
-
-    def _rouge_calculation(hypotheses, references1, references2=[], metrics=["rougeLsum"]):
+    def _rouge_calculation(hypotheses,
+                        references1,
+                        references2=[],
+                        metrics=['rougeLsum']):
 
         if references2 == []:
             references2 = references1
@@ -108,7 +110,7 @@ def compute_rouge(data):
         for i in range(len(hypotheses)):
             scores1 = scorer.score(references1[i], hypotheses[i])
             scores2 = scorer.score(references2[i], hypotheses[i])
-            if scores1["rougeLsum"].fmeasure > scores2["rougeLsum"].fmeasure:
+            if scores1['rougeLsum'].fmeasure > scores2['rougeLsum'].fmeasure:
                 aggregator.add_scores(scores1)
             else:
                 aggregator.add_scores(scores2)
@@ -130,7 +132,7 @@ def compute_rouge(data):
 
     for idx, item in enumerate(data):
         hypotheses[idx] = item["output"]
-        if "annotations" in item and item["annotations"] is not None:  # For ASQA
+        if "annotations" in item and item['annotations'] is not None: # For ASQA
             references1[idx] = item["annotations"][0]["long_answer"]
             references2[idx] = item["annotations"][1]["long_answer"]
         else:
@@ -146,12 +148,12 @@ def compute_rouge(data):
         if references2 is not None:
             r2.append(references2[key])
 
-    h = ["\n".join(sent_tokenize(text.lower())) for text in h]
-    r1 = ["\n".join(sent_tokenize(text.lower())) for text in r1]
-    r2 = ["\n".join(sent_tokenize(text.lower())) for text in r2]
+    h = ['\n'.join(sent_tokenize(text.lower())) for text in h]
+    r1 = ['\n'.join(sent_tokenize(text.lower())) for text in r1]
+    r2 = ['\n'.join(sent_tokenize(text.lower())) for text in r2]
     scores = _rouge_calculation(h, r1, r2)
 
-    return scores["rougeLsum"]
+    return scores['rougeLsum']
 
 
 def compute_str_em(data):
@@ -162,7 +164,7 @@ def compute_str_em(data):
         STR-EM and STR-EM-HIT ()
     """
 
-    if "qa_pairs" not in data[0] or data[0]["qa_pairs"] is None:
+    if 'qa_pairs' not in data[0] or data[0]['qa_pairs'] is None:
         return 0, 0
 
     acc = []
@@ -170,10 +172,10 @@ def compute_str_em(data):
 
     for item in data:
         loc_acc = []
-        for qa_pair in item["qa_pairs"]:
-            loc_acc.append(exact_presence(qa_pair["short_answers"], item["output"]))
+        for qa_pair in item['qa_pairs']:
+            loc_acc.append(exact_presence(qa_pair['short_answers'], item["output"]))
         acc.append(np.mean(loc_acc))
-        hit.append(int(np.mean(loc_acc) == 1))
+        hit.append( int(np.mean(loc_acc) == 1) )
 
     return 100 * np.mean(acc), 100 * np.mean(hit)
 
@@ -190,19 +192,18 @@ def compute_len(data):
 
 def compute_qa(data):
     """Compute QA-based accuracy.
-
     Args:
         data: requires filed `qa_pairs/short_answers` and `output`
     Returns:
         QA metrics (QA-EM, QA-F1, QA-Hit)
     """
 
-    if "qa_pairs" not in data[0] or data[0]["qa_pairs"] is None:
+    if 'qa_pairs' not in data[0] or data[0]['qa_pairs'] is None:
         logger.warn("Warning: no QA pairs found in data")
         return {
-            "QA-EM": 0,
-            "QA-F1": 0,
-            "QA-Hit": 0,
+            'QA-EM': 0,
+            'QA-F1': 0,
+            'QA-Hit': 0,
         }
 
     # Load model
@@ -214,8 +215,8 @@ def compute_qa(data):
     logger.info("Computing the QA-based accuracy...")
     em, f1, bins = [], [], []
     for item in tqdm(data):
-        question = [qa_pair["question"] for qa_pair in item["qa_pairs"]]
-        context = item["output"] if len(item["output"]) > 0 else " "
+        question = [qa_pair['question'] for qa_pair in item['qa_pairs']]
+        context = item['output'] if len(item['output']) > 0 else " "
         results = qa_pipeline(question=question, context=context, handle_impossible_answer=True)
         loc_counter, loc_em, loc_f1 = 0, 0, 0
 
@@ -231,7 +232,11 @@ def compute_qa(data):
         f1.append(loc_f1 / loc_counter)
         bins.append(loc_em == loc_counter)
 
-    return {"QA-EM": 100 * np.mean(em), "QA-F1": 100 * np.mean(f1), "QA-Hit": 100 * np.mean(bins)}
+    return {
+        'QA-EM': 100 * np.mean(em),
+        'QA-F1': 100 * np.mean(f1),
+        'QA-Hit': 100 * np.mean(bins)
+    }
 
 
 def compute_mauve(data):
@@ -244,15 +249,10 @@ def compute_mauve(data):
         # Remove ending punctuations
         # Remove any new lines
         # Truncate by 100 words
-        human_data.append(
-            " ".join((item["question"] + " " + item["answer"].strip()).split()[:100]).rstrip(string.punctuation)
-        )
-        model_data.append(
-            " ".join((item["question"] + " " + item["output"].strip()).split()[:100]).rstrip(string.punctuation)
-        )
+        human_data.append(' '.join((item['question'] + " " + item['answer'].strip()).split()[:100]).rstrip(string.punctuation))
+        model_data.append(' '.join((item['question'] + " " + item['output'].strip()).split()[:100]).rstrip(string.punctuation))
 
     import mauve
-
     out = mauve.compute_mauve(
         p_text=human_data,
         q_text=model_data,
@@ -260,14 +260,14 @@ def compute_mauve(data):
         max_text_length=512,
         verbose=True,
         batch_size=8,
-        featurize_model_name="gpt2-large",
+        featurize_model_name="gpt2-large"
     )
     return out.mauve * 100
 
 
 def _run_nli_autoais(passage, claim):
-    """Run inference for assessing AIS between a premise and hypothesis.
-
+    """
+    Run inference for assessing AIS between a premise and hypothesis.
     Adapted from https://github.com/google-research-datasets/Attributed-QA/blob/main/evaluation.py
     """
     global autoais_model, autoais_tokenizer
@@ -284,15 +284,13 @@ def compute_claims(data):
     global autoais_model, autoais_tokenizer
     if autoais_model is None:
         logger.info("Loading AutoAIS model...")
-        autoais_model = AutoModelForSeq2SeqLM.from_pretrained(
-            AUTOAIS_MODEL, torch_dtype=torch.bfloat16, max_memory=get_max_memory(), device_map="auto"
-        )
+        autoais_model = AutoModelForSeq2SeqLM.from_pretrained(AUTOAIS_MODEL, torch_dtype=torch.bfloat16, max_memory=get_max_memory(), device_map="auto")
         autoais_tokenizer = AutoTokenizer.from_pretrained(AUTOAIS_MODEL, use_fast=False)
 
     logger.info("Computing claims...")
     scores = []
     for item in tqdm(data):
-        normalized_output = remove_citations(item["output"])
+        normalized_output = remove_citations(item['output'])
         entail = 0
         claims = item["claims"]
         for claim in claims:
@@ -301,14 +299,13 @@ def compute_claims(data):
     return 100 * np.mean(scores)
 
 
-def compute_autoais(
-    data,
-    decontext=False,
-    concat=False,
-    qampari=False,
-    at_most_citations=None,
-):
-    """Compute AutoAIS score.
+def compute_autoais(data,
+                    decontext=False,
+                    concat=False,
+                    qampari=False,
+                    at_most_citations=None,):
+    """
+    Compute AutoAIS score.
 
     Args:
         data: requires field `output` and `docs`
@@ -320,21 +317,19 @@ def compute_autoais(
     global autoais_model, autoais_tokenizer
     if autoais_model is None:
         logger.info("Loading AutoAIS model...")
-        autoais_model = AutoModelForSeq2SeqLM.from_pretrained(
-            AUTOAIS_MODEL, torch_dtype=torch.bfloat16, max_memory=get_max_memory(), device_map="auto"
-        )
+        autoais_model = AutoModelForSeq2SeqLM.from_pretrained(AUTOAIS_MODEL, torch_dtype=torch.bfloat16, max_memory=get_max_memory(), device_map="auto")
         autoais_tokenizer = AutoTokenizer.from_pretrained(AUTOAIS_MODEL, use_fast=False)
 
-    logger.info("Running AutoAIS...")
+    logger.info(f"Running AutoAIS...")
 
     def _format_document(doc):
         """Format document for AutoAIS."""
 
         if "sent" in doc:
             # QA-extracted docs
-            return "Title: %s\n%s" % (doc["title"], doc["sent"])
+            return "Title: %s\n%s" % (doc['title'], doc['sent'])
         else:
-            return "Title: %s\n%s" % (doc["title"], doc["text"])
+            return "Title: %s\n%s" % (doc['title'], doc['text'])
 
     ais_scores = []
     ais_scores_prec = []
@@ -348,11 +343,9 @@ def compute_autoais(
     for item in tqdm(data):
         # Get sentences by using NLTK
         if qampari:
-            sents = [
-                item["question"] + " " + x.strip() for x in item["output"].rstrip().rstrip(".").rstrip(",").split(",")
-            ]
+            sents = [item['question'] + " " + x.strip() for x in item['output'].rstrip().rstrip(".").rstrip(",").split(",")]
         else:
-            sents = sent_tokenize(item["output"])
+            sents = sent_tokenize(item['output'])
             # we also ignore sentences that are < 5 characters long, they are unlikely to be meaningful
             # this resolves the case where the sentencizer takes "1." as a sentence
             sents = [x for x in sents if len(x.strip()) >= 5]
@@ -365,39 +358,37 @@ def compute_autoais(
         entail_prec = 0
         total_citations = 0
         for sent_id, sent in enumerate(sents):
-            target_sent = target_sents[sent_id]  # Citation removed and (if opted for) decontextualized
-            joint_entail = -1  # Undecided
+            target_sent = target_sents[sent_id] # Citation removed and (if opted for) decontextualized
+            joint_entail = -1 # Undecided
 
             # Find references
-            ref = [int(r[1:]) - 1 for r in re.findall(r"\[\d+", sent)]  # In text citation id starts from 1
+            ref = [int(r[1:])-1 for r in re.findall(r"\[\d+", sent)] # In text citation id starts from 1
             for r in ref:
                 citation_position_count[r] += 1
             logger.info(f"For `{sent}`, find citations {ref}")
             if len(ref) == 0:
                 # No citations
                 joint_entail = 0
-            elif any([ref_id >= len(item["docs"]) for ref_id in ref]):
+            elif any([ref_id >= len(item['docs']) for ref_id in ref]):
                 # Citations out of range
                 joint_entail = 0
             else:
                 if at_most_citations is not None:
                     ref = ref[:at_most_citations]
                 total_citations += len(ref)
-                joint_passage = "\n".join([_format_document(item["docs"][psgs_id]) for psgs_id in ref])
+                joint_passage = '\n'.join([_format_document(item['docs'][psgs_id]) for psgs_id in ref])
 
             # If not directly rejected by citation format error, calculate the recall score
             if joint_entail == -1:
                 joint_entail = _run_nli_autoais(joint_passage, target_sent)
-                autoais_log.append(
-                    {
-                        "question": item["question"],
-                        "output": item["output"],
-                        "claim": sent,
-                        "passage": [joint_passage],
-                        "model_type": "NLI",
-                        "model_output": joint_entail,
-                    }
-                )
+                autoais_log.append({
+                    "question": item['question'],
+                    "output": item['output'],
+                    "claim": sent,
+                    "passage": [joint_passage],
+                    "model_type": "NLI",
+                    "model_output": joint_entail,
+                })
 
             entail += joint_entail
             if len(ref) > 1:
@@ -409,16 +400,16 @@ def compute_autoais(
                 # Precision check: did the model cite any unnecessary documents?
                 for psgs_id in ref:
                     # condition A
-                    passage = _format_document(item["docs"][psgs_id])
+                    passage = _format_document(item['docs'][psgs_id])
                     nli_result = _run_nli_autoais(passage, target_sent)
 
                     # condition B
                     if not nli_result:
                         subset_exclude = copy.deepcopy(ref)
                         subset_exclude.remove(psgs_id)
-                        passage = "\n".join([_format_document(item["docs"][pid]) for pid in subset_exclude])
+                        passage = '\n'.join([_format_document(item['docs'][pid]) for pid in subset_exclude])
                         nli_result = _run_nli_autoais(passage, target_sent)
-                        if nli_result:  # psgs_id is not necessary
+                        if nli_result: # psgs_id is not necessary
                             flag = 0
                             sent_mcite_overcite += 1
                         else:
@@ -430,17 +421,14 @@ def compute_autoais(
 
         sent_total += len(sents)
         ais_scores.append(entail / len(sents))
-        ais_scores_prec.append(entail_prec / total_citations if total_citations > 0 else 0)  # len(sents))
+        ais_scores_prec.append(entail_prec / total_citations if total_citations > 0 else 0) # len(sents))
 
     if sent_mcite > 0 and sent_mcite_support > 0:
-        print(
-            "Among all sentences, %.2f%% have multiple citations, among which %.2f%% are supported by the joint set, among which %.2f%% overcite."
-            % (
-                100 * sent_mcite / sent_total,
-                100 * sent_mcite_support / sent_mcite,
-                100 * sent_mcite_overcite / sent_mcite_support,
-            )
-        )
+        print("Among all sentences, %.2f%% have multiple citations, among which %.2f%% are supported by the joint set, among which %.2f%% overcite." % (
+            100 * sent_mcite / sent_total,
+            100 * sent_mcite_support / sent_mcite,
+            100 * sent_mcite_overcite / sent_mcite_support
+        ))
 
     return {
         "citation_rec": 100 * np.mean(ais_scores) if len(ais_scores) > 0 else 0,
@@ -459,16 +447,16 @@ def compute_qampari_f1(data, cot=False):
     num_preds = []
     for item in data:
         if cot:
-            if ":" in item["output"]:
-                o = ":".join(item["output"].split(":")[1:])  # try to separate the COT part and the answer list part.
+            if ":" in item['output']:
+                o = ':'.join(item['output'].split(":")[1:]) # try to separate the COT part and the answer list part.
             else:
                 o = ""
         else:
-            o = item["output"]
+            o = item['output']
         preds = [normalize_answer(x.strip()) for x in o.rstrip().rstrip(".").rstrip(",").split(",")]
-        preds = [p for p in preds if len(p) > 0]  # delete empty answers
+        preds = [p for p in preds if len(p) > 0] # delete empty answers
         num_preds.append(len(preds))
-        answers = [[normalize_answer(x) for x in answer] for answer in item["answers"]]
+        answers = [[normalize_answer(x) for x in ans] for ans in item['answers']]
         flat_answers = [item for sublist in answers for item in sublist]
 
         prec.append(sum([p in flat_answers for p in preds]) / len(preds) if len(preds) > 0 else 0)
@@ -492,29 +480,19 @@ def compute_qampari_f1(data, cot=False):
         "qampari_f1_top5": 100 * np.mean(f1_top5),
     }
 
-
 def main(args=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--f",
-        type=str,
-        required=True,
-        help="Output file. Should have field `question`, `output`, (ROUGE) `answer`, \
-                        (accuracy) `qa_pairs`, (AIS) `docs`",
-    )
+    parser.add_argument("--f", type=str, required=True, help="Output file. Should have field `question`, `output`, (ROUGE) `answer`, \
+                        (accuracy) `qa_pairs`, (AIS) `docs`")
     parser.add_argument("--no_rouge", action="store_true", help="Do not evaluate ROUGE score")
     parser.add_argument("--qa", action="store_true", help="Use the QA model")
     parser.add_argument("--mauve", action="store_true", help="Use the mauve score model")
     parser.add_argument("--citations", action="store_true", help="Evaluation with citation")
-    parser.add_argument(
-        "--at_most_citations", type=int, default=3, help="At most take this many documents (mostly for precision)"
-    )
+    parser.add_argument("--at_most_citations", type=int, default=3, help="At most take this many documents (mostly for precision)")
     parser.add_argument("--claims_nli", action="store_true", help="Use claims for ELI5")
 
     # QAMPARI
-    parser.add_argument(
-        "--cot", action="store_true", help="For QAMPARI, try to find colon and separate the COT and answer listing"
-    )
+    parser.add_argument("--cot", action="store_true", help="For QAMPARI, try to find colon and separate the COT and answer listing")
 
     if args is None:
         args = parser.parse_args()
@@ -523,7 +501,7 @@ def main(args=None):
 
     with open(args.f) as f:
         data_with_config = json.load(f)
-    data = data_with_config["data"]
+    data = data_with_config['data']
 
     if "qampari" in args.f:
         args.no_rouge = True
@@ -540,25 +518,26 @@ def main(args=None):
     logger.warning("We replace any on the fly search result to standard bracket citation format.")
     for i in range(len(data)):
         # data[i]['output'] = data[i]['output'].strip().split("\n")[0]
-        data[i]["output"] = re.sub(r"\n+", " ", data[i]["output"])
-        data[i]["output"] = data[i]["output"].replace("<|im_end|>", "")
+        data[i]['output'] = re.sub(r"\n+", " ", data[i]['output'])
+        data[i]['output'] = data[i]['output'].replace("<|im_end|>", "")
+
 
     # Remove all citations for all non-AutoAIS evaluation
     normalized_data = copy.deepcopy(data)
     for i in range(len(normalized_data)):
-        normalized_data[i]["output"] = remove_citations(normalized_data[i]["output"])
+        normalized_data[i]['output'] = remove_citations(normalized_data[i]['output'])
 
     result = {}
-    result["length"] = compute_len(normalized_data)
-    result["str_em"], result["str_hit"] = compute_str_em(normalized_data)
+    result['length'] = compute_len(normalized_data)
+    result['str_em'], result['str_hit'] = compute_str_em(normalized_data)
     if qampari:
         result.update(compute_qampari_f1(normalized_data, cot=args.cot))
     if not args.no_rouge:
-        result["rougeLsum"] = compute_rouge(normalized_data)
+        result['rougeLsum'] = compute_rouge(normalized_data)
     if args.qa:
         result.update(compute_qa(normalized_data))
     if args.mauve:
-        result["mauve"] = compute_mauve(normalized_data)
+        result['mauve'] = compute_mauve(normalized_data)
     if args.citations:
         result.update(compute_autoais(data, qampari=qampari, at_most_citations=args.at_most_citations))
     if args.claims_nli:

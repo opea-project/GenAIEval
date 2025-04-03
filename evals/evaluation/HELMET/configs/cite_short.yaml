@@ -1,6 +1,3 @@
-# Copyright (C) 2024 Intel Corporation
-# SPDX-License-Identifier: Apache-2.0
-
 input_max_length: 8192,16384,32768,65536,8192,16384,32768,65536
 datasets: alce_asqa_30,alce_asqa_75,alce_asqa_165,alce_asqa_345,alce_qampari_30,alce_qampari_75,alce_qampari_165,alce_qampari_345
 generation_max_length: 300,300,300,300,300,300,300,300
@@ -10,5 +7,4 @@ use_chat_template: true
 max_test_samples: 100
 shots: 2
 stop_new_line: false
-model_name_or_path: meta-llama/Llama-3.2-1B-Instruct
-output_dir: output/Llama-3.2-1B-Instruct
+model_name_or_path: meta-llama/Llama-3.1-8B-Instruct
