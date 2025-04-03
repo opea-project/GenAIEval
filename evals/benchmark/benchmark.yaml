@@ -125,7 +125,7 @@ test_cases:
     e2e:
       run_test: true
       service_name: "docsum"  # Replace with your service name
-      stream: true  # Stream output, false is summary type is map_reduce or refine
+      stream: true  # Stream output, false if summary type is map_reduce or refine
       max_new_tokens: 1024
       summary_type: "stuff"   # Summary_types: stuff, truncate, map_reduce, refine
       dataset:   # Path to document to be summarized when random prompt is true
