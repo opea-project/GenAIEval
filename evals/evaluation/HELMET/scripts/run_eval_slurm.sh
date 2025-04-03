@@ -1,8 +1,5 @@
 #!/bin/bash -l
 
-# Copyright (C) 2024 Intel Corporation
-# SPDX-License-Identifier: Apache-2.0
-
 ##############################
 #       Job blueprint        #
 ##############################
@@ -11,7 +8,7 @@
 #SBATCH --job-name=helmet ## CHANGE JOBNAME HERE
 #SBATCH --array=0-35
 
-# Remove one # to uncomment
+# Remove one # to uncommment
 #SBATCH --output=./joblog/%x-%A_%a.out                          ## Stdout
 #SBATCH --error=./joblog/%x-%A_%a.err                           ## Stderr
 
@@ -155,3 +152,4 @@ wait;
 #echo "done, check $OUTPUT_DIR for outputs"
 
 #exit 0
+
