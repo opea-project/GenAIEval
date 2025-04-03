@@ -2,9 +2,9 @@
 
 ## Introduction
 
-This document provides an example how to manage which CPUs and
-memories (NUMA nodes) are allowed to be used by containers on a
-Kubernetes node.
+This document provides an example and recommendations how to manage
+which CPUs and memories (NUMA nodes) are allowed to be used by which
+containers on a Kubernetes node.
 
 Managing CPUs and memories enables improving AI container performance
 and maintaining predictable response times even under heavy
@@ -97,12 +97,11 @@ Let us consider isolating AI inference and reranking containers in
 [ChatQnA](https://github.com/opea-project/GenAIExamples/tree/main/ChatQnA/README.md)
 application's Gaudi accelerated pipeline.
 
-In the
-[manifest](https://github.com/opea-project/GenAIExamples/blob/main/ChatQnA/kubernetes/intel/hpu/gaudi/manifest/chatqna.yaml)
-there are "tgi", "tei" and "teirerank" containers in "chatqna-tgi" and
-"chatqna-tei" and "chatqna-teirerank" deployments that will need a lot
-of CPUs. They implement text-generation-interface and
-text-embeddings-interface services.
+In [helm
+charts](https://github.com/opea-project/GenAIInfra/blob/main/helm-charts/chatqna/README.md)
+there are "vllm", "tgi", "tei" and "teirerank" containers in the
+services that will need a lot of CPUs. They implement
+text-generation-interface and text-embeddings-interface services.
 
 Warning: an
 [issue](https://github.com/opea-project/GenAIExamples/issues/763) in
@@ -132,7 +131,7 @@ metadata:
 spec:
   allocatorTopologyBalancing: true
   balloonTypes:
-  - name: tgi
+  - name: llm-inference
     allocatorPriority: high
     minCPUs: 16
     minBalloons: 1
@@ -140,8 +139,8 @@ spec:
     hideHyperthreads: true
     matchExpressions:
     - key: name
-      operator: Equals
-      values: ["tgi"]
+      operator: In
+      values: ["tgi", "vllm"]
   - name: tei
     allocatorPriority: high
     minCPUs: 32
@@ -211,6 +210,14 @@ The most important options in the above configuration example are:
   assigned to a balloon of this type would request fewer or no CPUs at
   all. Correspondingly `maxCPUs` could be used to set an upper limit
   for CPUs.
+- `minBalloons: 1` means that the policy must preallocate CPUs for one
+  balloon of this balloon type immediately when the policy
+  starts. This ensures that the CPUs are selected optimally without
+  any restrictions that could be imposed by other CPU
+  allocations. Without preallocation, some other balloons created for
+  other containers could get their CPUs first, which would force this
+  allocation to be made from scattered left-over CPUs. The number of
+  preallocated CPUs for the balloon is specified by `minCPUs`.
 - `hideHyperthreads: true` means that containers in balloons of this
   type are allowed to use only single CPU hyperthread from each CPU
   core in the balloon. By default, both using hyperthreads of all CPUs
@@ -337,3 +344,56 @@ for ensuring NUMA alignment and choosing CPUs with low latency access
 to accelerators like Gaudi cards. See the topology-aware policy
 [documentation](https://containers.github.io/nri-plugins/stable/docs/resource-policy/policy/topology-aware.html)
 for more information.
+
+## Recommendations
+
+Following recommendations help using CPU and memory resources
+effectively and serving maximal number of CPU inference users.
+
+1. For best throughput, run multiple inference engines on a server
+   with non-overlapping CPUs, instead of using all CPUs for single
+   inference. Logical CPUs for two different engines should not be
+   taken from the same physical CPU core, if CPU cores are
+   hyperthreaded.
+
+2. For best throughput (and potentially lowest latencies), on a
+   multisocket systems, run each inference engine using CPUs only from
+   single socket. Spread engines evenly across sockets in order to
+   balance memory bandwidth usage in the system. Each engine uses only
+   the memory that is local to the socket.
+
+3. For lowest variance, enable sub-NUMA clustering, and run each
+   inference engine using CPUs only from single sub-NUMA node. This
+   gives the best predictability, as every engine accesses lowest
+   latency memory and access times to all the data are
+   uniform. Throughput is best when all engines in the system are
+   under heavy load. But there is a trade-off: this limits the peak
+   memory bandwidth for each inference engine, compared to the setup
+   where each engine uses memory from all NUMA nodes local to its
+   socket.
+
+4. For best throughput and latencies, hide hyperthreads from physical
+   CPU cores of the inference engine. However, if using very recent
+   platforms and relatively small number of CPUs for each engine (for
+   example less than 10), hyperthreads may improve performance. In
+   other words, it is worth measuring which one is better because the
+   difference can be significant in both ways.
+
+In case of the NRI balloons resource policy, "non-overlapping CPUs" in
+recommendations 1-3 can be ensured by setting `preferNewBalloons:
+true` to all balloon types of inference engine containers. The policy
+will then assign each container to a balloon that has no other
+containers.
+
+Balancing memory bandwidth in recommendations 2-3 can be handled by
+setting `allocatorTopologyBalancing: true` and `minBalloons: NN` where
+NN is the number of balloons that should be precreated for inference
+containers. Balancing is guaranteed to succeed with precreated
+balloons, yet it may succeed when creating balloons when needed, too.
+
+Recommendation 4 can be followed by setting `hideHyperthreads: true`
+and allocating double the number of (logical) CPUs compared to the
+number of physical cores that each inference engine will get. The
+number of CPUs can be chosen with `minCPUs` for precreated balloons,
+or by using inference container's `resources.requests.cpu` in
+Kubernetes.
