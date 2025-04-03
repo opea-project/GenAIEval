@@ -2,12 +2,14 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
+
 import tokenresponse as token
 
 cwd = os.path.dirname(__file__)
 filepath = f"{cwd}/../../data/upload_file.txt"
 filename = os.path.basename(filepath)
 max_tokens = os.environ["OPEA_EVAL_MAX_NEW_TOKENS"]
+
 
 def getUrl():
     return "/v1/docsum"
@@ -22,10 +24,11 @@ def getReqData():
         "max_tokens": (None, max_tokens),
         "language": (None, "en"),
         "summary_type": (None, "stuff"),
-        "stream": (None, "true")
+        "stream": (None, "true"),
     }
 
     return files
+
 
 def respStatics(environment, reqData, respData):
     return token.respStatics(environment, reqData, respData)

@@ -27,7 +27,7 @@ service_endpoints = {
         "docsum": "/v1/docsum",
         "docsum-vllm": "/generate",
         "docsum-llm-uservice": "v1/chat/docsum",
-        "e2e": "/v1/docsum"
+        "e2e": "/v1/docsum",
     },
     "faqgen": {"llm": "/v1/chat/completions", "llmserve": "/v1/chat/completions", "e2e": "/v1/faqgen"},
     "audioqna": {

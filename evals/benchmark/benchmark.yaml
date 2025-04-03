@@ -128,7 +128,7 @@ test_cases:
       stream: true  # Stream output, false is summary type is map_reduce or refine
       max_new_tokens: 1024
       summary_type: "stuff"   # Summary_types: stuff, truncate, map_reduce, refine
-      dataset:   # Path to document to be summarized when random promt is true
+      dataset:   # Path to document to be summarized when random prompt is true
       service_list:
         - "docsum"
         - "docsum-llm-uservice"
