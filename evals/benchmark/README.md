@@ -48,6 +48,13 @@ This command increases the maximum number of file descriptors (which represent o
 python benchmark.py
 ```
 
+> NOTE : Add --yaml argument to use a customized benchmark configurationse.
+
+ e.g. 
+ ```bash
+python benchmark.py --yaml docker.hpu.benchmark.yaml
+```
+
 The results will be stored in the directory specified by `test_output_dir` in the configuration.
 
 
