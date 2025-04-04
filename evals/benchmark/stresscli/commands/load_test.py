@@ -146,6 +146,9 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
     runspec["seed"] = run_settings.get("seed", global_settings.get("seed", locust_defaults["seed"]))
     runspec["seed"] = locust_defaults["seed"] if runspec["seed"] is None else runspec["seed"]
     runspec["run_name"] = run_settings["name"]
+    runspec["summary_type"] = global_settings.get("summary_type", None)
+    runspec["stream"] = global_settings.get("stream", None)
+    runspec["max-new-tokens"] = global_settings.get("max-new-tokens", locust_defaults["max-output"])
 
     # Specify load shape to adjust user distribution
     load_shape_conf = run_settings.get("load-shape", global_settings.get("load-shape", locust_defaults["load-shape"]))
@@ -249,6 +252,12 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         str(runspec["llm-model"]),
         "--stop-timeout",
         str(runspec["stop_timeout"]),
+        "--summary_type",
+        str(runspec["summary_type"]),
+        "--stream",
+        str(runspec["stream"]),
+        "--max-new-tokens",
+        str(runspec["max-new-tokens"]),
         "--csv",
         csv_output,
         "--headless",
