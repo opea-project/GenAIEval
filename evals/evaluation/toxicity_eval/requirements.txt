@@ -1,0 +1,7 @@
+evaluate
+loguru
+pandas
+scikit-learn
+torch
+torchmetrics
+transformers

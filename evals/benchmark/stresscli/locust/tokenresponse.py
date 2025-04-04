@@ -14,8 +14,18 @@ def testFunc():
 
 
 def respStatics(environment, req, resp):
-    tokenizer = transformers.AutoTokenizer.from_pretrained(environment.parsed_options.llm_model)
-    if environment.parsed_options.bench_target in ["chatqnafixed", "chatqnabench", "faqgenfixed", "faqgenbench"]:
+    if not hasattr(environment, "tokenizer"):
+        tokenizer = transformers.AutoTokenizer.from_pretrained(environment.parsed_options.llm_model)
+    else:
+        tokenizer = environment.tokenizer
+
+    if environment.parsed_options.bench_target in [
+        "chatqnafixed",
+        "chatqnabench",
+        "faqgenfixed",
+        "faqgenbench",
+        "chatqna_qlist_pubmed",
+    ]:
         num_token_input_prompt = len(tokenizer.encode(req["messages"]))
     elif environment.parsed_options.bench_target in ["llmfixed"]:
         num_token_input_prompt = len(tokenizer.encode(req["query"]))
@@ -59,7 +69,7 @@ def staticsOutput(environment, reqlist):
         tokens_output += req["tokens_output"]
         tokens_input += req["tokens_input"]
         test_start_time = req["test_start_time"]
-    duration = environment.runner.stats.last_request_timestamp - test_start_time
+    duration = environment.runner.stats.last_request_timestamp - environment.runner.stats.start_time
 
     # Statistics for success response data only
     if tokens_output == 0:

@@ -10,6 +10,7 @@ import time
 
 import gevent
 import sseclient
+import transformers
 from locust import HttpUser, between, events, task
 from locust.runners import STATE_CLEANUP, STATE_STOPPED, STATE_STOPPING, MasterRunner, WorkerRunner
 
@@ -74,6 +75,27 @@ def _(parser):
     parser.add_argument(
         "--max-output", type=int, env_var="OPEA_EVAL_MAX_OUTPUT_TOKENS", default=128, help="Max number of output tokens"
     )
+    parser.add_argument(
+        "--summary_type",
+        type=str,
+        env_var="OPEA_EVAL_SUMMARY_TYPE",
+        default="stuff",
+        help="Summary type for Docsum example",
+    )
+    parser.add_argument(
+        "--stream",
+        type=str,
+        env_var="OPEA_EVAL_STREAM",
+        default="true",
+        help="Specify whether the HTTP request response from the service should be streamed",
+    )
+    parser.add_argument(
+        "--max-new-tokens",
+        type=int,
+        env_var="OPEA_EVAL_MAX_NEW_TOKENS",
+        default=256,
+        help="Specify the maximum number of new tokens to generate for OPEA services",
+    )
 
 
 reqlist = []
@@ -84,6 +106,8 @@ last_resp_ts = 0
 
 bench_package = ""
 console_logger = logging.getLogger("locust.stats_logger")
+LLM_MODEL = os.getenv("MODEL_NAME", "meta-llama/Meta-Llama-3-8B-Instruct")
+tokenizer = transformers.AutoTokenizer.from_pretrained(LLM_MODEL)
 
 
 class AiStressUser(HttpUser):
@@ -92,6 +116,8 @@ class AiStressUser(HttpUser):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        global tokenizer
+        self.environment.tokenizer = tokenizer
 
     @task
     def bench_main(self):
@@ -117,11 +143,15 @@ class AiStressUser(HttpUser):
             "chatqnabench",
             "codegenfixed",
             "codegenbench",
+            "docsumbench",
             "faqgenfixed",
             "faqgenbench",
+            "chatqna_qlist_pubmed",
         ]
         if self.environment.parsed_options.bench_target in ["faqgenfixed", "faqgenbench"]:
             req_params = {"data": reqData}
+        elif self.environment.parsed_options.bench_target in ["docsumbench", "docsumfixed"]:
+            req_params = {"files": reqData}
         else:
             req_params = {"json": reqData}
         test_start_time = time.time()
@@ -248,6 +278,9 @@ def on_locust_init(environment, **_kwargs):
     os.environ["OPEA_EVAL_PROMPTS"] = environment.parsed_options.prompts
     os.environ["OPEA_EVAL_MAX_OUTPUT_TOKENS"] = str(environment.parsed_options.max_output)
     os.environ["LLM_MODEL"] = environment.parsed_options.llm_model
+    os.environ["OPEA_EVAL_SUMMARY_TYPE"] = environment.parsed_options.summary_type
+    os.environ["OPEA_EVAL_STREAM"] = environment.parsed_options.stream
+    os.environ["OPEA_EVAL_MAX_NEW_TOKENS"] = str(environment.parsed_options.max_new_tokens)
 
     bench_package = __import__(environment.parsed_options.bench_target)
 

@@ -1,0 +1,191 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+search_knowledge_base:
+  description: Search knowledge base for a given query. Returns text related to the query.
+  callable_api: tools.py:search_knowledge_base
+  args_schema:
+    query:
+      type: str
+      description: query
+  return_output: retrieved_data
+
+search_artist_entity_by_name:
+  description: Search for music artists by name.
+  callable_api: tools.py:search_artist_entity_by_name
+  args_schema:
+    artist_name:
+      type: str
+      description: artist name
+  return_output: artist_entity
+
+search_song_entity_by_name:
+  description: Search for songs by name.
+  callable_api: tools.py:search_song_entity_by_name
+  args_schema:
+    song_name:
+      type: str
+      description: song name
+  return_output: song_entity
+
+get_billboard_rank_date:
+  description: Get Billboard ranking for a specific rank and date.
+  callable_api: tools.py:get_billboard_rank_date
+  args_schema:
+    rank:
+      type: int
+      description: the rank of interest, for example, 1 for the top song
+    date:
+      type: str
+      description: date
+  return_output: rank_date
+
+get_billboard_attributes:
+  description: Get attributes of a song from Billboard rankings.
+  callable_api: tools.py:get_billboard_attributes
+  args_schema:
+    date:
+      type: str
+      description: date
+    attribute:
+      type: str
+      description: attribute
+    song_name:
+      type: str
+      description: name of the song
+  return_output: attributes
+
+get_grammy_best_artist_by_year:
+  description: Get the Grammy Best New Artist for a specific year.
+  callable_api: tools.py:get_grammy_best_artist_by_year
+  args_schema:
+    year:
+      type: int
+      description: year
+  return_output: best_artist
+
+get_grammy_award_count_by_artist:
+  description: Get the total Grammy awards won by an artist.
+  callable_api: tools.py:get_grammy_award_count_by_artist
+  args_schema:
+    artist_name:
+      type: str
+      description: artist name
+  return_output: award_count
+
+
+get_grammy_award_count_by_song:
+  description: Get the total Grammy awards won by a song.
+  callable_api: tools.py:get_grammy_award_count_by_song
+  args_schema:
+    song_name:
+      type: str
+      description: song name
+  return_output: award_count
+
+get_grammy_best_song_by_year:
+  description: Get the Grammy Song of the Year for a specific year.
+  callable_api: tools.py:get_grammy_best_song_by_year
+  args_schema:
+    year:
+      type: int
+      description: year
+  return_output: best_song
+
+get_grammy_award_date_by_artist:
+  description: Get the years an artist won a Grammy award.
+  callable_api: tools.py:get_grammy_award_date_by_artist
+  args_schema:
+    artist_name:
+      type: str
+      description: artist name
+  return_output: award_dates
+
+get_grammy_best_album_by_year:
+  description: Get the Grammy Album of the Year for a specific year.
+  callable_api: tools.py:get_grammy_best_album_by_year
+  args_schema:
+    year:
+      type: int
+      description: year
+  return_output: best_album
+
+
+get_all_awarded_artists:
+  description: Get all artists awarded the Grammy Best New Artist.
+  callable_api: tools.py:get_all_awarded_artists
+  args_schema: {}
+  return_output: awarded_artists
+
+get_artist_birth_place:
+  description: Get the birthplace of an artist.
+  callable_api: tools.py:get_artist_birth_place
+  args_schema:
+    artist_name:
+      type: str
+      description: artist name
+  return_output: birth_place
+
+get_artist_birth_date:
+  description: Get the birth date of an artist.
+  callable_api: tools.py:get_artist_birth_date
+  args_schema:
+    artist_name:
+      type: str
+      description: artist name
+  return_output: birth_date
+
+get_members:
+  description: Get the member list of a band.
+  callable_api: tools.py:get_members
+  args_schema:
+    band_name:
+      type: str
+      description: band name
+  return_output: members
+
+get_lifespan:
+  description: Get the lifespan of an artist.
+  callable_api: tools.py:get_lifespan
+  args_schema:
+    artist_name:
+      type: str
+      description: artist name
+  return_output: lifespan
+
+
+get_song_author:
+  description: Get the author of a song.
+  callable_api: tools.py:get_song_author
+  args_schema:
+    song_name:
+      type: str
+      description: song name
+  return_output: author
+
+get_song_release_country:
+  description: Get the release country of a song.
+  callable_api: tools.py:get_song_release_country
+  args_schema:
+    song_name:
+      type: str
+      description: song name
+  return_output: release_country
+
+get_song_release_date:
+  description: Get the release date of a song.
+  callable_api: tools.py:get_song_release_date
+  args_schema:
+    song_name:
+      type: str
+      description: song name
+  return_output: release_date
+
+get_artist_all_works:
+  description: Get all works by an artist.
+  callable_api: tools.py:get_artist_all_works
+  args_schema:
+    artist_name:
+      type: str
+      description: artist name
+  return_output: all_works

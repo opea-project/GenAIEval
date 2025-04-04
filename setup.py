@@ -24,5 +24,6 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/opea-project/GenAIEval",
     packages=find_packages(),
+    package_data={"evals.benchmark.stresscli.locust": ["*.conf"], "evals/benchmark/stresscli/commands": ["config.ini"]},
     python_requires=">=3.10",
 )
