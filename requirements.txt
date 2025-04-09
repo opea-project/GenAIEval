@@ -11,7 +11,7 @@ langchain_community
 langchain_huggingface
 lm-eval==0.4.3
 locust
-numpy
+numpy < 2.0
 prometheus_client
 pytest
 pyyaml
