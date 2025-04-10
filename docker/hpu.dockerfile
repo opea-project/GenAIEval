@@ -19,7 +19,7 @@ RUN pip install --upgrade pip setuptools==69.5.1
 
 # Build From Source
 RUN cd /GenAIEval && \
-    pip install -r requirements.txt && \
+    pip install -r requirements_hpu.txt && \
     python setup.py install && \
     pip list
 

@@ -13,12 +13,9 @@ from evals.evaluation.lm_evaluation_harness import LMEvalParser, evaluate
 class TestLMEval(unittest.TestCase):
     def test_lm_eval(self):
         model_name_or_path = "facebook/opt-125m"
-        user_model = AutoModelForCausalLM.from_pretrained(model_name_or_path)
-        tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
         args = LMEvalParser(
             model="hf",
-            user_model=user_model,
-            tokenizer=tokenizer,
+            model_args=f"pretrained={model_name_or_path}",
             tasks="lambada_openai",
             device="cpu",
             batch_size=1,

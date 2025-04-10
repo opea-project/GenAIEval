@@ -1176,11 +1176,14 @@ class GaudiHFModelAdapter(HFLM):
         else:
             self.static_shapes = False
 
+        # TODO
+        """
         if self.static_shapes:
             print("use hpu graphs.")
             from habana_frameworks.torch.hpu import wrap_in_hpu_graph
 
             self._model = wrap_in_hpu_graph(self._model)
+        """
 
         print("lm-eval warmup starting for Gaudi.")
         self.warm_up()
