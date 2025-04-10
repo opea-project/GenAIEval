@@ -1,6 +1,5 @@
 # <img src="assets/logo.jpeg" alt="HELMET" width="30"> HELMET: How to Evaluate Long-context Language Models Effectively and Thoroughly
 
----
 <p align="center">
     <a href="https://arxiv.org/abs/2410.02694" target="_blank" rel="noopener noreferrer">
         <img alt="paper" src="https://img.shields.io/badge/paper-paper?logo=arxiv&logoColor=%23B31B1B&labelColor=white&color=%23B31B1B">
