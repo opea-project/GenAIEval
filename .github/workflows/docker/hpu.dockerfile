@@ -19,9 +19,8 @@ RUN if [ "$REPO_PATH" == "" ]; then rm -rf /genaieval/* && rm -rf /genaieval/.* 
 # Build From Source
 RUN pip install --upgrade pip setuptools==69.5.1
 RUN cd /genaieval && \
-    pip install -r requirements.txt && \
+    pip install -r requirements_hpu.txt && \
     python setup.py install && \
-    pip install --upgrade-strategy eager optimum[habana] && \
     pip list
 
 WORKDIR /genaieval/
