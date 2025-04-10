@@ -4,7 +4,7 @@ ENV LANG=en_US.UTF-8
 ENV PYTHONPATH=/root:/usr/lib/habanalabs/
 ARG REPO=https://github.com/opea-project/GenAIEval.git
 ARG REPO_PATH=""
-ARG BRANCH=hpu_requirements
+ARG BRANCH=main
 
 RUN apt-get update && \
     apt-get install git-lfs && \
