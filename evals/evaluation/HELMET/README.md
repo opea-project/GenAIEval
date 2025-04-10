@@ -1,4 +1,4 @@
-# <img src="assets/logo.jpeg" alt="HELMET" width="30"> HELMET: How to Evaluate Long-context Language Models Effectively and Thoroughly
+# HELMET: How to Evaluate Long-context Language Models Effectively and Thoroughly
 
 ---
 
