@@ -1,8 +1,8 @@
-FROM vault.habana.ai/gaudi-docker/1.18.0/ubuntu22.04/habanalabs/pytorch-installer-2.4.0:latest as hpu
+FROM vault.habana.ai/gaudi-docker/1.20.0/ubuntu22.04/habanalabs/pytorch-installer-2.6.0:latest as hpu
 
 ENV LANG=en_US.UTF-8
 ENV PYTHONPATH=/root:/usr/lib/habanalabs/
-ARG REPO=https://github.com/intel/genaieval.git
+ARG REPO=https://github.com/opea-project/GenAIEval.git
 ARG REPO_PATH=""
 ARG BRANCH=main
 
@@ -12,15 +12,15 @@ RUN apt-get update && \
 
 # Download code
 SHELL ["/bin/bash", "--login", "-c"]
-RUN mkdir -p /genaieval
-COPY ${REPO_PATH} /genaieval
-RUN if [ "$REPO_PATH" == "" ]; then rm -rf /genaieval/* && rm -rf /genaieval/.* ; git clone --single-branch --branch=${BRANCH} ${REPO} /genaieval ; fi
+RUN mkdir -p /GenAIEval
+COPY ${REPO_PATH} /GenAIEval
+RUN if [ "$REPO_PATH" == "" ]; then rm -rf /GenAIEval/* && rm -rf /GenAIEval/.* ; git clone --single-branch --branch=${BRANCH} ${REPO} /GenAIEval ; fi
+RUN pip install --upgrade pip setuptools==69.5.1
 
 # Build From Source
-RUN pip install --upgrade pip setuptools==69.5.1
-RUN cd /genaieval && \
+RUN cd /GenAIEval && \
     pip install -r requirements_hpu.txt && \
     python setup.py install && \
     pip list
 
-WORKDIR /genaieval/
+WORKDIR /GenAIEval/
