@@ -1,11 +1,10 @@
-accelerate
-datasets
-flash-attn
+wheel
 ninja
 packaging
+torch
+datasets
+transformers
+accelerate
+sentencepiece
 pytrec_eval
 rouge_score
-sentencepiece
-torch
-transformers
-wheel

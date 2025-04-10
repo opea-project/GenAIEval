@@ -1,10 +1,18 @@
-# HELMET: How to Evaluate Long-context Language Models Effectively and Thoroughly <img src="assets/logo.png" alt="HELMET" width="30">
+# <img src="assets/logo.jpeg" alt="HELMET" width="30"> HELMET: How to Evaluate Long-context Language Models Effectively and Thoroughly
 
-[[Paper](https://arxiv.org/abs/2410.02694)]
+<p align="center">
+    <a href="https://arxiv.org/abs/2410.02694" target="_blank" rel="noopener noreferrer">
+        <img alt="paper" src="https://img.shields.io/badge/paper-paper?logo=arxiv&logoColor=%23B31B1B&labelColor=white&color=%23B31B1B">
+    </a>
+    <a href="https://princeton-nlp.github.io/HELMET/" target="_blank" rel="noopener noreferrer">
+        <img alt="website" src="https://img.shields.io/badge/website-website?logo=safari&logoColor=%23006CFF&labelColor=white&color=%23006CFF">
+    </a>
+</p>
 
-HELMET <img src="assets/logo.png" alt="HELMET" width="30"> (How to Evaluate Long-context Models Effectively and Thoroughly) is a comprehensive benchmark for long-context language models covering seven diverse categories of tasks.
+<img src="assets/logo.jpeg" alt="HELMET" width="30"> HELMET (How to Evaluate Long-context Models Effectively and Thoroughly) is a comprehensive benchmark for long-context language models covering seven diverse categories of tasks.
 The datasets are application-centric and are designed to evaluate models at different lengths and levels of complexity.
 Please check out the paper for more details, and this repo will detail how to run the evaluation.
+
 
 ## Quick Links
 
@@ -13,22 +21,43 @@ Please check out the paper for more details, and this repo will detail how to ru
 - [Running evaluation](#running-evaluation)
 - [Adding new tasks](#adding-new-tasks)
 - [Adding new models](#adding-new-models)
+- [Dataset correlation analysis](#dataset-correlation-analysis)
 - [Others](#others)
 - [Contacts](#contacts)
 - [Citation](#citation)
 
+## Release Progress
+
+See `CHANGELOG.md` for updates and more details.
+
+- [x] HELMET Code
+- [x] HELMET data
+- [x] VLLM Support
+- [x] Correlation analysis notebook
+- [ ] Support >128k input length
+- [ ] Retrieval setup
+
+
 ## Setup
 
-Please install the necessary packages with
+Please install the necessary packages with (using a virtual environment is recommended, tested with python 3.11):
 ```bash
+python -m venv env
+source env/bin/activate
 pip install -r requirements.txt
+```
+
+If you want to evalute on NVIDIA GPU, pip install `flash-attn` as your requirements.
+```bash
+pip install flash-attn
 ```
 
 Additionally, if you wish to use the API models, you will need to install the package corresponding to the API you wish to use
 ```bash
-pip install openai # OpenAI API
-pip install anthropic # Anthropic API
-pip install google-generativeai # Google GenerativeAI API
+pip install openai # OpenAI API (GPT)
+pip install anthropic==0.42.0 # Anthropic API (Claude)
+pip install google-generativeai # Google API (Gemini)
+pip install vertexai==1.71.0 # Google API (Gemini)
 pip install together # Together API
 ```
 You should also set the environmental variables accordingly so the API calls can be made correctly. To see the variable that you should set up, check out `model_utils.py` and the corresponding class (e.g., `GeminiModel`).
@@ -47,23 +76,48 @@ The data is hosted on this Huggingface [repo](https://huggingface.co/datasets/pr
 For Recall, RAG, Passage Re-ranking, and ALCE, we either generate the data ourselves or do retrieval, so these are stored in jsonl files, whereas our script will load the data from Huggingface for the other tasks, LongQA, Summ, and ICL.
 The data also contains the key points extracted for evaluating summarization with model-based evaluation.
 
-In the future, we will add support for simply loading from Huggingface with all the input-outputs formatted, so you can plug in your own evaluation pipeline easily, stay tuned!
+<!-- In the future, we will add support for simply loading from Huggingface with all the input-outputs formatted, so you can plug in your own evaluation pipeline easily, stay tuned! -->
 
 
 ## Running evaluation
 
 To run the evaluation, simply use one of the config files in the `configs` directory, you may also overwrite any arguments in the config file or add new arguments simply through the command line (see `arguments.py`):
 ```bash
-python eval.py --config configs/cite.yaml --model_name_or_path {local model path or huggingface model name} --output_dir {output directory, defaults to output/{model_name}}
+for task in recall rag rerank cite longqa summ icl; do
+  python eval.py --config configs/${task}.yaml \
+    --model_name_or_path {local model path or huggingface model name} \
+    --output_dir {output directory, defaults to output/{model_name}} \
+    --use_chat_template False # only if you are using non-instruction-tuned models, otherwise use the default.
+done
 ```
+
 This will output the results file under the output directory in two files: `.json` contains all the data point details while `.json.score` only contain the aggregated metrics.
 
-
-You may also run the whole suite with a simple bash statement:
+For slurm users, you may find our slurm scripts useful:
 ```bash
-bash scripts/run_eval.sh
-bash scripts/run_api.sh # for the API models, note that API models results may vary due to the randomness in the API calls
+# I recommend using these slurm scripts as they contain more details (including all the model names) and can be easily modified to fit your setup
+# you can also run them in your shell by replacing sbatch with bash, check out the file for more details
+sbatch scripts/run_eval_slurm.sh # 128k
+sbatch scripts/run_short_slurm.sh # 8k-64k
+
+# for the API models, note that API results may vary due to the randomness in the API calls
+bash scripts/run_api.sh 
 ```
+### Run on Intel Gaudi
+If you want to enable the evaluation on vLLM with Intel Gaudi, you can use the following commands:
+```bash
+## Build vllm docker image
+cd scripts/vllm-gaudi
+bash build_image.sh
+
+## launch vllm container, change `LLM_MODEL_ID` and `NUM_CARDS` as your need
+cd scripts/vllm-gaudi
+bash launch_container.sh
+
+## evalute
+bash scripts/run_eval_vllm_gaudi.sh
+```
+
 Check out the script file for more details!
 See [Others](#others) for the slurm scripts, easily collecting all the results, and using VLLM.
 
@@ -77,16 +131,16 @@ See [Contacts](#contacts) for my email.
 
 To run the model-based evaluation for LongQA and Summarization, please make sure that you have set the environmental variables for OpenAI so you can make calls to GPT-4o, then you can run:
 ```bash
-python scripts/eval_gpt4_longqa.py
-python scripts/eval_gpt4_summ.py
+# by default, we assume all output files are stored in output/{model_name}
+python scripts/eval_gpt4_longqa.py --model_name_or_path {local model path or huggingface model name} --tag {tag for the model}
+python scripts/eval_gpt4_summ.py --model_name_or_path {local model path or huggingface model name} --tag {tag for the model}
 
 # Alternatively, if you want to shard the process
 bash scripts/eval_gpt4_longqa.sh
 bash scripts/eval_gpt4_summ.sh
 ```
 
-To specify which model/paths you want to run model-based evaluation for, check out the python scripts and modify the `model_to_check` field.
-You may also use Claude, Gemini, or other models for model-based evaluation by modifying the class but we have tested for `gpt-4o-2024-05-13`.
+<!-- You may also use Claude, Gemini, or other models for model-based evaluation by modifying the class but we have tested for `gpt-4o-2024-05-13`. -->
 
 ## Adding new models
 
@@ -108,16 +162,26 @@ Create a function that specifies how to load the data:
 Finally, simply add a new case to the `load_data` function that calls the function that you just wrote to load your data.
 You can refer to the existing tasks for examples (e.g., `load_json_kv`, `load_narrativeqa`, and `load_msmarco_rerank`).
 
+
+## Dataset correlation analysis 
+
+<img width="838" alt="task_correlation" src="assets/task_correlation.png">
+
+We also analyze the correlation between performance on different datasets.
+The code will be released soon.
+
 ## Others
 
 <details>
 
 <summary>Collecting results</summary>
 To quickly collect all the results, you can use the script:
+
 ```bash
 python scripts/collect_results.py
 ```
-Please check out the script and modify the specific fields to fit your needs.
+
+You should check the script for more details and modify the specific fields to fit your needs.
 For example, you can change the models, task configs, output directories, tags, and more.
 
 </details>
@@ -152,13 +216,39 @@ To use VLLM to run the evaluation, you can simply add the `--use_vllm` flag to t
 ```bash
 python eval.py --config configs/cite.yaml --use_vllm
 ```
-Disclaimer:
+Disclaimer: 
 VLLM can be much faster than using the native HuggingFace generation; however, we found that the results can be slightly different, so we recommend using the native HuggingFace generation for the final evaluation.
 All reported results in the paper are from the native HuggingFace generation.
-The speedup is much more noticeable for tasks that generates more tokens (e.g., summarization may see up to 2x speedup), whereas the speedup is less noticeable for tasks that generate fewer tokens (e.g., JSON KV may see less than 5% speedup).
+The speedup is much more noticable for tasks that generates more tokens (e.g., summarization may see up to 2x speedup), whereas the speedup is less noticable for tasks that generate fewer tokens (e.g., JSON KV may see less than 5% speedup).
 
 </details>
 
+<details>
+
+<summary>Error loading InfiniteBench</summary>
+
+If you encounter errors loading the InfiniteBench dataset in different modes (online vs. offline inference), it appears to stem from a bug in the hashing function.
+To fix this, you can do the following:
+```bash
+cd {cache_dir}/huggingface/datasets/xinrongzhang2022___infinitebench
+ln -s default-819c8cda45921923 default-7662505cb3478cd4
+```
+
+</details>
+
+
+<details>
+
+<summary>Error loading InfiniteBench</summary>
+
+If you encounter errors loading the InfiniteBench dataset in different modes (online vs. offline inference), it appears to stem from a bug in the hashing function.
+To fix this, you can do the following:
+```bash
+cd {cache_dir}/huggingface/datasets/xinrongzhang2022___infinitebench
+ln -s default-819c8cda45921923 default-7662505cb3478cd4
+```
+
+</details>
 
 
 ## Contacts
@@ -170,14 +260,11 @@ If you encounter any problems, you can also open an issue here. Please try to sp
 
 If you find our work useful, please cite us:
 ```
-@misc{yen2024helmetevaluatelongcontextlanguage,
-      title={HELMET: How to Evaluate Long-Context Language Models Effectively and Thoroughly},
+@inproceedings{yen2025helmet,
+      title={HELMET: How to Evaluate Long-Context Language Models Effectively and Thoroughly}, 
       author={Howard Yen and Tianyu Gao and Minmin Hou and Ke Ding and Daniel Fleischer and Peter Izsak and Moshe Wasserblat and Danqi Chen},
-      year={2024},
-      eprint={2410.02694},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2410.02694},
+      year={2025},
+      booktitle={International Conference on Learning Representations (ICLR)},
 }
 ```
 
@@ -209,7 +296,7 @@ Please also cite the original dataset creators, listed below:
 @inproceedings{mallen-etal-2023-trust,
     title = "When Not to Trust Language Models: Investigating Effectiveness of Parametric and Non-Parametric Memories",
     author = "Mallen, Alex  and
-      Asia, Akari  and
+      Asai, Akari  and
       Zhong, Victor  and
       Das, Rajarshi  and
       Khashabi, Daniel  and
@@ -277,7 +364,7 @@ Please also cite the original dataset creators, listed below:
       Karpukhin, Vladimir  and Maillard, Jean  and
       Plachouras, Vassilis  and Rockt{\"a}schel, Tim  and
       Riedel, Sebastian},
-    booktitle = "Proceedings of the 2021 Conference of the North American Chapter of the Association
+    booktitle = "Proceedings of the 2021 Conference of the North American Chapter of the Association 
                  for Computational Linguistics: Human Language Technologies",
     month = jun,
     year = "2021",
@@ -381,7 +468,7 @@ Please also cite the original dataset creators, listed below:
 }
 
 @misc{bajaj2018ms,
-      title={MS MARCO: A Human Generated MAchine Reading COmprehension Dataset},
+      title={MS MARCO: A Human Generated MAchine Reading COmprehension Dataset}, 
       author={Payal Bajaj and Daniel Campos and Nick Craswell and Li Deng and Jianfeng Gao and Xiaodong Liu and Rangan Majumder and Andrew McNamara and Bhaskar Mitra and Tri Nguyen and Mir Rosenberg and Xia Song and Alina Stoica and Saurabh Tiwary and Tong Wang},
       year={2018},
       eprint={1611.09268},
@@ -419,13 +506,13 @@ Please also cite the original dataset creators, listed below:
 }
 
 @misc{zhang2024inftybenchextendinglongcontext,
-  title={$\infty$Bench: Extending Long Context Evaluation Beyond 100K Tokens},
+  title={$\infty$Bench: Extending Long Context Evaluation Beyond 100K Tokens}, 
   author={Xinrong Zhang and Yingfa Chen and Shengding Hu and Zihang Xu and Junhao Chen and Moo Khai Hao and Xu Han and Zhen Leng Thai and Shuo Wang and Zhiyuan Liu and Maosong Sun},
   year={2024},
   eprint={2402.13718},
   archivePrefix={arXiv},
   primaryClass={cs.CL},
-  url={https://arxiv.org/abs/2402.13718},
+  url={https://arxiv.org/abs/2402.13718}, 
 }
 
 @inproceedings{li-roth-2002-learning,
@@ -501,4 +588,3 @@ Please also cite the original dataset creators, listed below:
 
 </details>
 
-<details>
