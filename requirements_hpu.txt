@@ -12,6 +12,7 @@ langchain_huggingface
 lm-eval==0.4.3
 locust
 numpy < 2.0
+optimum-habana
 prometheus_client
 pytest
 pyyaml
@@ -20,4 +21,3 @@ requests
 rouge_score
 sseclient-py
 transformers
-optimum-habana
