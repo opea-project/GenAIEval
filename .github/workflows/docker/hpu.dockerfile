@@ -4,7 +4,7 @@ ENV LANG=en_US.UTF-8
 ENV PYTHONPATH=/root:/usr/lib/habanalabs/
 ARG REPO=https://github.com/opea-project/GenAIEval.git
 ARG REPO_PATH=""
-ARG BRANCH=hpu_requirements
+ARG BRANCH=main
 
 RUN apt-get update && \
     apt-get install git-lfs && \
@@ -14,7 +14,7 @@ RUN apt-get update && \
 SHELL ["/bin/bash", "--login", "-c"]
 RUN mkdir -p /GenAIEval
 COPY ${REPO_PATH} /GenAIEval
-RUN if [ "$REPO_PATH" == "" ]; then rm -rf /GenAIEval/* && rm -rf /GenAIEval/.* ; git clone --single-branch --branch=hpu_requirements ${REPO} /GenAIEval ; fi
+RUN if [ "$REPO_PATH" == "" ]; then rm -rf /GenAIEval/* && rm -rf /GenAIEval/.* ; git clone --single-branch --branch=${BRANCH} ${REPO} /GenAIEval ; fi
 RUN pip install --upgrade pip setuptools==69.5.1
 
 # Build From Source
