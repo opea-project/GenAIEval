@@ -54,20 +54,6 @@ main() {
     cp ${log_dir}/${device}-${tasks}-${model}-${datasets}.log /GenAIEval/
 }
 
-function prepare() {
-    echo "::group::prepare env"
-    cd ${working_dir}
-    echo "Working in ${working_dir}"
-    echo -e "\nInstalling model requirements..."
-    if [ -f "requirements.txt" ]; then
-        python -m pip install -r requirements.txt
-    else
-        echo "Not found requirements.txt file."
-    fi
-    echo "::endgroup::"
-    pip list
-}
-
 function run_benchmark() {
     echo "::group::evaluation start"
     cd ${working_dir}
@@ -84,6 +70,8 @@ function run_benchmark() {
     if [ ${status} != 0 ]; then
         echo "::error::Evaluation process returned non-zero exit code."
         exit 1
+    else
+        echo "::notice::Evaluation process completed successfully."
     fi
 }
 
