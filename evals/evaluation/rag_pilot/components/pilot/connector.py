@@ -81,6 +81,7 @@ def get_ecrag_module_map(ecrag_pl):
     }
     return ecrag_modules
 
+
 COMP_TYPE_MAP = {
     "node_parser": "parser_type",
     "indexer": "indexer_type",

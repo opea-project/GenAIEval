@@ -1,11 +1,11 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-import os
 import csv
+import os
 from datetime import datetime
 
-from components.pilot.base import RAGPipeline, RAGResults, ContextType, ContextItem, RAGStage
+from components.pilot.base import ContextItem, ContextType, RAGPipeline, RAGResults, RAGStage
 from components.pilot.connector import get_ragqna, update_active_pipeline
 
 
@@ -26,19 +26,11 @@ def get_rag_results_with_rag_pipeline(rag_pipeline: RAGPipeline, rag_results_sam
         new_result = result.copy()
         for key, nodes in ragqna.contexts.items():
             for node in nodes:
-                context_item = ContextItem(
-                                file_name=node['node']['metadata']['file_name'],
-                                text=node['node']['text'])
+                context_item = ContextItem(file_name=node["node"]["metadata"]["file_name"], text=node["node"]["text"])
                 if key == "retriever":
-                    new_result.add_context(
-                        ContextType.RETRIEVAL,
-                        context_item
-                    )
+                    new_result.add_context(ContextType.RETRIEVAL, context_item)
                 else:
-                    new_result.add_context(
-                        ContextType.POSTPROCESSING,
-                        context_item
-                    )
+                    new_result.add_context(ContextType.POSTPROCESSING, context_item)
         new_result.update_metadata_hits(hit_threshold)
         new_result.set_response(ragqna.response)
         new_rag_results.add_result(new_result)
@@ -55,7 +47,7 @@ class Pilot:
     hit_threshold: float
 
     base_folder: str
-    
+
     def __init__(self, rag_results_sample, hit_threshold=1):
         self.rag_results_sample = rag_results_sample
         self.hit_threshold = hit_threshold
@@ -74,14 +66,12 @@ class Pilot:
 
     def run_curr_pl(self):
         curr_rag_pl = self.rag_pipeline_dict[self.curr_pl_id]
-        rag_results = get_rag_results_with_rag_pipeline(
-            curr_rag_pl, self.rag_results_sample, self.hit_threshold
-        )
+        rag_results = get_rag_results_with_rag_pipeline(curr_rag_pl, self.rag_results_sample, self.hit_threshold)
         self.add_rag_results(self.curr_pl_id, rag_results)
 
     def get_curr_pl(self):
         return self.rag_pipeline_dict[self.curr_pl_id]
-    
+
     def get_results(self, id):
         return self.rag_results_dict[id] if id in self.rag_results_dict else None
 
@@ -166,7 +156,7 @@ class Pilot:
             row = {
                 "pipeline_id": pl_id,
                 **{f"config_{key}": value for key, value in config.items()},
-                **recall_rates  # Add recall rates to the row
+                **recall_rates,  # Add recall rates to the row
             }
 
             rows.append(row)

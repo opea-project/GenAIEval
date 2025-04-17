@@ -3,18 +3,33 @@
 
 import argparse
 import json
-from enum import Enum
-import pandas as pd
-import yaml
 from collections import defaultdict
+from enum import Enum
 from time import sleep
 
+import pandas as pd
+import yaml
+from components.pilot.base import (
+    ContextItem,
+    ContextType,
+    RAGPipeline,
+    RAGResult,
+    RAGResults,
+    RAGStage,
+    convert_dict_to_pipeline,
+)
 from components.pilot.connector import get_active_pipeline, reindex_data
-from components.pilot.base import RAGPipeline, RAGResults, ContextItem, RAGResult, ContextType, convert_dict_to_pipeline, RAGStage
 from components.pilot.pilot import Pilot
-
-from components.tuner.tuner import RetrievalTopkRerankerTopnTuner, EmbeddingTuner, NodeParserTuner, SimpleNodeParserChunkTuner, RetrievalTopkTuner, RerankerTopnTuner, input_parser
 from components.tuner.adaptor import Adaptor
+from components.tuner.tuner import (
+    EmbeddingTuner,
+    NodeParserTuner,
+    RerankerTopnTuner,
+    RetrievalTopkRerankerTopnTuner,
+    RetrievalTopkTuner,
+    SimpleNodeParserChunkTuner,
+    input_parser,
+)
 
 
 def load_rag_results_from_csv(file_path):
@@ -25,19 +40,19 @@ def load_rag_results_from_csv(file_path):
         query_id = rag_result.get("query_id")
 
         if "query" not in rag_results_dict[query_id]:
-            rag_results_dict[query_id].update({
-                "query": rag_result.get("query", ""),
-                "ground_truth": rag_result.get("ground_truth", ""),
-            })
+            rag_results_dict[query_id].update(
+                {
+                    "query": rag_result.get("query", ""),
+                    "ground_truth": rag_result.get("ground_truth", ""),
+                }
+            )
 
         gt_context = rag_result.get("gt_context", "")
         file_name = rag_result.get("file_name", "")
         file_name = "" if pd.isna(file_name) else str(file_name)
 
         if gt_context:
-            rag_results_dict[query_id]["gt_contexts"].append(
-                ContextItem(text=gt_context, file_name=file_name)
-            )
+            rag_results_dict[query_id]["gt_contexts"].append(ContextItem(text=gt_context, file_name=file_name))
 
     rag_results = RAGResults()
     for query_id, data in rag_results_dict.items():
@@ -109,17 +124,17 @@ def main():
     args = parser.parse_args()
 
     adaptor = Adaptor(read_yaml(args.rag_module_yaml))
-    
+
     retrieval_tuner_list = [
-        EmbeddingTuner(adaptor), 
-        NodeParserTuner(adaptor), 
-        SimpleNodeParserChunkTuner(adaptor), 
-        RetrievalTopkTuner(adaptor)
-        ]
+        EmbeddingTuner(adaptor),
+        NodeParserTuner(adaptor),
+        SimpleNodeParserChunkTuner(adaptor),
+        RetrievalTopkTuner(adaptor),
+    ]
     postprocessing_tuner_list = [RerankerTopnTuner(adaptor)]
 
     rag_results = load_rag_results_from_csv(args.qa_list)
-    pilot = Pilot(rag_results_sample = rag_results, hit_threshold = 0.9)
+    pilot = Pilot(rag_results_sample=rag_results, hit_threshold=0.9)
 
     active_pl = RAGPipeline(get_active_pipeline())
     active_pl.regenerate_id()
@@ -181,7 +196,6 @@ def main():
 
         return False
 
-
     def run_full_tuning():
         # Step 1: POSTPROCESSING initial check
         if ask_stage_satisfaction(RAGStage.POSTPROCESSING):
@@ -203,7 +217,6 @@ def main():
         _ = run_tuner_stage(postprocessing_tuner_list, RAGStage.POSTPROCESSING)
 
         print(f"\n{BOLD}{GREEN}🎯 Tuning complete.{RESET}")
-
 
     run_full_tuning()
 

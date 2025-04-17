@@ -57,7 +57,7 @@ class SuggestionType(Enum):
     SET = auto()
     STEPWISE_GROUPED = auto()
     STEPWISE = auto()
-    GRID_SEARCH = auto() 
+    GRID_SEARCH = auto()
 
 
 class Suggestion(UserInput):

@@ -1,19 +1,17 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-import csv
-import re
 import copy
-import json
+import csv
 import hashlib
-import numpy as np
-from pathlib import Path
-from enum import Enum
-from typing import Dict,Callable, List, Optional, Tuple, Union
-
+import json
+import re
 from difflib import SequenceMatcher
-from pydantic import BaseModel
+from enum import Enum
+from pathlib import Path
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
+import numpy as np
 from components.pilot.ecrag.api_schema import (
     GeneratorIn,
     IndexerIn,
@@ -23,6 +21,7 @@ from components.pilot.ecrag.api_schema import (
     PostProcessorIn,
     RetrieverIn,
 )
+from pydantic import BaseModel
 
 
 def convert_dict_to_pipeline(pl: dict) -> PipelineCreateIn:
@@ -200,9 +199,7 @@ class ContextItem(BaseModel):
 
 
 def normalize_text(text):
-    """
-    Removes whitespace and English/Chinese punctuation from text for fair comparison.
-    """
+    """Removes whitespace and English/Chinese punctuation from text for fair comparison."""
     return re.sub(r"[ \u3000\n\t，。！？；：“”‘’\"',.;!?()\[\]{}<>《》|]+", "", text)
 
 
@@ -213,10 +210,7 @@ def split_text(text):
     - English and Chinese punctuation
     - Markdown/table symbols like '---|---' and ' | '
     """
-    return [t for t in re.split(
-        r"(?:\s*\|+\s*|[ \u3000\n\t，。！？；：“”‘’\"',.;!?()\[\]{}<>《》]+|---+)",
-        text
-    ) if t]
+    return [t for t in re.split(r"(?:\s*\|+\s*|[ \u3000\n\t，。！？；：“”‘’\"',.;!?()\[\]{}<>《》]+|---+)", text) if t]
 
 
 def calculate_similarity(a, b):
@@ -305,17 +299,23 @@ class RAGResult(BaseModel):
             return all(part in text for part in parts)
 
     @classmethod
-    def context_matches_gt(cls, gt_contexts: List[ContextItem], candidate_context: ContextItem, context_type: ContextType, threshold):
+    def context_matches_gt(
+        cls, gt_contexts: List[ContextItem], candidate_context: ContextItem, context_type: ContextType, threshold
+    ):
         for gt in gt_contexts:
-            if (candidate_context.file_name and gt.file_name and gt.file_name in candidate_context.file_name) or gt.file_name == "":
-                if candidate_context.text in gt.text or cls.check_parts_in_text(gt.text, candidate_context.text, threshold):
+            if (
+                candidate_context.file_name and gt.file_name and gt.file_name in candidate_context.file_name
+            ) or gt.file_name == "":
+                if candidate_context.text in gt.text or cls.check_parts_in_text(
+                    gt.text, candidate_context.text, threshold
+                ):
                     gt.metadata = gt.metadata or {}
                     retrieved_file_name_list = gt.metadata.get(context_type, [])
                     retrieved_file_name_list.append(candidate_context.context_idx)
                     gt.metadata[context_type] = retrieved_file_name_list
 
                     candidate_context.metadata = candidate_context.metadata or {}
-                    candidate_context.metadata['hit'] = gt.context_idx
+                    candidate_context.metadata["hit"] = gt.context_idx
                     return True
         return False
 
@@ -342,10 +342,10 @@ class RAGResults(BaseModel):
             for result in self.results:
                 gt_count += len(result.gt_contexts) if result.gt_contexts else 0
                 hit_count += result.metadata.get(context_type, 0) if result.metadata else 0
-            
+
             recall_rate = hit_count / gt_count if gt_count > 0 else np.nan
             recall_rates[context_type] = recall_rate
-        
+
         self.metadata = self.metadata or {}
         self.metadata["recall_rate"] = recall_rates
 
@@ -357,15 +357,13 @@ class RAGResults(BaseModel):
     def save_to_json(self, file_path: str):
         cleaned_metadata = None
         if self.metadata:
-            cleaned_metadata = {
-                str(k): v for k, v in self.metadata.items()
-            }
+            cleaned_metadata = {str(k): v for k, v in self.metadata.items()}
         rag_results_dict = {
             **self.dict(exclude={"metadata"}),
             "metadata": cleaned_metadata,
         }
 
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             json.dump(rag_results_dict, f, ensure_ascii=False, indent=4)
         # print(f"RAGResults saved to {file_path}")
 
@@ -375,7 +373,7 @@ class RAGResults(BaseModel):
 
         # --- CSV 1: Contexts ---
         contexts_csv = output_dir / "rag_contexts.csv"
-        with contexts_csv.open("w", newline='', encoding='utf-8-sig') as f:
+        with contexts_csv.open("w", newline="", encoding="utf-8-sig") as f:
             fieldnames = ["query_id", "context_type", "context_idx", "file_name", "text"]
             metadata_keys = set()
             for result in self.results:
@@ -409,7 +407,7 @@ class RAGResults(BaseModel):
 
         # --- CSV 2: Summary ---
         summary_csv = output_dir / "rag_summary.csv"
-        with summary_csv.open("w", newline='', encoding='utf-8-sig') as f:
+        with summary_csv.open("w", newline="", encoding="utf-8-sig") as f:
             fieldnames = ["query_id", "query", "ground_truth", "response", "gt_count"]
             metadata_keys = set()
             for result in self.results:

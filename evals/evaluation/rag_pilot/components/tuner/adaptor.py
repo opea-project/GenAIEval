@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, Optional, Tuple
 
 from components.pilot.base import RAGPipeline
-from components.pilot.connector import get_ecrag_module_map, COMP_TYPE_MAP
+from components.pilot.connector import COMP_TYPE_MAP, get_ecrag_module_map
 
 
 def get_support_modules(module_name: str, module_map) -> Callable:

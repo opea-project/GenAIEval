@@ -5,21 +5,14 @@ from abc import ABC, abstractmethod
 from itertools import product
 from typing import Dict, Optional
 
-from components.tuner.base import (
-    ContentType,
-    Feedback,
-    Question,
-    Suggestion,
-    SuggestionType,
-    Target
-)
 from components.tuner.adaptor import Adaptor
+from components.tuner.base import ContentType, Feedback, Question, Suggestion, SuggestionType, Target
 
 
 def input_parser(upper_limit: int = None):
     if upper_limit:
         user_input = input(f"(1 - {upper_limit}): ")
-    else: 
+    else:
         user_input = input("Provide a number: ")
         upper_limit = 10000
 
@@ -53,7 +46,6 @@ class Tuner(ABC):
 
         self.adaptor = adaptor
         self.targets = targets
-        
 
     def check_active(self):
         for target in self.targets.values():
@@ -69,7 +61,7 @@ class Tuner(ABC):
         new_vals: Optional[int] = None,
         step: Optional[int] = None,
         lower_limit: Optional[int] = None,
-        count: Optional[int] = 1
+        count: Optional[int] = 1,
     ):
         target_obj = None
         if param_name in self.targets:
@@ -104,25 +96,23 @@ class Tuner(ABC):
                         target.new_vals = [start + step]
 
                 target.suggestion = Suggestion(
-                    hint=f"{target.attribute}'s current value: {target.orig_val}\n"
-                        f"Setting it to {target.new_vals}",
-                    suggestion_type=suggestion_type
+                    hint=f"{target.attribute}'s current value: {target.orig_val}\n" f"Setting it to {target.new_vals}",
+                    suggestion_type=suggestion_type,
                 )
             case SuggestionType.CHOOSE:
                 target.new_vals = target_obj.get_params(target.attribute)
                 target.suggestion = Suggestion(
                     hint=f"{target.attribute}'s current value: {target.orig_val}\n"
-                        f"Please choose a new value from below:",
+                    f"Please choose a new value from below:",
                     options=target.new_vals,
-                    suggestion_type=suggestion_type
+                    suggestion_type=suggestion_type,
                 )
             case SuggestionType.ITERATE:
                 target.new_vals = target_obj.get_params(target.attribute)
                 target.suggestion = Suggestion(
-                    hint=f"{target.attribute}'s current value: {target.orig_val}\n"
-                        f"Iterate from available values",
+                    hint=f"{target.attribute}'s current value: {target.orig_val}\n" f"Iterate from available values",
                     options=target.new_vals,
-                    suggestion_type=suggestion_type
+                    suggestion_type=suggestion_type,
                 )
             case SuggestionType.SET:
                 if new_vals:
@@ -132,11 +122,7 @@ class Tuner(ABC):
                     target.new_vals = None
                     hint = f"{target.attribute}'s current value: {target.orig_val}\nPlease enter a new value: "
 
-                target.suggestion = Suggestion(
-                    hint=hint,
-                    options=target.new_vals,
-                    suggestion_type=suggestion_type
-                )
+                target.suggestion = Suggestion(hint=hint, options=target.new_vals, suggestion_type=suggestion_type)
 
     def request_feedback(self):
         if not self.check_active():
@@ -161,10 +147,11 @@ class Tuner(ABC):
         params_candidates = []
 
         new_values_dict = {}
-        
+
         # STEPWISE_GROUPED
         grouped_targets = {
-            a: t for a, t in self.targets.items()
+            a: t
+            for a, t in self.targets.items()
             if t.suggestion and t.suggestion.suggestion_type == SuggestionType.STEPWISE_GROUPED
         }
         if grouped_targets:
@@ -173,17 +160,17 @@ class Tuner(ABC):
             for idx in range(count):
                 candidate = {a: t.new_vals[idx] for a, t in grouped_targets.items()}
                 new_values_dict = {
-                    a: [(t.node_type, t.module_type), t.new_vals[idx]]
-                    for a, t in grouped_targets.items()
+                    a: [(t.node_type, t.module_type), t.new_vals[idx]] for a, t in grouped_targets.items()
                 }
                 params_candidates.append(new_values_dict)
             if len(params_candidates) > 0:
-                return self.adaptor.get_rag_pipelines_candidates(params_candidates) 
+                return self.adaptor.get_rag_pipelines_candidates(params_candidates)
 
         # GRID_SEARCH
-        from itertools import product
+
         grid_targets = {
-            a: t for a, t in self.targets.items()
+            a: t
+            for a, t in self.targets.items()
             if t.suggestion and t.suggestion.suggestion_type == SuggestionType.GRID_SEARCH
         }
         if grid_targets:
@@ -219,7 +206,7 @@ class Tuner(ABC):
                     new_options = [x for x in suggestion.options if x != orig_val]
                     valid, user_input = input_parser(len(new_options))
                     if valid:
-                        chosed_val = suggestion.options[user_input-1]
+                        chosed_val = suggestion.options[user_input - 1]
                         new_values_dict[attr] = [(target.node_type, target.module_type), chosed_val.content]
 
                 case SuggestionType.ITERATE:
@@ -259,13 +246,12 @@ class EmbeddingTuner(Tuner):
         # question
         question = Question(
             hint="Do you want to tune embedding model",
-            options=["Yes, iterate it from available options", 
-                    "No, skip this tuner"],
+            options=["Yes, iterate it from available options", "No, skip this tuner"],
         )
 
         targets = {}
         # targets
-        attribute="embedding_model"
+        attribute = "embedding_model"
         target = Target(
             node_type="indexer",
             attribute=attribute,
@@ -274,13 +260,10 @@ class EmbeddingTuner(Tuner):
 
         super().__init__(question, adaptor, targets)
 
-
     def _feedback_to_suggestions(self):
         assert isinstance(self.user_feedback, Feedback)
         if self.user_feedback.feedback == 1:
-            self.set_param(
-                param_name="embedding_model", 
-                suggestion_type=SuggestionType.ITERATE)
+            self.set_param(param_name="embedding_model", suggestion_type=SuggestionType.ITERATE)
             return True
         else:
             return False
@@ -292,13 +275,12 @@ class NodeParserTuner(Tuner):
         # question
         question = Question(
             hint="Do you want to tune node parser",
-            options=["Yes, iterate it from available options", 
-                    "No, skip this tuner"],
+            options=["Yes, iterate it from available options", "No, skip this tuner"],
         )
-        
+
         targets = {}
         # targets
-        attribute="parser_type"
+        attribute = "parser_type"
         target = Target(
             node_type="node_parser",
             attribute=attribute,
@@ -310,9 +292,7 @@ class NodeParserTuner(Tuner):
     def _feedback_to_suggestions(self):
         assert isinstance(self.user_feedback, Feedback)
         if self.user_feedback.feedback == 1:
-            self.set_param(
-                param_name="parser_type", 
-                suggestion_type=SuggestionType.ITERATE)
+            self.set_param(param_name="parser_type", suggestion_type=SuggestionType.ITERATE)
             return True
         else:
             return False
@@ -324,14 +304,16 @@ class SimpleNodeParserChunkTuner(Tuner):
         # question
         question = Question(
             hint="Do you want to tune chunk size and chunk overlap",
-            options=["Yes, iterate the chunk size and chunk overlap based on current values stepwisely",
-                    "Yes, set them to designated values",
-                    "No, skip this tuner"],
+            options=[
+                "Yes, iterate the chunk size and chunk overlap based on current values stepwisely",
+                "Yes, set them to designated values",
+                "No, skip this tuner",
+            ],
         )
-        
+
         targets = {}
         # targets
-        attribute="chunk_size"
+        attribute = "chunk_size"
         target = Target(
             node_type="node_parser",
             module_type="simple",
@@ -339,7 +321,7 @@ class SimpleNodeParserChunkTuner(Tuner):
         )
         targets[attribute] = target
 
-        attribute="chunk_overlap"
+        attribute = "chunk_overlap"
         target = Target(
             node_type="node_parser",
             module_type="simple",
@@ -352,24 +334,14 @@ class SimpleNodeParserChunkTuner(Tuner):
     def _feedback_to_suggestions(self):
         assert isinstance(self.user_feedback, Feedback)
         if self.user_feedback.feedback == 1:
+            self.set_param(param_name="chunk_size", suggestion_type=SuggestionType.STEPWISE_GROUPED, step=100, count=3)
             self.set_param(
-                param_name="chunk_size", 
-                suggestion_type=SuggestionType.STEPWISE_GROUPED, 
-                step=100,
-                count=3)
-            self.set_param(
-                param_name="chunk_overlap", 
-                suggestion_type=SuggestionType.STEPWISE_GROUPED, 
-                step=16,
-                count=3)
+                param_name="chunk_overlap", suggestion_type=SuggestionType.STEPWISE_GROUPED, step=16, count=3
+            )
             return True
         elif self.user_feedback.feedback == 2:
-            self.set_param(
-                param_name="chunk_size", 
-                suggestion_type=SuggestionType.SET)
-            self.set_param(
-                param_name="chunk_overlap", 
-                suggestion_type=SuggestionType.SET)
+            self.set_param(param_name="chunk_size", suggestion_type=SuggestionType.SET)
+            self.set_param(param_name="chunk_overlap", suggestion_type=SuggestionType.SET)
             return True
         else:
             return False
@@ -381,14 +353,16 @@ class RetrievalTopkTuner(Tuner):
         # question
         question = Question(
             hint="Do you want to tune retrieve's topk",
-            options=["Yes, iterate it based on current values stepwisely", 
-                     "Yes, set it to designated value",
-                    "No, skip this tuner"],
+            options=[
+                "Yes, iterate it based on current values stepwisely",
+                "Yes, set it to designated value",
+                "No, skip this tuner",
+            ],
         )
 
         targets = {}
         # targets
-        attribute="retrieve_topk"
+        attribute = "retrieve_topk"
         target = Target(
             node_type="retriever",
             attribute=attribute,
@@ -397,23 +371,18 @@ class RetrievalTopkTuner(Tuner):
 
         super().__init__(question, adaptor, targets)
 
-
     def _feedback_to_suggestions(self):
         assert isinstance(self.user_feedback, Feedback)
         if self.user_feedback.feedback == 1:
             self.set_param(
-                param_name="retrieve_topk", 
-                suggestion_type=SuggestionType.STEPWISE, 
-                step=15,
-                lower_limit=30,
-                count=4
-                )
+                param_name="retrieve_topk", suggestion_type=SuggestionType.STEPWISE, step=15, lower_limit=30, count=4
+            )
             return True
         if self.user_feedback.feedback == 2:
             self.set_param(
-                param_name="retrieve_topk", 
-                suggestion_type=SuggestionType.SET, 
-                )
+                param_name="retrieve_topk",
+                suggestion_type=SuggestionType.SET,
+            )
             return True
         else:
             return False
@@ -425,13 +394,12 @@ class RerankerTopnTuner(Tuner):
         # question
         question = Question(
             hint="Do you want to tune reranker's top_n",
-            options=["Yes, iterate it based on current values stepwisely", 
-                    "No, skip this tuner"],
+            options=["Yes, iterate it based on current values stepwisely", "No, skip this tuner"],
         )
 
         targets = {}
         # targets
-        attribute="top_n"
+        attribute = "top_n"
         target = Target(
             node_type="postprocessor",
             module_type="reranker",
@@ -441,17 +409,10 @@ class RerankerTopnTuner(Tuner):
 
         super().__init__(question, adaptor, targets)
 
-
     def _feedback_to_suggestions(self):
         assert isinstance(self.user_feedback, Feedback)
         if self.user_feedback.feedback == 1:
-            self.set_param(
-                param_name="top_n", 
-                suggestion_type=SuggestionType.STEPWISE, 
-                step=5,
-                lower_limit=5,
-                count=2
-                )
+            self.set_param(param_name="top_n", suggestion_type=SuggestionType.STEPWISE, step=5, lower_limit=5, count=2)
             return True
         else:
             return False
@@ -463,21 +424,23 @@ class RetrievalTopkRerankerTopnTuner(Tuner):
         # question
         question = Question(
             hint="Do you want to tune retrieve_topk and reranker's top_n",
-            options=["Yes, iterate it based on current values stepwisely", 
-                     "Yes, set retrieve_topk to [30, 50, 100, 200], top_n to [5, 10]", 
-                    "No, skip this tuner"],
+            options=[
+                "Yes, iterate it based on current values stepwisely",
+                "Yes, set retrieve_topk to [30, 50, 100, 200], top_n to [5, 10]",
+                "No, skip this tuner",
+            ],
         )
 
         targets = {}
         # targets
-        attribute="retrieve_topk"
+        attribute = "retrieve_topk"
         target = Target(
             node_type="retriever",
             attribute=attribute,
         )
         targets[attribute] = target
 
-        attribute="top_n"
+        attribute = "top_n"
         target = Target(
             node_type="postprocessor",
             module_type="reranker",
@@ -487,38 +450,23 @@ class RetrievalTopkRerankerTopnTuner(Tuner):
 
         super().__init__(question, adaptor, targets)
 
-
     def _feedback_to_suggestions(self):
         assert isinstance(self.user_feedback, Feedback)
         if self.user_feedback.feedback == 1:
             self.set_param(
-                param_name="retrieve_topk", 
-                suggestion_type=SuggestionType.GRID_SEARCH, 
-                step=15,
-                lower_limit=30,
-                count=4
-                )
+                param_name="retrieve_topk", suggestion_type=SuggestionType.GRID_SEARCH, step=15, lower_limit=30, count=4
+            )
             self.set_param(
-                param_name="top_n", 
-                suggestion_type=SuggestionType.GRID_SEARCH, 
-                step=5,
-                lower_limit=5,
-                count=2
-                )
+                param_name="top_n", suggestion_type=SuggestionType.GRID_SEARCH, step=5, lower_limit=5, count=2
+            )
             return True
         if self.user_feedback.feedback == 2:
             self.set_param(
-                param_name="retrieve_topk", 
-                suggestion_type=SuggestionType.GRID_SEARCH, 
-                new_vals=[30, 50, 100, 200]
-                )
+                param_name="retrieve_topk", suggestion_type=SuggestionType.GRID_SEARCH, new_vals=[30, 50, 100, 200]
+            )
             self.set_param(
-                param_name="top_n", 
-                suggestion_type=SuggestionType.GRID_SEARCH, 
-                step=5,
-                lower_limit=5,
-                count=2
-                )
+                param_name="top_n", suggestion_type=SuggestionType.GRID_SEARCH, step=5, lower_limit=5, count=2
+            )
             return True
         else:
             return False
