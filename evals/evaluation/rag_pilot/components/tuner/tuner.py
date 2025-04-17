@@ -2,82 +2,43 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from abc import ABC, abstractmethod
+from itertools import product
+from typing import Dict, Optional
 
 from components.tuner.base import (
     ContentType,
-    DirectionType,
     Feedback,
     Question,
-    QuestionType,
-    RagResult,
     Suggestion,
     SuggestionType,
-    SuggestionValue,
+    Target
 )
+from components.tuner.adaptor import Adaptor
 
 
-def input_parser(qtype: QuestionType = QuestionType.BOOL):
-    user_input = input(f"({qtype.value}): ")
+def input_parser(upper_limit: int = None):
+    if upper_limit:
+        user_input = input(f"(1 - {upper_limit}): ")
+    else: 
+        user_input = input("Provide a number: ")
+        upper_limit = 10000
 
-    match qtype:
-        case QuestionType.RATING5:
-            if user_input.isdigit() and 1 <= int(user_input) <= 5:
-                return True, int(user_input)
-            else:
-                print("Invalid input. Please enter a number between 1 and 5.")
-                return False, None
-
-        case QuestionType.RATING3:
-            if user_input.isdigit() and 1 <= int(user_input) <= 3:
-                return True, int(user_input)
-            else:
-                print("Invalid input. Please enter a number between 1 and 3.")
-                return False, None
-
-        case QuestionType.BOOL:
-            if user_input.lower() == "y":
-                return True, True
-            elif user_input.lower() == "n":
-                return True, False
-            else:
-                print("Invalid input. Please enter 'Y' or 'N'.")
-                return False, None
-
-        case QuestionType.SCORE:
-            if user_input.isdigit():
-                return True, int(user_input)
-            else:
-                print("Invalid input. Please enter a valid score (integer).")
-                return False, None
-
-        case QuestionType.MINUS_ONE_ZERO_ONE:
-            if user_input in {"-1", "0", "1"}:
-                return True, int(user_input)
-            else:
-                print("Invalid input. Please enter -1, 0, or 1.")
-                return False, None
-
-        case _:
-            print("Unknown question type.")
-            return False, None
+    if user_input.isdigit() and 1 <= int(user_input) <= upper_limit:
+        return True, int(user_input)
+    else:
+        print(f"Invalid input. Please enter a number between 1 and {upper_limit}.")
+        return False, None
 
 
-def display_ragqna(ragqna, content_type=ContentType.RESPONSE, context_idx=0):
+def display_ragqna(ragqna):
     print("\nRAG Query\n" "---------\n" f"{ragqna.query}\n\n" "RAG Response\n" "------------\n" f"{ragqna.response}\n")
 
-    if content_type == ContentType.ALL_CONTEXTS:
-        if ragqna.contexts:
-            for index, context in enumerate(ragqna.contexts):
-                cleaned_context = context.replace("\n", " ")
-                print(f"RAG Context {index}\n" "-------------------\n" f"{cleaned_context}\n")
-        else:
-            print("RAG Contexts\n" "------------\n" "None\n")
-    elif content_type == ContentType.CONTEXT:
-        print(
-            f"RAG Contexts {context_idx}\n"
-            "--------------------------\n"
-            f"{ragqna.contexts[context_idx] if context_idx in ragqna.contexts else 'None'}\n"
-        )
+    if ragqna.contexts:
+        for index, context in enumerate(ragqna.contexts):
+            cleaned_context = context.replace("\n", " ")
+            print(f"RAG Context {index}\n" "-------------------\n" f"{cleaned_context}\n")
+    else:
+        print("RAG Contexts\n" "------------\n" "None\n")
 
 
 def display_list(list):
@@ -87,277 +48,477 @@ def display_list(list):
 
 class Tuner(ABC):
 
-    def __init__(self, ragqna: RagResult, question: str, question_type: QuestionType, content_type: ContentType):
+    def __init__(self, question: Question, adaptor: Adaptor, targets: Dict[str, Target]):
+        self.question = question
 
-        self.question = Question(
-            question=question,
-            question_type=question_type,
-            content_type=content_type,
-        )
-        self.user_feedback: Feedback = None
-        self.suggestions: dict[str, Suggestion] = {}
+        self.adaptor = adaptor
+        self.targets = targets
+        
 
-        self.ragqna: RagResult = ragqna
+    def check_active(self):
+        for target in self.targets.values():
+            target_obj = self.adaptor.get_module(target.node_type, target.module_type)
+            if not target_obj.get_status():
+                return False
+        return True
 
-        self.node_type = None
-        self.module_type = None
-        self.module = None
-        self.module_active = False
+    def set_param(
+        self,
+        param_name,
+        suggestion_type: SuggestionType,
+        new_vals: Optional[int] = None,
+        step: Optional[int] = None,
+        lower_limit: Optional[int] = None,
+        count: Optional[int] = 1
+    ):
+        target_obj = None
+        if param_name in self.targets:
+            target = self.targets[param_name]
+            target_obj = self.adaptor.get_module(target.node_type, target.module_type)
 
-    def init_ragqna(self, ragqna):
-        self.ragqna = ragqna
-        self.user_feedback = None
-        for suggestion in self.suggestions.values():
-            suggestion.reset()
-
-    def update_module(self, module):
-        self.module = module
-        self.module_active = module.get_status()
-
-    def get_suggestions_origval(self):
-        if not self.module_active:
+        if not target_obj:
+            print(f"[!] Target not found: node={target.node_type}, module={target.module_type}")
             return
-        for suggestion in self.suggestions.values():
-            suggestion.origval = self.module.get_value(suggestion.attribute)
 
-    def _display_question(self, content_type, context_idx=0):
-        display_ragqna(self.ragqna, content_type, context_idx)
-        print(f"{self}: {self.question.question}\n")
+        if not target_obj.get_status():
+            print(f"[!] Skipping inactive component: node={target.node_type}, module={target.module_type}")
+            return
+
+        target.orig_val = target_obj.get_value(target.attribute)
+
+        match suggestion_type:
+            case SuggestionType.STEPWISE_GROUPED | SuggestionType.GRID_SEARCH | SuggestionType.STEPWISE:
+                if new_vals:
+                    target.new_vals = new_vals
+                else:
+                    if step is None:
+                        raise ValueError("Step must be provided for stepwise tuning.")
+                    if lower_limit:
+                        start = lower_limit
+                    else:
+                        start = target.orig_val
+
+                    if count:
+                        target.new_vals = [start + i * step for i in range(count)]
+                    else:
+                        target.new_vals = [start + step]
+
+                target.suggestion = Suggestion(
+                    hint=f"{target.attribute}'s current value: {target.orig_val}\n"
+                        f"Setting it to {target.new_vals}",
+                    suggestion_type=suggestion_type
+                )
+            case SuggestionType.CHOOSE:
+                target.new_vals = target_obj.get_params(target.attribute)
+                target.suggestion = Suggestion(
+                    hint=f"{target.attribute}'s current value: {target.orig_val}\n"
+                        f"Please choose a new value from below:",
+                    options=target.new_vals,
+                    suggestion_type=suggestion_type
+                )
+            case SuggestionType.ITERATE:
+                target.new_vals = target_obj.get_params(target.attribute)
+                target.suggestion = Suggestion(
+                    hint=f"{target.attribute}'s current value: {target.orig_val}\n"
+                        f"Iterate from available values",
+                    options=target.new_vals,
+                    suggestion_type=suggestion_type
+                )
+            case SuggestionType.SET:
+                if new_vals:
+                    target.new_vals = new_vals
+                    hint = f"Change {target.attribute}'s value: {target.orig_val} -> {new_vals}\n"
+                else:
+                    target.new_vals = None
+                    hint = f"{target.attribute}'s current value: {target.orig_val}\nPlease enter a new value: "
+
+                target.suggestion = Suggestion(
+                    hint=hint,
+                    options=target.new_vals,
+                    suggestion_type=suggestion_type
+                )
 
     def request_feedback(self):
-        if not self.module_active:
-            return
+        if not self.check_active():
+            return False
 
-        self._display_question(self.question.content_type)
-
-        valid, user_input = input_parser(self.question.question_type)
+        print(f"\033[1m\033[93m{self}\033[0m: {self.question}\n")
+        valid, user_input = input_parser(len(self.question.options))
         if not valid:
             return False
 
-        self.user_feedback = Feedback(type=self.question.question_type, feedback=user_input)
-        self.get_suggestions_origval()
-        return True
+        self.user_feedback = Feedback(feedback=user_input)
+        return self._feedback_to_suggestions()
 
     @abstractmethod
     def _feedback_to_suggestions(self):
         pass
 
-    def make_suggestions(self):
-        if not self.module_active:
+    def apply_suggestions(self):
+        if not self.check_active():
             return
 
-        self._feedback_to_suggestions()
+        params_candidates = []
 
-        old_new_values = {}
-        for attr, suggestion in self.suggestions.items():
-            svalue = suggestion.svalue
-            origval = suggestion.origval
+        new_values_dict = {}
+        
+        # STEPWISE_GROUPED
+        grouped_targets = {
+            a: t for a, t in self.targets.items()
+            if t.suggestion and t.suggestion.suggestion_type == SuggestionType.STEPWISE_GROUPED
+        }
+        if grouped_targets:
+            count = min(len(t.new_vals) for t in grouped_targets.values())
 
-            match svalue.suggestion_type:
+            for idx in range(count):
+                candidate = {a: t.new_vals[idx] for a, t in grouped_targets.items()}
+                new_values_dict = {
+                    a: [(t.node_type, t.module_type), t.new_vals[idx]]
+                    for a, t in grouped_targets.items()
+                }
+                params_candidates.append(new_values_dict)
+            if len(params_candidates) > 0:
+                return self.adaptor.get_rag_pipelines_candidates(params_candidates) 
+
+        # GRID_SEARCH
+        from itertools import product
+        grid_targets = {
+            a: t for a, t in self.targets.items()
+            if t.suggestion and t.suggestion.suggestion_type == SuggestionType.GRID_SEARCH
+        }
+        if grid_targets:
+            keys, values_list = zip(*((a, t.new_vals) for a, t in grid_targets.items()))
+            for combination in product(*values_list):
+                candidate = dict(zip(keys, combination))
+                new_values_dict = {}
+                for a, val in candidate.items():
+                    new_values_dict[a] = [(self.targets[a].node_type, self.targets[a].module_type), val]
+                params_candidates.append(new_values_dict)
+            if len(params_candidates) > 0:
+                return self.adaptor.get_rag_pipelines_candidates(params_candidates)
+
+        new_values_dict = {}
+        for attr, target in self.targets.items():
+            suggestion = target.suggestion
+            if not suggestion or attr in new_values_dict:
+                continue
+
+            orig_val = target.orig_val
+            match suggestion.suggestion_type:
                 case SuggestionType.SET:
-                    choices = suggestion.svalue.choices
-                    if not choices:
-                        continue
-
-                    print(
-                        f"{attr}'s current value: {origval}\n"
-                        f"We suggest setting a new value from choices: {choices}\n"
-                        f"Please enter a new value: "
-                    )
-                    valid, user_input = input_parser(QuestionType.SCORE)
-                    if valid:
-                        old_new_values[attr] = [origval, user_input]
-
-                case SuggestionType.OFFSET:
-                    match svalue.direction:
-                        case DirectionType.INCREASE:
-                            old_new_values[attr] = [origval, origval + svalue.step]
-                        case DirectionType.DECREASE:
-                            old_new_values[attr] = [origval, origval - svalue.step]
-                        case _:
-                            print(f"ERROR: Unknown direction '{svalue.direction}' for OFFSET.")
+                    print(f"{suggestion}")
+                    if suggestion.options:
+                        new_values_dict[attr] = [(target.node_type, target.module_type), suggestion.options[0].content]
+                    else:
+                        valid, user_input = input_parser()
+                        if valid:
+                            new_values_dict[attr] = [(target.node_type, target.module_type), user_input]
 
                 case SuggestionType.CHOOSE:
-                    choices = suggestion.svalue.choices
-                    if not choices:
-                        continue
-
-                    display_list(choices)
-                    print(f"{attr}'s current value: {origval}\n" f"Please enter the index of a new value")
-                    valid, user_input = input_parser(QuestionType.SCORE)
+                    print(f"{suggestion}")
+                    new_options = [x for x in suggestion.options if x != orig_val]
+                    valid, user_input = input_parser(len(new_options))
                     if valid:
-                        if user_input < 0 or user_input >= len(choices):
-                            print(f"ERROR: The chosen index {user_input} is out of range")
-                        elif origval == choices[user_input]:
-                            print(f"ERROR: You chose the current value {user_input}: {choices[user_input]}")
-                        else:
-                            old_new_values[attr] = [origval, choices[user_input]]
+                        chosed_val = suggestion.options[user_input-1]
+                        new_values_dict[attr] = [(target.node_type, target.module_type), chosed_val.content]
+
+                case SuggestionType.ITERATE:
+                    print(f"{suggestion}")
+                    for option in suggestion.options:
+                        new_values_dict = {}
+                        new_values_dict[attr] = [(target.node_type, target.module_type), option.content]
+                        params_candidates.append(new_values_dict)
+                    if len(params_candidates) > 0:
+                        return self.adaptor.get_rag_pipelines_candidates(params_candidates)
+
+                case SuggestionType.STEPWISE:
+                    if len(target.new_vals) == 1:
+                        val = target.new_vals[idx]
+                        new_values_dict[attr] = [(target.node_type, target.module_type), val]
+                    else:
+                        for idx in range(len(target.new_vals)):
+                            new_values_dict = {}
+                            val = target.new_vals[idx]
+                            new_values_dict[attr] = [(target.node_type, target.module_type), val]
+                            params_candidates.append(new_values_dict)
+                        if len(params_candidates) > 0:
+                            return self.adaptor.get_rag_pipelines_candidates(params_candidates)
 
                 case _:
-                    print(f"ERROR: Unknown suggestion type '{svalue.suggestion_type}'.")
+                    print(f"ERROR: Unknown suggestion type '{suggestion.suggestion_type}'.")
 
-        if not old_new_values:
-            return False
-
-        is_changed = False
-        for k, v in old_new_values.items():
-            if self._confirm_suggestion(self.suggestions[k], v, skip_confirming=True):
-                is_changed = True
-
-        if is_changed:
-            self._apply_suggestions()
-
-        return is_changed
-
-    def _confirm_suggestion(self, suggestion, old_new_value, skip_confirming=False):
-        svalue = suggestion.svalue
-        origval, newval = old_new_value
-
-        print(
-            f"Based on your feedback, {svalue.direction.value if svalue.direction else 'modify'} {suggestion.attribute} {origval} -> {newval}"
-        )
-        if skip_confirming:
-            valid, user_input = True, True
-        else:
-            valid, user_input = input_parser(QuestionType.BOOL)
-
-        if not valid:
-            return False
-
-        suggestion.is_accepted = user_input
-        if suggestion.is_accepted:
-            suggestion.svalue.val = newval
-            return True
-
-        return False
-
-    def _apply_suggestions(self):
-        for suggestion in self.suggestions.values():
-            if suggestion.is_accepted:
-                self.module.set_value(suggestion.attribute, suggestion.svalue.val)
+        params_candidates.append(new_values_dict)
+        return self.adaptor.get_rag_pipelines_candidates(params_candidates)
 
     def __str__(self):
         return f"{self.__class__.__name__}"
 
 
-class SimpleNodeParserChunkTuner(Tuner):
+class EmbeddingTuner(Tuner):
+    def __init__(self, adaptor: Adaptor):
+        # question
+        question = Question(
+            hint="Do you want to tune embedding model",
+            options=["Yes, iterate it from available options", 
+                    "No, skip this tuner"],
+        )
 
-    def __init__(self, ragqna=None):
-        q = "Is each context split properly? \n -1) Incomplete \n 0) Good enough or skip current tuner \n 1) Includes too many contents"
-        super().__init__(ragqna, q, QuestionType.MINUS_ONE_ZERO_ONE, ContentType.ALL_CONTEXTS)
-
-        self.node_type = "node_parser"
-        self.module_type = "simple"
-
-        attribute = "chunk_size"
-        suggestion = Suggestion(
-            svalue=SuggestionValue(suggestion_type=SuggestionType.OFFSET, step=100),
+        targets = {}
+        # targets
+        attribute="embedding_model"
+        target = Target(
+            node_type="indexer",
             attribute=attribute,
         )
-        self.suggestions[attribute] = suggestion
+        targets[attribute] = target
 
-        attribute = "chunk_overlap"
-        suggestion = Suggestion(
-            svalue=SuggestionValue(suggestion_type=SuggestionType.OFFSET, step=8),
-            attribute=attribute,
-        )
-        self.suggestions[attribute] = suggestion
+        super().__init__(question, adaptor, targets)
+
 
     def _feedback_to_suggestions(self):
         assert isinstance(self.user_feedback, Feedback)
-        if self.user_feedback.type == QuestionType.MINUS_ONE_ZERO_ONE:
-            if self.user_feedback.feedback == 1:
-                for suggestion in self.suggestions.values():
-                    suggestion.svalue.direction = DirectionType.DECREASE
-            elif self.user_feedback.feedback == -1:
-                for suggestion in self.suggestions.values():
-                    suggestion.svalue.direction = DirectionType.INCREASE
+        if self.user_feedback.feedback == 1:
+            self.set_param(
+                param_name="embedding_model", 
+                suggestion_type=SuggestionType.ITERATE)
+            return True
+        else:
+            return False
+
+
+class NodeParserTuner(Tuner):
+
+    def __init__(self, adaptor: Adaptor):
+        # question
+        question = Question(
+            hint="Do you want to tune node parser",
+            options=["Yes, iterate it from available options", 
+                    "No, skip this tuner"],
+        )
+        
+        targets = {}
+        # targets
+        attribute="parser_type"
+        target = Target(
+            node_type="node_parser",
+            attribute=attribute,
+        )
+        targets[attribute] = target
+
+        super().__init__(question, adaptor, targets)
+
+    def _feedback_to_suggestions(self):
+        assert isinstance(self.user_feedback, Feedback)
+        if self.user_feedback.feedback == 1:
+            self.set_param(
+                param_name="parser_type", 
+                suggestion_type=SuggestionType.ITERATE)
+            return True
+        else:
+            return False
+
+
+class SimpleNodeParserChunkTuner(Tuner):
+
+    def __init__(self, adaptor: Adaptor):
+        # question
+        question = Question(
+            hint="Do you want to tune chunk size and chunk overlap",
+            options=["Yes, iterate the chunk size and chunk overlap based on current values stepwisely",
+                    "Yes, set them to designated values",
+                    "No, skip this tuner"],
+        )
+        
+        targets = {}
+        # targets
+        attribute="chunk_size"
+        target = Target(
+            node_type="node_parser",
+            module_type="simple",
+            attribute=attribute,
+        )
+        targets[attribute] = target
+
+        attribute="chunk_overlap"
+        target = Target(
+            node_type="node_parser",
+            module_type="simple",
+            attribute=attribute,
+        )
+        targets[attribute] = target
+
+        super().__init__(question, adaptor, targets)
+
+    def _feedback_to_suggestions(self):
+        assert isinstance(self.user_feedback, Feedback)
+        if self.user_feedback.feedback == 1:
+            self.set_param(
+                param_name="chunk_size", 
+                suggestion_type=SuggestionType.STEPWISE_GROUPED, 
+                step=100,
+                count=3)
+            self.set_param(
+                param_name="chunk_overlap", 
+                suggestion_type=SuggestionType.STEPWISE_GROUPED, 
+                step=16,
+                count=3)
+            return True
+        elif self.user_feedback.feedback == 2:
+            self.set_param(
+                param_name="chunk_size", 
+                suggestion_type=SuggestionType.SET)
+            self.set_param(
+                param_name="chunk_overlap", 
+                suggestion_type=SuggestionType.SET)
+            return True
+        else:
+            return False
+
+
+class RetrievalTopkTuner(Tuner):
+
+    def __init__(self, adaptor: Adaptor):
+        # question
+        question = Question(
+            hint="Do you want to tune retrieve's topk",
+            options=["Yes, iterate it based on current values stepwisely", 
+                     "Yes, set it to designated value",
+                    "No, skip this tuner"],
+        )
+
+        targets = {}
+        # targets
+        attribute="retrieve_topk"
+        target = Target(
+            node_type="retriever",
+            attribute=attribute,
+        )
+        targets[attribute] = target
+
+        super().__init__(question, adaptor, targets)
+
+
+    def _feedback_to_suggestions(self):
+        assert isinstance(self.user_feedback, Feedback)
+        if self.user_feedback.feedback == 1:
+            self.set_param(
+                param_name="retrieve_topk", 
+                suggestion_type=SuggestionType.STEPWISE, 
+                step=15,
+                lower_limit=30,
+                count=4
+                )
+            return True
+        if self.user_feedback.feedback == 2:
+            self.set_param(
+                param_name="retrieve_topk", 
+                suggestion_type=SuggestionType.SET, 
+                )
+            return True
+        else:
+            return False
 
 
 class RerankerTopnTuner(Tuner):
 
-    def __init__(self, ragqna=None):
-        q = (
-            "Are the contexts not enough for answering the question or some of them contain irrelevant information?\n"
-            + " -1) Not enough \n 0) Fine or skip current tuner \n 1) Too many contexts"
+    def __init__(self, adaptor: Adaptor):
+        # question
+        question = Question(
+            hint="Do you want to tune reranker's top_n",
+            options=["Yes, iterate it based on current values stepwisely", 
+                    "No, skip this tuner"],
         )
-        super().__init__(ragqna, q, QuestionType.MINUS_ONE_ZERO_ONE, ContentType.ALL_CONTEXTS)
 
-        self.node_type = "postprocessor"
-        self.module_type = "reranker"
-
-        attribute = "top_n"
-        suggestion = Suggestion(
-            svalue=SuggestionValue(suggestion_type=SuggestionType.OFFSET, step=1),
+        targets = {}
+        # targets
+        attribute="top_n"
+        target = Target(
+            node_type="postprocessor",
+            module_type="reranker",
             attribute=attribute,
         )
-        self.suggestions[attribute] = suggestion
+        targets[attribute] = target
+
+        super().__init__(question, adaptor, targets)
+
 
     def _feedback_to_suggestions(self):
         assert isinstance(self.user_feedback, Feedback)
-        if self.user_feedback.type == QuestionType.MINUS_ONE_ZERO_ONE:
-            if self.user_feedback.feedback == 1:
-                for suggestion in self.suggestions.values():
-                    suggestion.svalue.direction = DirectionType.DECREASE
-            elif self.user_feedback.feedback == -1:
-                for suggestion in self.suggestions.values():
-                    suggestion.svalue.direction = DirectionType.INCREASE
+        if self.user_feedback.feedback == 1:
+            self.set_param(
+                param_name="top_n", 
+                suggestion_type=SuggestionType.STEPWISE, 
+                step=5,
+                lower_limit=5,
+                count=2
+                )
+            return True
+        else:
+            return False
 
 
-class EmbeddingLanguageTuner(Tuner):
+class RetrievalTopkRerankerTopnTuner(Tuner):
 
-    def __init__(self, ragqna=None):
-        q = (
-            "Does any context contain relevant information for the given RAG query?\n"
-            + " y) yes or skip current tuner \n n) no"
+    def __init__(self, adaptor: Adaptor):
+        # question
+        question = Question(
+            hint="Do you want to tune retrieve_topk and reranker's top_n",
+            options=["Yes, iterate it based on current values stepwisely", 
+                     "Yes, set retrieve_topk to [30, 50, 100, 200], top_n to [5, 10]", 
+                    "No, skip this tuner"],
         )
-        super().__init__(ragqna, q, QuestionType.BOOL, ContentType.ALL_CONTEXTS)
 
-        self.node_type = "indexer"
-        self.module_type = None
-
-        attribute = "embedding_model"
-        suggestion = Suggestion(
-            svalue=SuggestionValue(
-                suggestion_type=SuggestionType.CHOOSE,
-            ),
+        targets = {}
+        # targets
+        attribute="retrieve_topk"
+        target = Target(
+            node_type="retriever",
             attribute=attribute,
         )
-        self.suggestions[attribute] = suggestion
+        targets[attribute] = target
+
+        attribute="top_n"
+        target = Target(
+            node_type="postprocessor",
+            module_type="reranker",
+            attribute=attribute,
+        )
+        targets[attribute] = target
+
+        super().__init__(question, adaptor, targets)
+
 
     def _feedback_to_suggestions(self):
         assert isinstance(self.user_feedback, Feedback)
-        if self.user_feedback.type == QuestionType.BOOL:
-            if not self.user_feedback.feedback:
-                for suggestion in self.suggestions.values():
-                    suggestion.svalue.choices = self.module.get_params(suggestion.attribute)
-
-
-class NodeParserTypeTuner(Tuner):
-
-    def __init__(self, ragqna=None):
-        q = (
-            "Are all contexts split with similar amount of information? \n"
-            + "y) All contexts contain similar amount of information or skip current tuner \n"
-            + "n) Some contexts contain more information while some contain less"
-        )
-        super().__init__(ragqna, q, QuestionType.BOOL, ContentType.ALL_CONTEXTS)
-
-        self.node_type = "node_parser"
-        self.module_type = None
-
-        attribute = "parser_type"
-        suggestion = Suggestion(
-            svalue=SuggestionValue(
-                suggestion_type=SuggestionType.CHOOSE,
-            ),
-            attribute=attribute,
-        )
-        self.suggestions[attribute] = suggestion
-
-    def _feedback_to_suggestions(self):
-        assert isinstance(self.user_feedback, Feedback)
-        if self.user_feedback.type == QuestionType.BOOL:
-            if not self.user_feedback.feedback:
-                for suggestion in self.suggestions.values():
-                    suggestion.svalue.choices = self.module.get_params(suggestion.attribute)
+        if self.user_feedback.feedback == 1:
+            self.set_param(
+                param_name="retrieve_topk", 
+                suggestion_type=SuggestionType.GRID_SEARCH, 
+                step=15,
+                lower_limit=30,
+                count=4
+                )
+            self.set_param(
+                param_name="top_n", 
+                suggestion_type=SuggestionType.GRID_SEARCH, 
+                step=5,
+                lower_limit=5,
+                count=2
+                )
+            return True
+        if self.user_feedback.feedback == 2:
+            self.set_param(
+                param_name="retrieve_topk", 
+                suggestion_type=SuggestionType.GRID_SEARCH, 
+                new_vals=[30, 50, 100, 200]
+                )
+            self.set_param(
+                param_name="top_n", 
+                suggestion_type=SuggestionType.GRID_SEARCH, 
+                step=5,
+                lower_limit=5,
+                count=2
+                )
+            return True
+        else:
+            return False

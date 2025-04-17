@@ -4,8 +4,8 @@
 import os
 
 import requests
-from components.constructor.constructor import convert_dict_to_pipeline
-from components.constructor.ecrag.api_schema import PipelineCreateIn, RagOut
+from components.pilot.base import convert_dict_to_pipeline
+from components.pilot.ecrag.api_schema import PipelineCreateIn, RagOut
 
 ECRAG_SERVICE_HOST_IP = os.getenv("ECRAG_SERVICE_HOST_IP", "127.0.0.1")
 ECRAG_SERVICE_PORT = int(os.getenv("ECRAG_SERVICE_PORT", 16010))
@@ -52,3 +52,39 @@ def update_active_pipeline(pipeline):
         pipeline.active = True
         res = update_pipeline(pipeline)
     return res.status_code == 200
+
+
+def get_ecrag_module_map(ecrag_pl):
+    ecrag_modules = {
+        # root
+        "root": (ecrag_pl, ""),
+        # node_parser
+        "node_parser": (ecrag_pl, "node_parser"),
+        "simple": (ecrag_pl, "node_parser"),
+        "hierarchical": (ecrag_pl, "node_parser"),
+        "sentencewindow": (ecrag_pl, "node_parser"),
+        # indexer
+        "indexer": (ecrag_pl, "indexer"),
+        "vector": (ecrag_pl, "indexer"),
+        "faiss_vector": (ecrag_pl, "indexer"),
+        # retriever
+        "retriever": (ecrag_pl, "retriever"),
+        "vectorsimilarity": (ecrag_pl, "retriever"),
+        "auto_merge": (ecrag_pl, "retriever"),
+        "bm25": (ecrag_pl, "retriever"),
+        # postprocessor
+        "postprocessor": (ecrag_pl, "postprocessor[0]"),
+        "reranker": (ecrag_pl, "postprocessor[0]"),
+        "metadata_replace": (ecrag_pl, "postprocessor[0]"),
+        # generator
+        "generator": (ecrag_pl, "generator"),
+    }
+    return ecrag_modules
+
+COMP_TYPE_MAP = {
+    "node_parser": "parser_type",
+    "indexer": "indexer_type",
+    "retriever": "retriever_type",
+    "postprocessor": "processor_type",
+    "generator": "inference_type",
+}
