@@ -122,4 +122,3 @@ jobs:
           echo "------ Generating final report.html ------"
           cd ${{ env.OUT_SCRIPT_PATH }}
           /usr/bin/bash -x generate_report.sh
-
