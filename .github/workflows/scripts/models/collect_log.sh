@@ -32,7 +32,7 @@ for i in "$@"; do
 done
 
 log_file="/log/${device}/${model}/${device}-${tasks}-${model}-${datasets}.log"
-echo "::notice:: Collecting logs ......"
+echo "Collecting logs ......"
 echo "working in"
 pwd
 if [[ ! -f ${log_file} ]]; then

@@ -68,10 +68,10 @@ function run_benchmark() {
 
     status=$?
     if [ ${status} != 0 ]; then
-        echo "::error::Evaluation process returned non-zero exit code."
+        echo "::error::Evaluation process returned non-zero exit code!"
         exit 1
     else
-        echo "::notice::Evaluation process completed successfully."
+        echo "Evaluation process completed successfully!"
     fi
 }
 

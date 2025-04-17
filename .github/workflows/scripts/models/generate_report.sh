@@ -6,7 +6,7 @@
 set -xe
 
 function generate_header {
-    echo "### Model test summary" >>$GITHUB_STEP_SUMMARY
+    echo "### Model Test Summary" >>$GITHUB_STEP_SUMMARY
     echo "|device|model|tasks|datasets|acc|" >>$GITHUB_STEP_SUMMARY
     echo "| :----: | :----: | :----: | :----: | :----: |" >>$GITHUB_STEP_SUMMARY
 }
