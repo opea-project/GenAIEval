@@ -114,21 +114,6 @@ jobs:
             cd ${{ env.OUT_SCRIPT_PATH }}
             ls -R
 
-      - name: Download Reference Artifact
-        id: download-artifact
-        uses: dawidd6/action-download-artifact@v3.1.2
-        with:
-          workflow: model_test_cpu.yml
-          name: FinalReport
-          run_id: ${{ vars.ModelTest_CPU_REF_ID }}
-          path: ${{ env.OUT_SCRIPT_PATH }}
-          name_is_regexp: true
-          repo: ${{ github.repository }}
-          check_artifacts: false
-          search_artifacts: false
-          skip_unpack: false
-          if_no_artifact_found: warn
-
       - name: Display structure of downloaded files
         run: cd ${{ env.OUT_SCRIPT_PATH }}/log && ls -R
 
@@ -136,24 +121,5 @@ jobs:
         run: |
           echo "------ Generating final report.html ------"
           cd ${{ env.OUT_SCRIPT_PATH }}
-          mkdir -p generated
           /usr/bin/bash -x generate_report.sh
-        env:
-          RUN_DISPLAY_URL: https://https://github.com/opea-project/GenAIEval/actions/runs/${{ github.run_id }}
-          BUILD_NUMBER: ${{ github.run_id }}
-          JOB_STATUS: succeed
 
-      - name: Publish Report
-        uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
-        with:
-          name: FinalReport
-          path: ${{ env.OUT_SCRIPT_PATH }}/generated
-
-      - name: Specify performance regression
-        if: ${{ !cancelled() }}
-        run: |
-          if [ ${{ env.is_perf_reg }} == 'true' ]; then
-            echo "[Performance Regression] Some model performance regression occurred, please check artifacts and reports."
-            exit 1
-          fi
