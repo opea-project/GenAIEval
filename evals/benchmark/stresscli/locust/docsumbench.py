@@ -8,7 +8,7 @@ import tokenresponse as token
 cwd = os.path.dirname(__file__)
 filepath = os.environ["OPEA_EVAL_DATASET"]
 filename = os.path.basename(filepath)
-max_tokens = os.environ["OPEA_EVAL_MAX_NEW_TOKENS"]
+max_tokens = os.environ["OPEA_EVAL_MAX_OUTPUT_TOKENS"]
 summary_type = os.environ["OPEA_EVAL_SUMMARY_TYPE"]
 stream = os.environ["OPEA_EVAL_STREAM"]
 
