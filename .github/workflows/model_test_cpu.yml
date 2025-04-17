@@ -32,6 +32,7 @@ env:
 jobs:
   Evaluation-Workflow:
     runs-on: aise-cluster-cpu
+    timeout-minutes: 10
     strategy:
       matrix:
         include:
