@@ -144,6 +144,7 @@ class AiStressUser(HttpUser):
             "codegenfixed",
             "codegenbench",
             "docsumbench",
+            "docsumfixed",
             "faqgenfixed",
             "faqgenbench",
             "chatqna_qlist_pubmed",
