@@ -1,72 +1,82 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-from enum import Enum
+from enum import Enum, auto
 from typing import Callable, List, Optional, Tuple, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
 
-class RagResult(BaseModel):
-    query: str
-    contexts: Optional[List[str]] = None
-    ground_truth: Optional[str] = None
-    response: str
+class ContentType(Enum):
+    ALL_CONTEXTS = auto()
+    CONTEXT = auto()
+    RESPONSE = auto()
 
 
-class ContentType(str, Enum):
-    ALL_CONTEXTS = "all_contexts"
-    CONTEXT = "context"
-    RESPONSE = "response"
+class OptionItem(BaseModel):
+    idx: int
+    content: str
+
+    def __str__(self):
+        return f"{self.idx}: {self.content}"
 
 
-class QuestionType(str, Enum):
-    RATING5 = "1-5"
-    RATING3 = "1-3"
-    BOOL = "y/n"
-    SCORE = "Input a number"
-    MINUS_ONE_ZERO_ONE = "-1, 0, 1"
+class UserInput(BaseModel):
+    hint: str
+    options: Optional[List[OptionItem]] = None
+
+    @validator("options", pre=True)
+    def auto_generate_ids(cls, v):
+        if v is None:
+            return v
+        if all(isinstance(item, str) for item in v):
+            return [{"idx": idx, "content": item} for idx, item in enumerate(v, start=1)]
+        return v
+
+    def __str__(self):
+        options_str = ""
+        if self.options:
+            options_str = "\n" + "\n".join(str(option) for option in self.options)
+        return f"{self.hint}{options_str}"
 
 
-class Question(BaseModel):
-    question: str
-    question_type: QuestionType
-    content_type: ContentType
+class Question(UserInput):
+    status: Optional[str] = None
+
+    def __str__(self):
+        status_str = f"{self.status}\n" if self.status else ""
+        options_str = ""
+        if self.options:
+            options_str = "\n" + "\n".join(str(option) for option in self.options)
+        return f"{status_str}{self.hint}{options_str}"
+
+
+class SuggestionType(Enum):
+    CHOOSE = auto()
+    ITERATE = auto()
+    SET = auto()
+    STEPWISE_GROUPED = auto()
+    STEPWISE = auto()
+    GRID_SEARCH = auto()
+
+
+class Suggestion(UserInput):
+    suggestion_type: SuggestionType
 
 
 class Feedback(BaseModel):
-    type: QuestionType
     feedback: bool | int
 
 
-class SuggestionType(str, Enum):
-    SET = "set"
-    OFFSET = "offset"
-    CHOOSE = "choose"
+class DirectionType(Enum):
+    INCREASE = auto()
+    DECREASE = auto()
 
 
-class DirectionType(str, Enum):
-    INCREASE = "increase"
-    DECREASE = "decrease"
-
-
-class SuggestionValue(BaseModel):
-    suggestion_type: SuggestionType
-    step: Optional[int] = None
-    direction: Optional[DirectionType] = None
-    choices: Optional[List] = None
-    val: Optional[Union[int, float, str]] = None
-
-
-class Suggestion(BaseModel):
+class Target(BaseModel):
+    node_type: str
+    module_type: Optional[str] = None
     attribute: str
-    svalue: SuggestionValue
-    origval: Optional[Union[int, float, str]] = None
-    is_accepted: bool = False
-
-    def reset(self):
-        self.is_accepted = False
-        self.origval = None
-        self.svalue.val = None
-        self.svalue.direction = None
-        self.svalue.choices = None
+    orig_val: Optional[Union[int, float, str]] = None
+    new_vals: List[Union[int, float, str]] = None
+    suggestion: Suggestion = None

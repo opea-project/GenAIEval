@@ -1,108 +1,131 @@
+# 🚀 RAG Pilot - A RAG Pipeline Tuning Tool
 
-# RAG Pilot - A RAG Pipeline Tuning Tool
-
-## Overview
+## 📖 Overview
 
 RAG Pilot provides a set of tuners to optimize various parameters in a retrieval-augmented generation (RAG) pipeline. Each tuner allows fine-grained control over key aspects of parsing, chunking, postporcessing, and generating selection, enabling better retrieval and response generation.
 
-### Available Tuners
+### 🧠 Available Tuners
 
-| Tuner | Function | Configuration |
-|---|---|---|
-| **NodeParserTypeTuner** | Switch between `simple` and `hierarchical` node parsers | The `simple` parser splits text into basic chunks using [`SentenceSplitter`](https://docs.llamaindex.ai/en/stable/api_reference/node_parsers/sentence_splitter/), while the `hierarchical` parser ([`HierarchicalNodeParser`](https://docs.llamaindex.ai/en/v0.10.17/api/llama_index.core.node_parser.HierarchicalNodeParser.html)) creates a structured hierarchy of nodes to maintain contextual relationships. |
-| **SimpleNodeParserChunkTuner** | Tune `SentenceSplitter`'s `chunk_size` and `chunk_overlap` | Configures chunking behavior for document parsing by adjusting the size of individual text chunks and their overlap to ensure context retention. |
-| **RerankerTopnTuner** | Tune `top_n` for reranking | Adjusts the number of top-ranked documents retrieved, optimizing the relevance of retrieved results. |
-| **EmbeddingLanguageTuner** | Select the embedding model | Configures the embedding model for retrieval, allowing users to select different models for vector representation. |
+| Tuner | Stage | Function | Configuration |
+|---|---|---|---|
+| **EmbeddingTuner** | Retrieval | Tune embedding model and related parameters | Allows selection and configuration of the embedding model used for vectorization, including model name and optional parameters like dimension or backend. |
+| **NodeParserTuner** | Retrieval | Tune node parser parameters | General tuner for configuring node parsers, possibly extending to custom strategies or pre-processing logic. |
+| **SimpleNodeParserChunkTuner** | Retrieval | Tune `SentenceSplitter`'s `chunk_size` and `chunk_overlap` | Configures chunking behavior for document parsing by adjusting the size of individual text chunks and their overlap to ensure context retention. |
+| **RetrievalTopkTuner** | Retrieval | Tune `top_k` for retriever | Adjusts how many documents are retrieved before reranking, balancing recall and performance. |
+| **RerankerTopnTuner** | Postprocessing | Tune `top_n` for reranking | Adjusts the number of top-ranked documents returned after reranking, optimizing relevance and conciseness. |
+
 
 These tuners help in optimizing document parsing, chunking strategies, reranking efficiency, and embedding selection for improved RAG performance.
 
 
-## Online RAG Tuning
+## 🌐 Online RAG Tuning
 
-### Dependencies and Environment Setup
+### ⚙️ Dependencies and Environment Setup
 
-#### Setup EdgeCraftRAG
+#### 🛠️ Setup EdgeCraftRAG
 
 Setup EdgeCraftRAG pipeline based on this [link](https://github.com/opea-project/GenAIExamples/tree/main/EdgeCraftRAG).
 
 Load documents in EdgeCraftRAG before running RAG Pilot.
 
-#### Create Running Environment
+#### 🧪 Create Running Environment
 
 ```bash
 # Create a virtual environment
-python3 -m venv tuning
-source tuning/bin/activate
+python3 -m venv rag_pilot
+source rag_pilot/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
 ```
 
-### Launch RAG Pilot in Online Mode
+### 🚦 Launch RAG Pilot in Online Mode
 
 To launch RAG Pilot, create the following *required files* before running the command:
 
-#### QA List File (`your_qa_list.json`)
-Contains queries and optional ground truth answers. Below is a sample format:
+#### 🔹Input file: QA List File (`your_queries.csv`)
 
-```json
-[
-    {
-        "query": "鸟类的祖先是恐龙吗？哪篇课文里讲了相关的内容？", 
-        "ground_truth": "是的，鸟类的祖先是恐龙，这一内容在《飞向蓝天的恐龙》一文中有所讨论"
-    },
-    {
-        "query": "桃花水是什么季节的水？"
-    }
-]
+The input CSV file should contain queries and associated ground truth data (optional) used for evaluation or tuning. Each row corresponds to a specific query and context file. The CSV must include the following **columns**:
+
+| Column | Required | Description |
+|--------|----------|-------------|
+| `query_id` | ✅ Yes | Unique identifier for the query. Can be used to group multiple context entries under the same query. |
+| `query` | ✅ Yes (at least one per `query_id`) | The actual query string. If left empty for some rows sharing the same `query_id`, the query from the first row with a non-empty value will be used. |
+| `file_name` | ✅ Yes | The name of the file or document where the context (for retrieval or grounding) is drawn from. |
+| `gt_context` | ✅ Yes | The ground truth context string that should be retrieved or matched against. |
+| `ground_truth` | ❌ Optional | The ideal answer or response for the query, used for optional answer-level evaluation. |
+
+##### 📌 CSV File Example
+
+```csv
+query_id,query,file_name,gt_context,ground_truth
+53,故障来源有哪些？,故障处理记录表.txt,故障来源：用户投诉、日志系统、例行维护中发现、其它来源。,故障来源：用户投诉、日志系统、例行维护中发现、其它来源。
+93,uMAC网元VNFC有哪几种备份方式,index.txt,ZUF-76-04-005 VNFC支持1+1主备冗余,uMAC网元VFNC有3中备份方式: 支持1+1主备冗余，支持N+M负荷分担冗余， 支持1+1互备冗余。
+93,,index.txt,ZUF-76-04-006 VNFC支持N+M负荷分担冗余,
+93,,index.txt,ZUF-76-04-008 VNFC支持1+1互备冗余,
 ```
 
-Run the following command to start the tuning process. The output RAG results will be stored in `rag_pipeline_out.json`:
+#### ▶️ Run RAG Pilot
+
+Run the following command to start the tuning process.
 
 ```bash
 # Run pipeline tuning tool
 export ECRAG_SERVICE_HOST_IP="ecrag_host_ip"
-python3 -m pipeline_tune -q "your_qa_list.json" -o "rag_pipeline_out.json"
+python3 -m run_pilot -q "your_queries.csv"
 ```
 
-## Offline RAG Tuning
+#### 📦 Output Files and Structure
+
+Each tuning run in **RAG Pilot** generates a set of structured output files for analyzing and comparing different RAG pipeline configurations.
+
+##### 📁 Directory Layout
+
+- `rag_pilot_<timestamp>/`: Main folder for a tuning session.
+  - `curr_pipeline.json` – Best pipeline configuration.
+  - `curr_rag_results.json` – Results of the best pipeline.
+  - `rag_summary.csv` – Query-wise summary.
+  - `rag_contexts.csv` – Detailed context analysis.
+  - `summary.csv` – Overall performance metrics.
+  - `entry_<hash>/`: Subfolders for each tried pipeline with the same file structure:
+    - `pipeline.json`
+    - `rag_results.json`
+    - `rag_summary.csv`
+    - `rag_contexts.csv`
+
+##### 🗂️ Output File Overview
+
+| File Name             | Description                                                                 |
+|----------------------|-----------------------------------------------------------------------------|
+| `pipeline.json`       | RAG pipeline configuration used in a specific trial                        |
+| `rag_results.json`    | List of results for each query, including metadata and context sets         |
+| `rag_summary.csv`     | Summary of each query's outcome, including response and context hit counts |
+| `rag_contexts.csv`    | Breakdown of retrieved/reranked contexts and mapping to ground truth        |
+| `summary.csv`         | Aggregated performance summary across all queries                          |
+
+**Context Mapping Notes:**
+
+- Contexts are categorized as `gt_contexts`, `retrieval_contexts`, or `postprocessing_contexts`.
+- Mappings track which retrieved or postprocessed contexts hit the ground truth.
+- Each context is associated with a `query_id` and indexed for traceability.
+
+
+## 📴 Offline RAG Tuning
 
 RAG Pilot supports offline mode using a RAG configuration file.
 
-### Environment Setup
+### ⚙️ Environment Setup
 
 Refer to [Create Running Environment](#create-running-environment) in the Online RAG pipeline tuning section for setting up the environment before proceeding.
 
-### Launch RAG Pilot in Offline Mode
+### 🚦 Launch RAG Pilot in Offline Mode
 
-To launch RAG Pilot, create the following *required files* before running the command:
+To be added in later release
 
-#### RAG Configuration File (`your_rag_pipeline.json`)
-Settings for the RAG pipeline. Please follow the format of file `configs/pipeline_sample.json`, which is compatible with [EdgeCraftRAG](https://github.com/opea-project/GenAIExamples/tree/main/EdgeCraftRAG)
 
-#### RAG Results File (`your_rag_results.json`)
-Contains queries, responses, lists of contexts, and optional ground truth. Below is a sample format:
+## 🔧 How to Adjust RAG Pilot to Tune Your RAG Solution
 
-```json
-[
-    {
-        "query": "鸟类的祖先是恐龙吗？哪篇课文里讲了相关的内容？",
-        "contexts": ["恐龙演化成鸟类的证据..."],
-        "response": "是的，鸟类的祖先是恐龙。",
-        "ground_truth": "是的，鸟类的祖先是恐龙，这一内容在《飞向蓝天的恐龙》一文中有所讨论"
-    }
-]
-```
-
-Run the following command to start offline tuning. The output RAG results will be stored in `rag_pipeline_out.json`:
-
-```bash
-python3 -m pipeline_tune --offline -c "your_rag_pipeline.json" -r "your_rag_results.json" -o "rag_pipeline_out.json"
-```
-
-## How to use RAG Pilot to tune your RAG solution
-
-### What's Nodes and Modules
+### 🧩 What's Nodes and Modules
 
 RAG Pilot represents each stage of the RAG pipeline as a **node**, such as `node_parser`, `indexer`, `retriever`, etc. Each node can have different **modules** that define its type and configuration. The nodes and modules are specified in a YAML file, allowing users to switch between different implementations easily.
 
@@ -110,7 +133,7 @@ Here is an example of nodes and modules for EdgeCraftRAG.
 
 ![RAG Pilot Architecture](RAG_Pilot.png)
 
-### How to configure Nodes and Modules
+### ⚙️ How to Configure Nodes and Modules
 
 The available nodes and their modules are stored in a YAML file (i.e. `configs/ecrag.yaml` for EdgeCraftRAG as below). Each node can have multiple modules, and both nodes and modules have configurable parameters that can be tuned. 
 
@@ -122,9 +145,14 @@ nodes:
         chunk_size: 400
         chunk_overlap: 48
       - module_type: hierarchical
-        chunk_sizes: [256, 384, 512]
+        chunk_sizes:
+          - 256
+          - 384
+          - 512
   - node: indexer
-    embedding_model: [BAAI/bge-small-zh-v1.5, BAAI/bge-small-en-v1.5]
+    embedding_model:
+      - BAAI/bge-small-zh-v1.5
+      - BAAI/bge-small-en-v1.5
     modules:
       - module_type: vector
       - module_type: faiss_vector
@@ -141,8 +169,11 @@ nodes:
         reranker_model: BAAI/bge-reranker-large
       - module_type: metadata_replace
   - node: generator
-    model: [Qwen/Qwen2-7B-Instruct]
-    inference_type: [local, vllm]
+    model:
+      - Qwen/Qwen2-7B-Instruct
+    inference_type:
+      - local
+      - vllm
     prompt: null
 ```
 
@@ -169,11 +200,11 @@ nodes:
      }
      ```
 
-### How to use Nodes and Modules
+### 🧑‍💻 How to Use Nodes and Modules
 
 Besides the YAML configuration file, the tool also uses a module map to associate each module with a runnable instance. This ensures that the tool correctly links each module type to its respective function within the pipeline.
 
-#### Example: Mapping Modules to Functions
+#### 🧾 Example: Mapping Modules to Functions
 The function below defines how different module types are mapped to their respective components in EdgeCraftRAG:
 
 ```python

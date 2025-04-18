@@ -8,9 +8,15 @@ nodes:
         chunk_size: 400
         chunk_overlap: 48
       - module_type: hierarchical
-        chunk_sizes: [256, 384, 512]
+        chunk_sizes:
+          - 384
+          - 512
+          - 640
   - node: indexer
-    embedding_model: [BAAI/bge-small-zh-v1.5, BAAI/bge-small-en-v1.5]
+    embedding_model:
+      - BAAI/bge-m3
+      - BAAI/bge-large-zh-v1.5
+      - BAAI/bge-large-en-v1.5
     modules:
       - module_type: vector
       - module_type: faiss_vector
@@ -27,6 +33,9 @@ nodes:
         reranker_model: BAAI/bge-reranker-large
       - module_type: metadata_replace
   - node: generator
-    model: [Qwen/Qwen2-7B-Instruct]
-    inference_type: [local, vllm]
+    model:
+      - Qwen/Qwen2-7B-Instruct
+    inference_type:
+      - local
+      - vllm
     prompt: null
