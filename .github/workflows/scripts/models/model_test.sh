@@ -5,8 +5,11 @@
 
 set -o pipefail
 set -x
-source /GenAIEval/.github/workflows/scripts/change_color
 git config --global --add safe.directory /GenAIEval
+
+export TQDM_POSITION=-1    # fix progress bar on tty mode
+export TQDM_MININTERVAL=60 # set refresh every 60s
+
 # get parameters
 PATTERN='[-a-zA-Z0-9_]*='
 PERF_STABLE_CHECK=true
@@ -33,7 +36,7 @@ main() {
         "code-generation")
             working_dir="/GenAIEval/evals/evaluation/bigcode_evaluation_harness/examples";;
         *)
-            echo "Not suppotted task"; exit 1;;
+            echo "Not supported task"; exit 1;;
     esac
     if [[ ${model} == *"opt"* ]]; then
         pretrained="facebook/${model}"
@@ -47,25 +50,12 @@ main() {
     fi
     log_dir="/log/${device}/${model}"
     mkdir -p ${log_dir}
-    $BOLD_YELLOW && echo "-------- evaluation start --------" && $RESET
     run_benchmark
     cp ${log_dir}/${device}-${tasks}-${model}-${datasets}.log /GenAIEval/
 }
 
-function prepare() {
-    ## prepare env
-    cd ${working_dir}
-    echo "Working in ${working_dir}"
-    echo -e "\nInstalling model requirements..."
-    if [ -f "requirements.txt" ]; then
-        python -m pip install -r requirements.txt
-        pip list
-    else
-        echo "Not found requirements.txt file."
-    fi
-}
-
 function run_benchmark() {
+    echo "::group::evaluation start"
     cd ${working_dir}
     overall_log="${log_dir}/${device}-${tasks}-${model}-${datasets}.log"
     python main.py \
@@ -74,13 +64,14 @@ function run_benchmark() {
         --tasks ${datasets} \
         --device ${device} \
         --batch_size 112  2>&1 | tee ${overall_log}
+    echo "::endgroup::"
 
-    echo "print log content:"
-    cat ${overall_log}
     status=$?
     if [ ${status} != 0 ]; then
-        echo "Evaluation process returned non-zero exit code."
+        echo "::error::Evaluation process returned non-zero exit code!"
         exit 1
+    else
+        echo "Evaluation process completed successfully!"
     fi
 }
 

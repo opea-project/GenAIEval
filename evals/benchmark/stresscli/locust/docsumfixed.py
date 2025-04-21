@@ -8,7 +8,7 @@ import tokenresponse as token
 cwd = os.path.dirname(__file__)
 filepath = f"{cwd}/../../data/upload_file.txt"
 filename = os.path.basename(filepath)
-max_tokens = os.environ["OPEA_EVAL_MAX_NEW_TOKENS"]
+max_tokens = os.environ["OPEA_EVAL_MAX_OUTPUT_TOKENS"]
 
 
 def getUrl():
