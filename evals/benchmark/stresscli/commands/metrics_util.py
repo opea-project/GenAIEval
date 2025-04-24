@@ -55,7 +55,7 @@ def write_metrics(file_path, metrics, service_name):
         "vllm:request_prefill_time_seconds_sum",
         "vllm:request_decode_time_seconds_sum",
         "vllm:request_prompt_tokens_sum",
-        "vllm:request_generation_tokens_sum"
+        "vllm:request_generation_tokens_sum",
     ]
     with open(file_path, "w") as f:
         for metric, value in metrics.items():
@@ -73,9 +73,7 @@ def write_metrics(file_path, metrics, service_name):
                     logging.info(f"Found VLLM metrics - sum: {sum_value}, count: {count_value}")
                     _write_average_latency(sum_value, count_value, service_name, f, new_metrics)
                     for vllm_metric in vllm_metric_list:
-                        metric_value = next(
-                            (v for k, v in metrics.items() if vllm_metric in k), None
-                        )
+                        metric_value = next((v for k, v in metrics.items() if vllm_metric in k), None)
                         if metric_value is not None:
                             logging.info(f"Found VLLM metric {vllm_metric}: {metric_value}")
                             surfix = (
@@ -83,9 +81,7 @@ def write_metrics(file_path, metrics, service_name):
                                 .replace("_seconds_sum", "")
                                 .replace("_sum", "")
                             )
-                            _write_average_latency(
-                                metric_value, count_value, service_name, f, new_metrics, surfix
-                            )
+                            _write_average_latency(metric_value, count_value, service_name, f, new_metrics, surfix)
             # Handle TGI/TEI
             if "request_duration_sum" in metric:
                 count_value = next(
