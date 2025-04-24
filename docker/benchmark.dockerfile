@@ -4,9 +4,9 @@
 FROM ubuntu:24.04
 
 ENV LANG=en_US.UTF-8
-ARG REPO=https://github.com/intel-ai-tce/GenAIEval.git
+ARG REPO=https://github.com/opea-project/GenAIEval.git
 ARG REPO_PATH=""
-ARG BRANCH=fix_req
+ARG BRANCH=main
 
 RUN DEBIAN_FRONTEND=noninteractive \ 
     apt-get update && \
