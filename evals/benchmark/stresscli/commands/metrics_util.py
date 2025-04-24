@@ -34,15 +34,15 @@ def parse_metrics(file_path):
     return metrics
 
 
-def _write_average_latency(sum_value, count_value, service_name, f, new_metrics):
+def _write_average_latency(sum_value, count_value, service_name, f, new_metrics, surfix="_average_latency_per_request"):
     """Helper function to calculate and write average latency metrics."""
     if count_value and count_value != 0:
-        average_latency = sum_value / count_value
-        new_metric = f"{service_name}_average_latency_per_request"
-        new_metrics[new_metric] = average_latency
-        f.write(f"{new_metric} {average_latency}\n")
+        average_value = sum_value / count_value
+        new_metric = f"{service_name}{surfix}"
+        new_metrics[new_metric] = average_value
+        f.write(f"{new_metric} {average_value}\n")
         f.write("\n")
-        logging.info(f"{new_metric} {average_latency}")
+        logging.info(f"{new_metric} {average_value}")
         return True
     return False
 
@@ -50,6 +50,13 @@ def _write_average_latency(sum_value, count_value, service_name, f, new_metrics)
 def write_metrics(file_path, metrics, service_name):
     logging.debug(f"Writing metrics to {file_path}")
     new_metrics = {}
+    vllm_metric_list = [
+        "vllm:request_queue_time_seconds_sum",
+        "vllm:request_prefill_time_seconds_sum",
+        "vllm:request_decode_time_seconds_sum",
+        "vllm:request_prompt_tokens_sum",
+        "vllm:request_generation_tokens_sum"
+    ]
     with open(file_path, "w") as f:
         for metric, value in metrics.items():
             f.write(f"{metric} {value}\n")
@@ -65,7 +72,20 @@ def write_metrics(file_path, metrics, service_name):
                 if count_value is not None:
                     logging.info(f"Found VLLM metrics - sum: {sum_value}, count: {count_value}")
                     _write_average_latency(sum_value, count_value, service_name, f, new_metrics)
-
+                    for vllm_metric in vllm_metric_list:
+                        metric_value = next(
+                            (v for k, v in metrics.items() if vllm_metric in k), None
+                        )
+                        if metric_value is not None:
+                            logging.info(f"Found VLLM metric {vllm_metric}: {metric_value}")
+                            surfix = (
+                                vllm_metric.replace("vllm:request", "_average")
+                                .replace("_seconds_sum", "")
+                                .replace("_sum", "")
+                            )
+                            _write_average_latency(
+                                metric_value, count_value, service_name, f, new_metrics, surfix
+                            )
             # Handle TGI/TEI
             if "request_duration_sum" in metric:
                 count_value = next(
@@ -123,7 +143,7 @@ def calculate_diff(start_dir, end_dir, output_dir, services=None):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    average_latency_metrics = []
+    average_metrics = []
 
     if isinstance(services, str):
         services = [services]
@@ -171,18 +191,18 @@ def calculate_diff(start_dir, end_dir, output_dir, services=None):
 
         # Collect average latency metrics
         for metric, value in new_metrics.items():
-            if "average_latency" in metric:
-                average_latency_metrics.append((metric, value))
+            if "average" in metric:
+                average_metrics.append((metric, value))
 
         logging.info(f"Diff calculated and saved to {output_path}")
 
-    return average_latency_metrics
+    return average_metrics
 
 
 def export_metric(start_dir, end_dir, output_dir, json_output, services):
-    average_latency_metrics = calculate_diff(start_dir, end_dir, output_dir, services)
+    average_metrics = calculate_diff(start_dir, end_dir, output_dir, services)
 
-    if not average_latency_metrics:
+    if not average_metrics:
         logging.info("No average latency metrics to export, exiting.")
         return
 
@@ -196,9 +216,11 @@ def export_metric(start_dir, end_dir, output_dir, json_output, services):
     else:
         existing_data = {}
 
-    for metric, value in average_latency_metrics:
+    print("=================Service metrics=====================")
+    for metric, value in average_metrics:
         existing_data[metric] = value
         print(f"{metric}: {value}")
+    print("====================================================")
 
     with open(json_output, "w") as json_file:
         json.dump(existing_data, json_file, indent=4)
