@@ -149,7 +149,9 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
     runspec["summary_type"] = global_settings.get("summary_type", None)
     runspec["stream"] = global_settings.get("stream", None)
     runspec["max-new-tokens"] = global_settings.get("max-new-tokens", locust_defaults["max-output"])
-
+    runspec["retrieval_k"] = global_settings.get("retrieval_k", None)
+    runspec["rerank_top_n"] = global_settings.get("rerank_top_n", None)
+    runspec["chat_template"] = global_settings.get("chat_template", None)
     # Specify load shape to adjust user distribution
     load_shape_conf = run_settings.get("load-shape", global_settings.get("load-shape", locust_defaults["load-shape"]))
     try:
@@ -266,6 +268,17 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         "WARNING",
         "--json",
     ]
+
+    if runspec["retrieval_k"] is not None:
+        cmd.append("--retrieval-k")
+        cmd.append(str(runspec["retrieval_k"]))
+    if runspec["rerank_top_n"] is not None:
+        cmd.append("--rerank-top-n")
+        cmd.append(str(runspec["rerank_top_n"]))
+    if runspec["chat_template"] is not None:
+        cmd.append("--chat-template")
+        cmd.append(str(runspec["chat_template"]))
+
 
     # Get loadshape specific parameters
     if load_shape_params and "concurrent_level" in load_shape_params:
