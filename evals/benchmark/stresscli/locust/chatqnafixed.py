@@ -1,11 +1,11 @@
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-import os
 import logging
-from langchain_core.prompts import PromptTemplate
+import os
 
 import tokenresponse as token
+from langchain_core.prompts import PromptTemplate
 
 retrieval_k = None
 rerank_top_n = None
@@ -25,6 +25,7 @@ if "OPEA_EVAL_CHAT_TEMPLATE" in os.environ:
         logging.error('ignore wrong chat_template, at least "question" variable is required')
     else:
         chat_template = os.environ["OPEA_EVAL_CHAT_TEMPLATE"]
+
 
 def getUrl():
     return "/v1/chatqna"
@@ -49,6 +50,7 @@ def getReqData():
     logging.info(f"Generated request data : {req_data}")
 
     return req_data
+
 
 def respStatics(environment, reqData, respData):
     return token.respStatics(environment, reqData, respData)

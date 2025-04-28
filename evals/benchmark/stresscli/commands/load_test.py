@@ -279,7 +279,6 @@ def run_locust_test(kubeconfig, global_settings, run_settings, output_folder, in
         cmd.append("--chat-template")
         cmd.append(str(runspec["chat_template"]))
 
-
     # Get loadshape specific parameters
     if load_shape_params and "concurrent_level" in load_shape_params:
         del load_shape_params["concurrent_level"]
