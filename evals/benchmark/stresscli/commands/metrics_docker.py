@@ -30,33 +30,30 @@ class DockerMetricsCollector:
             return None
 
     def get_exposed_port(self, container):
-        """Get the port exposed to the external environment by the Docker container."""
+        """Get the container IP address and port, so that we can retrieve metrics both running benchmark inside and outside container ."""
         try:
-            # Retrieve ports in JSON format
+            # Extract IP address from the container's network settings
+            ip_address = None
+            for network_name, network_info in container.attrs["NetworkSettings"]["Networks"].items():
+                ip_address = network_info.get("IPAddress")
+                if ip_address:
+                    break
+
+            # Extract port number from the "Ports" field
             ports_json = container.attrs["NetworkSettings"]["Ports"]
-            logging.debug(f"Container ports: {ports_json}")
-
-            # Parse the ports to find the host port
+            port_number = None
             for container_port, host_infos in ports_json.items():
-                for host_info in host_infos:
-                    host_ip = host_info["HostIp"]
-                    host_port = host_info["HostPort"]
-                    container_port = container_port.split("/")[0]
-                    port = container_port
-                    # Use localhost if the port is mapped to 0.0.0.0 or empty
-                    if host_ip in ["0.0.0.0", ""]:
-                        logging.debug(
-                            f"Found host port {host_port} for container port {container_port} (mapped to all interfaces)"
-                        )
-                        return ("localhost", port)
-                    else:
-                        logging.debug(
-                            f"Found host port {host_port} for container port {container_port} (mapped to {host_ip})"
-                        )
-                        return (host_ip, port)
+                if host_infos:  # Ensure there is at least one mapping
+                    port_number = container_port.split("/")[0]
+                    break
 
-            logging.error("No valid host port found.")
-            return (None, None)
+            if not ip_address or not port_number:
+                logging.error("Failed to retrieve IP address or port number.")
+                return (None, None)
+
+            logging.info(f"IP and port for Service {container.name}:  {ip_address}:{port_number}")
+            return (ip_address, port_number)
+
         except KeyError as e:
             logging.error(f"Error retrieving ports: {e}")
             return (None, None)
@@ -72,7 +69,7 @@ class DockerMetricsCollector:
                     return None
 
                 # Construct the URL
-                service_url = f"http://{container_name}:{port}{metrics_path}"
+                service_url = f"http://{host_ip}:{port}{metrics_path}"
                 logging.debug(f"Collecting metrics from {service_url}")
                 response = requests.get(service_url)
                 response.raise_for_status()
