@@ -115,6 +115,9 @@ def create_run_yaml_content(service, base_url, bench_target, test_phase, num_que
                 "llm-model": test_params["llm_model"],
                 "deployment-type": test_params["deployment_type"],
                 "load-shape": test_params["load_shape"],
+                "retrieval_k": service.get("k"),
+                "rerank_top_n": service.get("top_n"),
+                "chat_template": service.get("chat_template"),
             },
             "runs": [{"name": test_phase, "users": concurrency, "max-request": num_queries}],
         }

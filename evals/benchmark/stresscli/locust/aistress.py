@@ -96,6 +96,24 @@ def _(parser):
         default=256,
         help="Specify the maximum number of new tokens to generate for OPEA services",
     )
+    parser.add_argument(
+        "--retrieval-k",
+        type=int,
+        env_var="OPEA_EVAL_RETRIEVAL_K",
+        help="Specify the number of document retrieval will return",
+    )
+    parser.add_argument(
+        "--rerank-top-n",
+        type=int,
+        env_var="OPEA_EVAL_RERANK_TOP_N",
+        help="Specify the number of document rerank will select and return",
+    )
+    parser.add_argument(
+        "--chat-template",
+        type=str,
+        env_var="OPEA_EVAL_CHAT_TEMPLATE",
+        help="Specify the chat template for the service",
+    )
 
 
 reqlist = []
@@ -282,6 +300,12 @@ def on_locust_init(environment, **_kwargs):
     os.environ["OPEA_EVAL_SUMMARY_TYPE"] = environment.parsed_options.summary_type
     os.environ["OPEA_EVAL_STREAM"] = environment.parsed_options.stream
     os.environ["OPEA_EVAL_MAX_NEW_TOKENS"] = str(environment.parsed_options.max_new_tokens)
+    if environment.parsed_options.retrieval_k is not None and environment.parsed_options.retrieval_k > 0:
+        os.environ["OPEA_EVAL_RETRIEVAL_K"] = str(environment.parsed_options.retrieval_k)
+    if environment.parsed_options.rerank_top_n is not None and environment.parsed_options.rerank_top_n > 0:
+        os.environ["OPEA_EVAL_RERANK_TOP_N"] = str(environment.parsed_options.rerank_top_n)
+    if environment.parsed_options.chat_template is not None:
+        os.environ["OPEA_EVAL_CHAT_TEMPLATE"] = str(environment.parsed_options.chat_template)
 
     bench_package = __import__(environment.parsed_options.bench_target)
 
