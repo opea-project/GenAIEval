@@ -22,11 +22,35 @@ def respStatics(environment, req, resp):
     if environment.parsed_options.bench_target in [
         "chatqnafixed",
         "chatqnabench",
+        "codegenfixed",
         "faqgenfixed",
         "faqgenbench",
         "chatqna_qlist_pubmed",
     ]:
         num_token_input_prompt = len(tokenizer.encode(req["messages"]))
+    elif environment.parsed_options.bench_target in [
+        "codetransfixed",
+    ]:
+        import json
+
+        req_str = json.dumps(req)
+        num_token_input_prompt = len(tokenizer.encode(req_str))
+    elif environment.parsed_options.bench_target in ["docsumfixed"]:
+        import re
+
+        raw_response = resp["response_string"]
+        input_matches = re.findall(r'"page_content":"(.*?)"', raw_response)
+        output_matches = re.findall(r'"output_text":"(.*?)"', raw_response)
+        if input_matches:
+            last_input_text = input_matches[-1]
+            num_token_input_prompt = len(tokenizer.encode(last_input_text))
+        else:
+            print("Error: 'input_text' not found in the response string.")
+        if output_matches:
+            last_output_text = output_matches[-1]
+            num_token_output = len(tokenizer.encode(last_output_text, add_special_tokens=False))
+        else:
+            print("Error: 'output_text' not found in the response string.")
     elif environment.parsed_options.bench_target in ["llmfixed"]:
         num_token_input_prompt = len(tokenizer.encode(req["query"]))
     elif environment.parsed_options.bench_target == "llmservefixed":
@@ -35,9 +59,18 @@ def respStatics(environment, req, resp):
     else:
         num_token_input_prompt = -1
 
-    num_token_output = len(
-        tokenizer.encode(resp["response_string"].encode("utf-8").decode("unicode_escape"), add_special_tokens=False)
-    )
+    if environment.parsed_options.bench_target not in ["codetransfixed", "docsumfixed", "codegenfixed"]:
+        num_token_output = len(
+            tokenizer.encode(resp["response_string"].encode("utf-8").decode("unicode_escape"), add_special_tokens=False)
+        )
+
+    if environment.parsed_options.bench_target in ["codetransfixed", "codegenfixed"]:
+        import re
+
+        raw_response = resp["response_string"]
+        input_matches = re.findall(r'"text":"(.*?)"', raw_response)
+        content = "".join(input_matches)
+        num_token_output = len(tokenizer.encode((content), add_special_tokens=False))
 
     return {
         "tokens_input": num_token_input_prompt,
