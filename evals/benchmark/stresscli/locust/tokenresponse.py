@@ -1,12 +1,11 @@
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-import logging
 import json
+import logging
 
 import numpy
 import transformers
-
 
 console_logger = logging.getLogger("locust.stats_logger")
 
@@ -29,21 +28,21 @@ def respStatics(environment, req, resp):
         "codegenfixed",
         "codetransfixed",
         "chatqna_qlist_pubmed",
-    ]: 
+    ]:
         num_token_input_prompt = len(tokenizer.encode(req["messages"]))
     elif environment.parsed_options.bench_target in [
         "codetransfixed",
         "codetransbench",
     ]:
-        req_str = json.dumps(req)  
+        req_str = json.dumps(req)
         num_token_input_prompt = len(tokenizer.encode(req_str))
     elif environment.parsed_options.bench_target in [
         "docsumfixed",
         "docsumbench",
     ]:
-        file_obj = req['files'][1] 
-        file_path = file_obj.name 
-        with open(file_path, 'r', encoding='utf-8') as file:
+        file_obj = req["files"][1]
+        file_path = file_obj.name
+        with open(file_path, "r", encoding="utf-8") as file:
             file_content = file.read()
         num_token_input_prompt = len(tokenizer.encode(file_content))
     elif environment.parsed_options.bench_target in ["llmfixed"]:
@@ -53,7 +52,7 @@ def respStatics(environment, req, resp):
         num_token_input_prompt = len(tokenizer.encode(content))
     else:
         num_token_input_prompt = -1
-        
+
     num_token_output = len(
         tokenizer.encode(resp["response_string"].encode("utf-8").decode("unicode_escape"), add_special_tokens=False)
     )
@@ -65,7 +64,7 @@ def respStatics(environment, req, resp):
         "next_token": (resp["total_latency"] - resp["first_token_latency"]) / (num_token_output - 1) * 1000,
         "total_latency": resp["total_latency"] * 1000,
         "test_start_time": resp["test_start_time"],
-    } 
+    }
 
 
 def staticsOutput(environment, reqlist):
