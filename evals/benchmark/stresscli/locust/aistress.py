@@ -251,10 +251,17 @@ class AiStressUser(HttpUser):
                                     if chunk.startswith("b'") and chunk.endswith("'"):
                                         chunk = chunk[2:-1]
                                         complete_response += chunk
-                                    match = re.search(r'"text":"(.*?)"', chunk)
-                                    if match:
-                                        extracted_text = match.group(1)
-                                        complete_response += extracted_text
+                                    elif re.search(r'"type":"LLMResult"', chunk):
+                                        match = re.search(r'"text":"(.*?)"', chunk)
+                                        if match:
+                                            extracted_text = match.group(1)
+                                            complete_response += extracted_text
+                                        break
+                                    else:
+                                        match = re.search(r'"text":"(.*?)"', chunk)
+                                        if match:
+                                            extracted_text = match.group(1)
+                                            complete_response += extracted_text                                
                         end_ts = time.perf_counter()
                         respData = {
                             "response_string": complete_response,

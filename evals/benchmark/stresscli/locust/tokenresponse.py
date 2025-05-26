@@ -26,7 +26,7 @@ def respStatics(environment, req, resp):
         "faqgenfixed",
         "faqgenbench",
         "codegenfixed",
-        "codetransfixed",
+        "codegenbench",
         "chatqna_qlist_pubmed",
     ]:
         num_token_input_prompt = len(tokenizer.encode(req["messages"]))
