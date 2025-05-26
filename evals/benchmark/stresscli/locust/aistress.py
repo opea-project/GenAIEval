@@ -261,7 +261,7 @@ class AiStressUser(HttpUser):
                                         match = re.search(r'"text":"(.*?)"', chunk)
                                         if match:
                                             extracted_text = match.group(1)
-                                            complete_response += extracted_text                                
+                                            complete_response += extracted_text
                         end_ts = time.perf_counter()
                         respData = {
                             "response_string": complete_response,
