@@ -1,6 +1,7 @@
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+import json
 import logging
 
 import numpy
@@ -24,9 +25,26 @@ def respStatics(environment, req, resp):
         "chatqnabench",
         "faqgenfixed",
         "faqgenbench",
+        "codegenfixed",
+        "codegenbench",
         "chatqna_qlist_pubmed",
     ]:
         num_token_input_prompt = len(tokenizer.encode(req["messages"]))
+    elif environment.parsed_options.bench_target in [
+        "codetransfixed",
+        "codetransbench",
+    ]:
+        req_str = json.dumps(req)
+        num_token_input_prompt = len(tokenizer.encode(req_str))
+    elif environment.parsed_options.bench_target in [
+        "docsumfixed",
+        "docsumbench",
+    ]:
+        file_obj = req["files"][1]
+        file_path = file_obj.name
+        with open(file_path, "r", encoding="utf-8") as file:
+            file_content = file.read()
+        num_token_input_prompt = len(tokenizer.encode(file_content))
     elif environment.parsed_options.bench_target in ["llmfixed"]:
         num_token_input_prompt = len(tokenizer.encode(req["query"]))
     elif environment.parsed_options.bench_target == "llmservefixed":
