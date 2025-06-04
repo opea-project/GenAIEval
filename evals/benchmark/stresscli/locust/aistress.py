@@ -192,6 +192,7 @@ class AiStressUser(HttpUser):
                         "retrieverfixed",
                         "rerankservefixed",
                         "rerankingfixed",
+                        "coherererankfixed",
                     ]:
                         respData = {
                             "total_latency": time.perf_counter() - start_ts,
