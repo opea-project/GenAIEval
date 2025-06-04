@@ -6,8 +6,9 @@
 # https://docs.cohere.com/v2/reference/rerank
 # https://jina.ai/reranker/
 
-import tokenresponse as token
 import os
+
+import tokenresponse as token
 
 model_id = os.getenv("MODEL_NAME", "BAAI/bge-reranker-base")
 ep_prefix = os.getenv("EP_PREFIX", "/v3")
