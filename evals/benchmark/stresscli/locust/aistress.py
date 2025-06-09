@@ -4,6 +4,7 @@
 import json
 import logging
 import os
+import re
 import sys
 import threading
 import time
@@ -249,7 +250,18 @@ class AiStressUser(HttpUser):
                                     chunk = event.data.strip()
                                     if chunk.startswith("b'") and chunk.endswith("'"):
                                         chunk = chunk[2:-1]
-                                complete_response += chunk
+                                        complete_response += chunk
+                                    elif re.search(r'"type":"LLMResult"', chunk):
+                                        match = re.search(r'"text":"(.*?)"', chunk)
+                                        if match:
+                                            extracted_text = match.group(1)
+                                            complete_response += extracted_text
+                                        break
+                                    else:
+                                        match = re.search(r'"text":"(.*?)"', chunk)
+                                        if match:
+                                            extracted_text = match.group(1)
+                                            complete_response += extracted_text
                         end_ts = time.perf_counter()
                         respData = {
                             "response_string": complete_response,
