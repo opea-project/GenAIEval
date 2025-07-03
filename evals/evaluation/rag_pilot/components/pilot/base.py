@@ -6,14 +6,13 @@ import csv
 import hashlib
 import json
 import re
+import uuid
 from difflib import SequenceMatcher
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Union
-from pydantic import BaseModel, model_serializer, Field
-import numpy as np
-import uuid
 
+import numpy as np
 from components.pilot.ecrag.api_schema import (
     GeneratorIn,
     IndexerIn,
@@ -23,6 +22,7 @@ from components.pilot.ecrag.api_schema import (
     PostProcessorIn,
     RetrieverIn,
 )
+from pydantic import BaseModel, Field, model_serializer
 
 
 class Metrics(str, Enum):
@@ -180,18 +180,15 @@ class RAGPipeline(BaseModel):
     def export_pipeline(self):
         self._restore_model_instances()
         exported_pl = copy.deepcopy(self.pl)
-        if hasattr(exported_pl, 'generator') and exported_pl.generator:
-            if hasattr(exported_pl.generator, 'prompt_content'):
-                delattr(exported_pl.generator, 'prompt_content')
+        if hasattr(exported_pl, "generator") and exported_pl.generator:
+            if hasattr(exported_pl.generator, "prompt_content"):
+                delattr(exported_pl.generator, "prompt_content")
         self._replace_model_with_id()
         return exported_pl
 
     @model_serializer(mode="plain")
     def ser_model(self):
-        return {
-            "id": self.id,
-            **self.pl.model_dump()
-        }
+        return {"id": self.id, **self.pl.model_dump()}
 
     def copy(self):
         return copy.deepcopy(self)
