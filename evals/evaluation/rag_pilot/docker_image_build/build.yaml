@@ -1,0 +1,18 @@
+
+services:
+  ragpilot-ui:
+    build:
+      context: ..
+      args:
+        http_proxy: ${http_proxy}
+        https_proxy: ${https_proxy}
+      dockerfile: ../ui/Dockerfile.ui
+    image: ${REGISTRY:-opea}/ragpilot-ui:${TAG:-latest}
+  ragpilot:
+    build:
+      context: ..
+      args:
+        http_proxy: ${http_proxy}
+        https_proxy: ${https_proxy}
+      dockerfile: ../Dockerfile
+    image: ${REGISTRY:-opea}/ragpilot:${TAG:-latest}

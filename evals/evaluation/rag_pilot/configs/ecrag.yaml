@@ -33,6 +33,10 @@ nodes:
         reranker_model: BAAI/bge-reranker-large
       - module_type: metadata_replace
   - node: generator
+    prompt_path:
+      - "./prompt_templates"
+    prompt_content:
+      - "<|im_start|>System: You are an AI assistant. Your task is to learn from the following context. Then answer the user's question based on what you learned from the context but not your own knowledge.<|im_end|>\n\n<|im_start|>{context}<|im_end|>\n\n<|im_start|>System: Pay attention to your formatting of response. If you need to reference content from context, try to keep the formatting.<|im_end|>\n<|im_start|>System: Try to summarize from the context, do some reasoning before response, then response. Make sure your response is logically sound and self-consistent.<|im_end|>\n\n<|im_start|>{input}"
     model:
       - Qwen/Qwen2-7B-Instruct
     inference_type:

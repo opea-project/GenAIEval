@@ -66,6 +66,7 @@ class Suggestion(UserInput):
 
 class Feedback(BaseModel):
     feedback: bool | int
+    auto: bool
 
 
 class DirectionType(Enum):
@@ -80,3 +81,14 @@ class Target(BaseModel):
     orig_val: Optional[Union[int, float, str]] = None
     new_vals: List[Union[int, float, str]] = None
     suggestion: Suggestion = None
+
+    def as_string(self) -> str:
+        module = f"{self.module_type}." if self.module_type else ""
+        return f"{self.node_type}.{module}{self.attribute}"
+
+
+class TargetUpdate(BaseModel):
+    node_type: str
+    module_type: Optional[str] = None
+    attribute: str
+    val: Optional[Union[int, float, str]] = None

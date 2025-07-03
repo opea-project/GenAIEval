@@ -18,25 +18,38 @@ RAG Pilot provides a set of tuners to optimize various parameters in a retrieval
 These tuners help in optimizing document parsing, chunking strategies, reranking efficiency, and embedding selection for improved RAG performance.
 
 
-## 🌐 Online RAG Tuning
+## 🌐 Quickstart Guide
 
 ### ⚙️ Dependencies and Environment Setup
 
-#### 🛠️ Setup EdgeCraftRAG
+#### Setup EdgeCraftRAG
 
 Setup EdgeCraftRAG pipeline based on this [link](https://github.com/opea-project/GenAIExamples/tree/main/EdgeCraftRAG).
 
 Load documents in EdgeCraftRAG before running RAG Pilot.
 
-#### 🧪 Create Running Environment
+#### Setup RAG Pilot
 
 ```bash
-# Create a virtual environment
-python3 -m venv rag_pilot
-source rag_pilot/bin/activate
+cd rag_pilot
 
-# Install dependencies
-pip install -r requirements.txt
+# (Optional) Build RAG Pilot and UI docker images
+docker build --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg HTTP_PROXYS=$HTTP_PROXYS --build-arg NO_PROXY=$NO_PROXY -t opea/ragpilot:latest -f ./Dockerfile .
+docker build --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg HTTP_PROXYS=$HTTP_PROXYS --build-arg NO_PROXY=$NO_PROXY -t opea/ragpilot-ui:latest -f ./ui/Dockerfile.ui .
+
+# Setup ENV
+export ECRAG_SERVICE_HOST_IP=${HOST_IP} # HOST IP of EC-RAG Service, usually current host ip
+
+# If EC-RAG Service port is not default
+#export ECRAG_SERVICE_PORT=16010
+
+# If you want to change exposed RAG Pilot UI port
+#export RAGPILOT_UI_SERVICE_PORT=8090
+
+# If you want to change exposed RAG Pilot service port
+#export RAGPILOT_SERVICE_PORT=
+
+docker compose -f docker_compose/intel/gpu/arc/compose.yaml up -d
 ```
 
 ### 🚦 Launch RAG Pilot in Online Mode
@@ -82,11 +95,11 @@ Each tuning run in **RAG Pilot** generates a set of structured output files for 
 ##### 📁 Directory Layout
 
 - `rag_pilot_<timestamp>/`: Main folder for a tuning session.
+  - `summary.csv` – Overall performance metrics of all executed pipelines.
   - `curr_pipeline.json` – Best pipeline configuration.
   - `curr_rag_results.json` – Results of the best pipeline.
   - `rag_summary.csv` – Query-wise summary.
   - `rag_contexts.csv` – Detailed context analysis.
-  - `summary.csv` – Overall performance metrics.
   - `entry_<hash>/`: Subfolders for each tried pipeline with the same file structure:
     - `pipeline.json`
     - `rag_results.json`
@@ -97,11 +110,11 @@ Each tuning run in **RAG Pilot** generates a set of structured output files for 
 
 | File Name             | Description                                                                 |
 |----------------------|-----------------------------------------------------------------------------|
+| `summary.csv`         | Aggregated summary across all pipelines                          |
 | `pipeline.json`       | RAG pipeline configuration used in a specific trial                        |
 | `rag_results.json`    | List of results for each query, including metadata and context sets         |
 | `rag_summary.csv`     | Summary of each query's outcome, including response and context hit counts |
 | `rag_contexts.csv`    | Breakdown of retrieved/reranked contexts and mapping to ground truth        |
-| `summary.csv`         | Aggregated performance summary across all queries                          |
 
 **Context Mapping Notes:**
 
