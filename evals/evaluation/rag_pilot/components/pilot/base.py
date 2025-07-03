@@ -9,9 +9,11 @@ import re
 from difflib import SequenceMatcher
 from enum import Enum
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Tuple, Union
-
+from typing import Dict, List, Optional, Union
+from pydantic import BaseModel, model_serializer, Field
 import numpy as np
+import uuid
+
 from components.pilot.ecrag.api_schema import (
     GeneratorIn,
     IndexerIn,
@@ -21,7 +23,12 @@ from components.pilot.ecrag.api_schema import (
     PostProcessorIn,
     RetrieverIn,
 )
-from pydantic import BaseModel
+
+
+class Metrics(str, Enum):
+    RETRIEVAL_RECALL = "retrieval_recall_rate"
+    POSTPROCESSING_RECALL = "postprocessing_recall_rate"
+    ANSWER_RELEVANCY = "answer_relevancy"
 
 
 def convert_dict_to_pipeline(pl: dict) -> PipelineCreateIn:
@@ -74,25 +81,26 @@ def convert_dict_to_pipeline(pl: dict) -> PipelineCreateIn:
     )
 
 
-def generate_json_id(config, length=8):
+def generate_json_id(config, length=8) -> int:
     if "active" in config:
         del config["active"]
     if "name" in config:
         del config["name"]
     config_str = json.dumps(config, sort_keys=True)
     unique_id = hashlib.sha256(config_str.encode()).hexdigest()
-    return unique_id[:length]
+    return int(unique_id[:length], 16)
 
 
-class RAGPipeline:
+class RAGPipeline(BaseModel):
     pl: PipelineCreateIn
-    id: int
-    _backup: Dict
+    id: int = Field(default=0)
+    _backup: Dict = {}
 
     def __init__(self, pl):
-        self.pl = pl
+        super().__init__(pl=pl)
         self._replace_model_with_id()
-        self.id = generate_json_id(self.pl.dict())
+        # self.id = generate_json_id(self.pl.dict())
+        self.id = uuid.uuid4()
 
     def _replace_model_with_id(self):
         self._backup = {}
@@ -153,17 +161,47 @@ class RAGPipeline:
 
         self._backup = None
 
+    def get_prompt(self) -> Optional[str]:
+        generator = self.pl.generator
+        if not generator:
+            return None
+        if generator.prompt_content:
+            return generator.prompt_content
+        # if generator.prompt_path:
+        #     try:
+        #         with open(generator.prompt_path, 'r', encoding='utf-8') as f:
+        #             return f.read()
+        #     except FileNotFoundError:
+        #         raise FileNotFoundError(f"Prompt file not found at path: {generator.prompt_path}")
+        #     except Exception as e:
+        #         raise RuntimeError(f"Error reading prompt from {generator.prompt_path}: {e}")
+        return None
+
     def export_pipeline(self):
         self._restore_model_instances()
         exported_pl = copy.deepcopy(self.pl)
+        if hasattr(exported_pl, 'generator') and exported_pl.generator:
+            if hasattr(exported_pl.generator, 'prompt_content'):
+                delattr(exported_pl.generator, 'prompt_content')
         self._replace_model_with_id()
         return exported_pl
+
+    @model_serializer(mode="plain")
+    def ser_model(self):
+        return {
+            "id": self.id,
+            **self.pl.model_dump()
+        }
 
     def copy(self):
         return copy.deepcopy(self)
 
+    def get_id(self):
+        return self.id
+
     def regenerate_id(self):
-        self.id = generate_json_id(self.pl.dict())
+        # self.id = generate_json_id(self.pl.dict())
+        self.id = uuid.uuid4()
 
     def activate_pl(self):
         self.pl.active = True
@@ -183,12 +221,6 @@ class ContextType(str, Enum):
     GT = "gt"
     RETRIEVAL = "retrieval"
     POSTPROCESSING = "postprocessing"
-
-
-class RAGStage(str, Enum):
-    RETRIEVAL = "retrieval"
-    POSTPROCESSING = "postprocessing"
-    GENERATION = "generation"
 
 
 class ContextItem(BaseModel):
@@ -242,6 +274,8 @@ class RAGResult(BaseModel):
     retrieval_contexts: Optional[List[ContextItem]] = None
     postprocessing_contexts: Optional[List[ContextItem]] = None
 
+    finished: bool = False
+
     def __init__(self, **data):
         super().__init__(**data)
 
@@ -251,6 +285,15 @@ class RAGResult(BaseModel):
 
     def copy(self):
         return copy.deepcopy(self)
+
+    def update_metrics(self, metrics: Dict[str, Union[float, int]]):
+        if not metrics:
+            return
+        if self.metadata is None:
+            self.metadata = {}
+        for key, value in metrics.items():
+            if isinstance(value, (float, int)):
+                self.metadata[key] = value
 
     def init_context_idx(self, context_type):
         context_list_name = f"{context_type.value}_contexts"
@@ -327,12 +370,13 @@ class RAGResult(BaseModel):
 
 
 class RAGResults(BaseModel):
-    metadata: Optional[Dict[str, Union[float, int, list]]] = None
+    metadata: Optional[Dict[str, Union[float, int]]] = None
     results: List[RAGResult] = []
+    finished: bool = False
 
     def add_result(self, result):
         self.results.append(result)
-        self.cal_recall()
+        self.cal_metadata()
 
     def cal_recall(self):
         recall_rates = {}
@@ -344,20 +388,62 @@ class RAGResults(BaseModel):
                 hit_count += result.metadata.get(context_type, 0) if result.metadata else 0
 
             recall_rate = hit_count / gt_count if gt_count > 0 else np.nan
-            recall_rates[context_type] = recall_rate
+            if context_type is ContextType.RETRIEVAL:
+                recall_rates[Metrics.RETRIEVAL_RECALL.value] = recall_rate
+            elif context_type is ContextType.POSTPROCESSING:
+                recall_rates[Metrics.POSTPROCESSING_RECALL.value] = recall_rate
+        self.metadata = self.metadata or {}
+        self.metadata.update(recall_rates)
+
+    def cal_metadata(self):
+        self.cal_recall()
+
+        rate_sums = {}
+        rate_counts = {}
+
+        for result in self.results:
+            if not result.metadata:
+                continue
+            for key, value in result.metadata.items():
+                if isinstance(value, (int, float)) and key in {metric.value for metric in Metrics}:
+                    if key not in rate_sums:
+                        rate_sums[key] = 0.0
+                        rate_counts[key] = 0
+                    rate_sums[key] += value
+                    rate_counts[key] += 1
 
         self.metadata = self.metadata or {}
-        self.metadata["recall_rate"] = recall_rates
+        for key, total in rate_sums.items():
+            avg = total / rate_counts[key] if rate_counts[key] > 0 else np.nan
+            self.metadata[f"{key}"] = avg
+
+    def get_metrics(self):
+        return self.metadata or {}
+
+    def get_metric(self, metric: Metrics, default=float("-inf")):
+        return self.metadata.get(metric.value, default)
+
+    def update_result_metrics(self, query_id: int, metrics: Dict[str, Union[float, int]]):
+        updated = False
+        for result in self.results:
+            if result.query_id == query_id:
+                result.update_metrics(metrics)
+                updated = True
+                break
+
+        if updated:
+            self.cal_metadata()
+        return updated
 
     def check_metadata(self):
-        recall_rates = self.metadata.get("recall_rate", {})
-        for key, rate in recall_rates.items():
-            print(f"{key}: {rate}")
+        if not self.metadata:
+            print("No metadata found.")
+            return
+        for key, value in self.metadata.items():
+            print(f"{key}: {value}")
 
     def save_to_json(self, file_path: str):
-        cleaned_metadata = None
-        if self.metadata:
-            cleaned_metadata = {str(k): v for k, v in self.metadata.items()}
+        cleaned_metadata = {str(k): v for k, v in (self.metadata or {}).items()}
         rag_results_dict = {
             **self.dict(exclude={"metadata"}),
             "metadata": cleaned_metadata,
@@ -365,7 +451,6 @@ class RAGResults(BaseModel):
 
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(rag_results_dict, f, ensure_ascii=False, indent=4)
-        # print(f"RAGResults saved to {file_path}")
 
     def save_to_csv(self, output_dir: str):
         output_dir = Path(output_dir)
@@ -378,24 +463,21 @@ class RAGResults(BaseModel):
             metadata_keys = set()
             for result in self.results:
                 for context_type in ContextType:
-                    context_type_str = f"{context_type.value}_contexts"
-                    context_list: List[ContextItem] = getattr(result, context_type_str) or []
+                    context_list = getattr(result, f"{context_type.value}_contexts") or []
                     for ctx in context_list:
                         if ctx.metadata:
                             metadata_keys.update(ctx.metadata.keys())
             fieldnames.extend(metadata_keys)
-
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
 
             for result in self.results:
                 for context_type in ContextType:
-                    context_type_str = f"{context_type.value}_contexts"
-                    context_list: List[ContextItem] = getattr(result, context_type_str) or []
+                    context_list = getattr(result, f"{context_type.value}_contexts") or []
                     for ctx in context_list:
                         row = {
                             "query_id": result.query_id,
-                            "context_type": context_type_str,
+                            "context_type": f"{context_type.value}_contexts",
                             "context_idx": ctx.context_idx,
                             "file_name": ctx.file_name,
                             "text": ctx.text,
