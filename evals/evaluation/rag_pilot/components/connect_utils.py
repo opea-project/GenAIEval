@@ -1,13 +1,12 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-import os
 import json
-import requests
+import os
 
+import requests
 from components.pilot.base import convert_dict_to_pipeline
 from components.pilot.ecrag.api_schema import PipelineCreateIn, RagOut
-
 
 ECRAG_SERVICE_HOST_IP = os.getenv("ECRAG_SERVICE_HOST_IP", "127.0.0.1")
 ECRAG_SERVICE_PORT = int(os.getenv("ECRAG_SERVICE_PORT", 16010))
@@ -33,16 +32,14 @@ def load_prompt(prompt_text):
         print("Successfully set prompt")
         return True
     else:
-        error_detail = res.text if hasattr(res, 'text') else "Unknown error"
+        error_detail = res.text if hasattr(res, "text") else "Unknown error"
         print(f"Failed to set prompt: {error_detail}")
         return False
 
 
 def create_pipeline(pipeline_conf):
     path = "/v1/settings/pipelines"
-    return requests.post(
-        f"{server_addr}{path}", json=pipeline_conf.dict(), proxies={"http": None}
-    )
+    return requests.post(f"{server_addr}{path}", json=pipeline_conf.dict(), proxies={"http": None})
 
 
 def update_pipeline(pipeline_conf):
@@ -66,9 +63,7 @@ def update_active_pipeline(pipeline):
 
 def upload_files(file_conf):
     path = "/v1/data"
-    return requests.post(
-        f"{server_addr}{path}", json=file_conf.dict(), proxies={"http": None}
-    )
+    return requests.post(f"{server_addr}{path}", json=file_conf.dict(), proxies={"http": None})
 
 
 def get_ragqna(query):

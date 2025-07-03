@@ -1,3 +1,6 @@
+// Copyright (C) 2025 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
+
 export default {
   headerTitle: "RAG Pilot Pipeline Autotune Tool",
   common: {
@@ -5,7 +8,7 @@ export default {
     edit: "编辑",
     delete: "删除",
     active: "启用",
-    deactive: "停用",
+    deactivate: "停用",
     cancel: "取消",
     confirm: "确认",
     save: "保存",

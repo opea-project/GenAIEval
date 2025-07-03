@@ -1,16 +1,14 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-from fastapi import Path
+import asyncio
 from typing import List, Optional
 
-from fastapi import FastAPI
-import asyncio
-
-from components.tuner.tunermgr import tunerMgr
-from api_schema import RAGStage, TunerOut, RunningStatus
-from components.pilot.pilot import pilot
+from api_schema import RAGStage, RunningStatus, TunerOut
 from components.pilot.base import Metrics
+from components.pilot.pilot import pilot
+from components.tuner.tunermgr import tunerMgr
+from fastapi import FastAPI, Path
 
 tuner_app = FastAPI()
 
@@ -83,7 +81,9 @@ async def run_tuners_in_background(stage: Optional[RAGStage], tuner_names: List[
                 for pl, params in zip(pl_list, params_candidates):
                     print(f"[Tuner {tuner_name}]: Running {pl.get_id()}")
                     for attr, tunerUpdate in params.items():
-                        print(f"[Tuner {tuner_name}][{pl.get_id()}]: Setting {tunerUpdate.node_type}.{tunerUpdate.module_type}.{attr} to {tunerUpdate.val}")
+                        print(
+                            f"[Tuner {tuner_name}][{pl.get_id()}]: Setting {tunerUpdate.node_type}.{tunerUpdate.module_type}.{attr} to {tunerUpdate.val}"
+                        )
                     if stage == RAGStage.RETRIEVAL or stage == RAGStage.POSTPROCESSING:
                         await asyncio.to_thread(pilot.run_pipeline_blocked, pl, True)
                     else:
