@@ -179,6 +179,13 @@ export const getResultStatus = () => {
   });
 };
 
+export const getBestPipelineByStage = (stage: String) => {
+  return request({
+    url: `v1/tuners/stage/${stage}/pipelines/best/id`,
+    method: "get",
+  });
+};
+
 export const uploadPipelineFileUrl = `${
   import.meta.env.VITE_API_URL
 }v1/pilot/pipeline/active/import`;

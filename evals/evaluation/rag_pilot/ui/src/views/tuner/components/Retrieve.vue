@@ -257,11 +257,12 @@ import { QueryMenu } from "./index";
 import {
   requesStageRun,
   getPipelineDetailById,
-  getActivePipeline,
   getResultsByPipelineId,
   getStagePipelines,
   getMetricsByStage,
   getTunerStatus,
+  getMetricsByPipelineId,
+  getActivePipeline,
 } from "@/api/ragPilot";
 import {
   EyeOutlined,
@@ -280,6 +281,7 @@ import { marked } from "marked";
 import { transformTunerName } from "@/utils/common";
 import router from "@/router";
 import { useI18n } from "vue-i18n";
+import { Local } from "@/utils/storage";
 
 const { t } = useI18n();
 
@@ -290,9 +292,10 @@ marked.setOptions({
   renderer: CustomRenderer,
 });
 
+const basePipeline = ref<number | null>();
 const isInit = ref<boolean>(true);
 let scrollContainer: any = null;
-const activePipelineId = ref<number>();
+const bestPipelineId = ref<number>();
 const resultsData = ref<ResultOut[]>([]);
 const timers = reactive<any>({});
 const tableList = ref<EmptyArrayType>([]);
@@ -332,7 +335,6 @@ const tunerDone = computed(() => {
 
 const setSelectedClass = (record: any, index: number) => {
   if (record.isSelected) {
-    console.log(record, index);
     return "is-selected";
   }
 };
@@ -485,12 +487,13 @@ const checkTextOverflow = () => {
 };
 
 const queryStagePipelines = async () => {
+  basePipeline.value = Local.get("pipelineInfo")?.basePipeline;
   const data: any = await getStagePipelines("retrieval");
   const allPipelineItems = Object.values(data).flat();
   const pipelineIds = [
     ...new Set(allPipelineItems.flatMap((item: any) => [item.pipeline_id])),
   ];
-
+  pipelineIds.push(basePipeline.value);
   const targetKeys = allPipelineItems.flatMap((item: any) => {
     return Object.keys(item.targets || {}).map((fullKey) => {
       const parts = fullKey.split(".");
@@ -519,24 +522,43 @@ const queryPipelinesConfig = async (pipelines: EmptyArrayType) => {
 
     tableList.value = [].concat(...validResponses);
 
-    queryPipelinesRecall();
+    if (tunerDone.value) {
+      queryPipelinesRecall();
+    }
   } catch (err) {
     console.log(err);
   }
 };
 const queryPipelinesRecall = async () => {
-  const data: any = await getMetricsByStage("retrieval");
-
-  tableList.value = tableList.value.map((item, index) => ({
-    ...item,
-    ...(data[item.id.toString()] ? { ...data[item.id.toString()] } : {}),
-  }));
-  handleSelectedPipeline();
+  try {
+    const [stageMetrics, baseMetrics]: [any, any] = await Promise.all([
+      getMetricsByStage("retrieval"),
+      getMetricsByPipelineId(basePipeline.value!),
+    ]);
+    tableList.value = tableList.value.map((item, index) => {
+      if (item.id === basePipeline.value) {
+        return {
+          ...item,
+          ...baseMetrics,
+        };
+      } else {
+        return {
+          ...item,
+          ...(stageMetrics[item.id.toString()]
+            ? { ...stageMetrics[item.id.toString()] }
+            : {}),
+        };
+      }
+    });
+    handleSelectedPipeline();
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 const handleSelectedPipeline = () => {
   const index = tableList.value.findIndex(
-    (item) => item.id === activePipelineId.value
+    (item) => item.id === bestPipelineId.value
   );
   if (index === -1) return;
 
@@ -566,12 +588,12 @@ const inItTableColumns = (targets: EmptyArrayType) => {
 
 const queryActivePipelineId = async () => {
   const pipeline_id: any = await getActivePipeline();
-  activePipelineId.value = pipeline_id;
+  bestPipelineId.value = pipeline_id;
 
   getQuerysResult();
 };
 const getQuerysResult = async () => {
-  const data: any = await getResultsByPipelineId(activePipelineId.value!);
+  const data: any = await getResultsByPipelineId(bestPipelineId.value!);
 
   resultsData.value = [].concat(data?.results);
   getCurrentQuery();
