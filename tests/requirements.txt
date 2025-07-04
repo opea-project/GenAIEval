@@ -7,3 +7,4 @@ langchain_huggingface
 lm-eval==0.4.3
 openai
 ragas==0.1.19   
+sentence-transformers
