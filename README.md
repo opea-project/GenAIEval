@@ -141,7 +141,7 @@ We provide a OPEA microservice benchmarking tool which is designed for microserv
 
 ### How to use
 
-**Define Test Cases**: Configure your tests in the [benchmark.yaml](./evals/benchmark/benchmark.py) file.
+**Define Test Cases**: Configure your tests in the [benchmark.yaml](./evals/benchmark/benchmark.yaml) file.
 
 **Increase File Descriptor Limit (if running large-scale tests)**:
 
