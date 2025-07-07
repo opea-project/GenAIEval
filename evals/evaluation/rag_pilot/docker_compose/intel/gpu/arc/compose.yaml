@@ -1,0 +1,30 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+services:
+  ui:
+    image: ${REGISTRY:-opea}/ragpilot-ui:${TAG:-latest}
+    container_name: ragpilot-ui
+    environment:
+      no_proxy: ${no_proxy}
+      http_proxy: ${http_proxy}
+      https_proxy: ${https_proxy}
+    restart: always
+    ports:
+      - ${RAGPILOT_UI_SERVICE_PORT:-8090}:8090
+  ragpilot:
+    image: ${REGISTRY:-opea}/ragpilot:${TAG:-latest}
+    container_name: ragpilot
+    environment:
+      no_proxy: ${no_proxy}
+      http_proxy: ${http_proxy}
+      https_proxy: ${https_proxy}
+      ECRAG_SERVICE_HOST_IP: ${ECRAG_SERVICE_HOST_IP}
+      ECRAG_SERVICE_PORT: ${ECRAG_SERVICE_PORT:-16010}
+    restart: always
+    ports:
+      - ${RAGPILOT_SERVICE_PORT:-16030}:16030
+
+networks:
+  default:
+    driver: bridge

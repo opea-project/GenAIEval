@@ -3,11 +3,11 @@
 
 import ast
 from copy import deepcopy
-from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, Optional, Tuple
+from dataclasses import dataclass
+from typing import Any, Callable, Dict, Optional
 
+from components.connect_utils import COMP_TYPE_MAP, get_ecrag_module_map
 from components.pilot.base import RAGPipeline
-from components.pilot.connector import COMP_TYPE_MAP, get_ecrag_module_map
 
 
 def get_support_modules(module_name: str, module_map) -> Callable:
@@ -225,9 +225,9 @@ class Adaptor:
         for params_candidate in params_candidates:
             rag_pl = self.rag_pipeline.copy()
             self.update_all_module_functions_tmp(rag_pl)
-            for attr, ((node_type, module_type), val) in params_candidate.items():
-                module = self.get_module(node_type, module_type)
-                module.set_value(attr, val)
+            for attr, tunerUpdate in params_candidate.items():
+                module = self.get_module(tunerUpdate.node_type, tunerUpdate.module_type)
+                module.set_value(attr, tunerUpdate.val)
             rag_pl.regenerate_id()
             rag_pls.append(rag_pl)
         self.update_all_module_functions(self.rag_pipeline)

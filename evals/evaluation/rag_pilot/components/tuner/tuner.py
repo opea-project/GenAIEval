@@ -1,12 +1,15 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+import glob
+import os
 from abc import ABC, abstractmethod
 from itertools import product
 from typing import Dict, Optional
 
+from api_schema import RunningStatus
 from components.tuner.adaptor import Adaptor
-from components.tuner.base import ContentType, Feedback, Question, Suggestion, SuggestionType, Target
+from components.tuner.base import ContentType, Feedback, Question, Suggestion, SuggestionType, Target, TargetUpdate
 
 
 def input_parser(upper_limit: int = None):
@@ -42,10 +45,11 @@ def display_list(list):
 class Tuner(ABC):
 
     def __init__(self, question: Question, adaptor: Adaptor, targets: Dict[str, Target]):
+        self.name = self.__class__.__name__
         self.question = question
-
         self.adaptor = adaptor
         self.targets = targets
+        self._status = RunningStatus.NOT_STARTED
 
     def check_active(self):
         for target in self.targets.values():
@@ -53,6 +57,15 @@ class Tuner(ABC):
             if not target_obj.get_status():
                 return False
         return True
+
+    def get_status(self):
+        return self._status
+
+    def set_status(self, status: RunningStatus):
+        self._status = status
+
+    def set_status_completed(self):
+        self._status = RunningStatus.COMPLETED
 
     def set_param(
         self,
@@ -124,16 +137,22 @@ class Tuner(ABC):
 
                 target.suggestion = Suggestion(hint=hint, options=target.new_vals, suggestion_type=suggestion_type)
 
-    def request_feedback(self):
+    def request_feedback(self, auto=False):
         if not self.check_active():
+            self.set_status(RunningStatus.INACTIVE)
             return False
 
         print(f"\033[1m\033[93m{self}\033[0m: {self.question}\n")
-        valid, user_input = input_parser(len(self.question.options))
-        if not valid:
-            return False
+        if not auto:
+            valid, user_input = input_parser(len(self.question.options))
+            if not valid:
+                return False
+            auto = False
+        else:
+            user_input = -1
+            auto = True
 
-        self.user_feedback = Feedback(feedback=user_input)
+        self.user_feedback = Feedback(feedback=user_input, auto=auto)
         return self._feedback_to_suggestions()
 
     @abstractmethod
@@ -142,10 +161,10 @@ class Tuner(ABC):
 
     def apply_suggestions(self):
         if not self.check_active():
-            return
+            self.set_status(RunningStatus.INACTIVE)
+            return None, None
 
         params_candidates = []
-
         new_values_dict = {}
 
         # STEPWISE_GROUPED
@@ -160,14 +179,14 @@ class Tuner(ABC):
             for idx in range(count):
                 candidate = {a: t.new_vals[idx] for a, t in grouped_targets.items()}
                 new_values_dict = {
-                    a: [(t.node_type, t.module_type), t.new_vals[idx]] for a, t in grouped_targets.items()
+                    a: TargetUpdate(node_type=t.node_type, module_type=t.module_type, attribute=a, val=t.new_vals[idx])
+                    for a, t in grouped_targets.items()
                 }
                 params_candidates.append(new_values_dict)
             if len(params_candidates) > 0:
                 return self.adaptor.get_rag_pipelines_candidates(params_candidates)
 
         # GRID_SEARCH
-
         grid_targets = {
             a: t
             for a, t in self.targets.items()
@@ -179,7 +198,12 @@ class Tuner(ABC):
                 candidate = dict(zip(keys, combination))
                 new_values_dict = {}
                 for a, val in candidate.items():
-                    new_values_dict[a] = [(self.targets[a].node_type, self.targets[a].module_type), val]
+                    new_values_dict[a] = TargetUpdate(
+                        node_type=self.targets[a].node_type,
+                        module_type=self.targets[a].module_type,
+                        attribute=a,
+                        val=val,
+                    )
                 params_candidates.append(new_values_dict)
             if len(params_candidates) > 0:
                 return self.adaptor.get_rag_pipelines_candidates(params_candidates)
@@ -195,11 +219,21 @@ class Tuner(ABC):
                 case SuggestionType.SET:
                     print(f"{suggestion}")
                     if suggestion.options:
-                        new_values_dict[attr] = [(target.node_type, target.module_type), suggestion.options[0].content]
+                        new_values_dict[attr] = TargetUpdate(
+                            node_type=target.node_type,
+                            module_type=target.module_type,
+                            attribute=attr,
+                            val=suggestion.options[0].content,
+                        )
                     else:
                         valid, user_input = input_parser()
                         if valid:
-                            new_values_dict[attr] = [(target.node_type, target.module_type), user_input]
+                            new_values_dict[attr] = TargetUpdate(
+                                node_type=target.node_type,
+                                module_type=target.module_type,
+                                attribute=attr,
+                                val=user_input,
+                            )
 
                 case SuggestionType.CHOOSE:
                     print(f"{suggestion}")
@@ -207,13 +241,23 @@ class Tuner(ABC):
                     valid, user_input = input_parser(len(new_options))
                     if valid:
                         chosed_val = suggestion.options[user_input - 1]
-                        new_values_dict[attr] = [(target.node_type, target.module_type), chosed_val.content]
+                        new_values_dict[attr] = TargetUpdate(
+                            node_type=target.node_type,
+                            module_type=target.module_type,
+                            attribute=attr,
+                            val=chosed_val.content,
+                        )
 
                 case SuggestionType.ITERATE:
                     print(f"{suggestion}")
                     for option in suggestion.options:
                         new_values_dict = {}
-                        new_values_dict[attr] = [(target.node_type, target.module_type), option.content]
+                        new_values_dict[attr] = TargetUpdate(
+                            node_type=target.node_type,
+                            module_type=target.module_type,
+                            attribute=attr,
+                            val=option.content,
+                        )
                         params_candidates.append(new_values_dict)
                     if len(params_candidates) > 0:
                         return self.adaptor.get_rag_pipelines_candidates(params_candidates)
@@ -221,12 +265,16 @@ class Tuner(ABC):
                 case SuggestionType.STEPWISE:
                     if len(target.new_vals) == 1:
                         val = target.new_vals[idx]
-                        new_values_dict[attr] = [(target.node_type, target.module_type), val]
+                        new_values_dict[attr] = TargetUpdate(
+                            node_type=target.node_type, module_type=target.module_type, attribute=attr, val=val
+                        )
                     else:
                         for idx in range(len(target.new_vals)):
                             new_values_dict = {}
                             val = target.new_vals[idx]
-                            new_values_dict[attr] = [(target.node_type, target.module_type), val]
+                            new_values_dict[attr] = TargetUpdate(
+                                node_type=target.node_type, module_type=target.module_type, attribute=attr, val=val
+                            )
                             params_candidates.append(new_values_dict)
                         if len(params_candidates) > 0:
                             return self.adaptor.get_rag_pipelines_candidates(params_candidates)
@@ -236,6 +284,14 @@ class Tuner(ABC):
 
         params_candidates.append(new_values_dict)
         return self.adaptor.get_rag_pipelines_candidates(params_candidates)
+
+    def run(self, pl):
+        self.adaptor.update_all_module_functions(pl)
+        if self.request_feedback(auto=True):
+            pl_list, params_candidates = self.apply_suggestions()
+        else:
+            pl_list, params_candidates = None, None
+        return pl_list, params_candidates
 
     def __str__(self):
         return f"{self.__class__.__name__}"
@@ -262,7 +318,7 @@ class EmbeddingTuner(Tuner):
 
     def _feedback_to_suggestions(self):
         assert isinstance(self.user_feedback, Feedback)
-        if self.user_feedback.feedback == 1:
+        if self.user_feedback.feedback == 1 or self.user_feedback.auto:
             self.set_param(param_name="embedding_model", suggestion_type=SuggestionType.ITERATE)
             return True
         else:
@@ -291,7 +347,7 @@ class NodeParserTuner(Tuner):
 
     def _feedback_to_suggestions(self):
         assert isinstance(self.user_feedback, Feedback)
-        if self.user_feedback.feedback == 1:
+        if self.user_feedback.feedback == 1 or self.user_feedback.auto:
             self.set_param(param_name="parser_type", suggestion_type=SuggestionType.ITERATE)
             return True
         else:
@@ -333,7 +389,7 @@ class SimpleNodeParserChunkTuner(Tuner):
 
     def _feedback_to_suggestions(self):
         assert isinstance(self.user_feedback, Feedback)
-        if self.user_feedback.feedback == 1:
+        if self.user_feedback.feedback == 1 or self.user_feedback.auto:
             self.set_param(param_name="chunk_size", suggestion_type=SuggestionType.STEPWISE_GROUPED, step=100, count=3)
             self.set_param(
                 param_name="chunk_overlap", suggestion_type=SuggestionType.STEPWISE_GROUPED, step=16, count=3
@@ -373,7 +429,7 @@ class RetrievalTopkTuner(Tuner):
 
     def _feedback_to_suggestions(self):
         assert isinstance(self.user_feedback, Feedback)
-        if self.user_feedback.feedback == 1:
+        if self.user_feedback.feedback == 1 or self.user_feedback.auto:
             self.set_param(
                 param_name="retrieve_topk", suggestion_type=SuggestionType.STEPWISE, step=15, lower_limit=30, count=4
             )
@@ -411,8 +467,8 @@ class RerankerTopnTuner(Tuner):
 
     def _feedback_to_suggestions(self):
         assert isinstance(self.user_feedback, Feedback)
-        if self.user_feedback.feedback == 1:
-            self.set_param(param_name="top_n", suggestion_type=SuggestionType.STEPWISE, step=5, lower_limit=5, count=2)
+        if self.user_feedback.feedback == 1 or self.user_feedback.auto:
+            self.set_param(param_name="top_n", suggestion_type=SuggestionType.STEPWISE, step=2, lower_limit=3, count=2)
             return True
         else:
             return False
@@ -452,7 +508,7 @@ class RetrievalTopkRerankerTopnTuner(Tuner):
 
     def _feedback_to_suggestions(self):
         assert isinstance(self.user_feedback, Feedback)
-        if self.user_feedback.feedback == 1:
+        if self.user_feedback.feedback == 1 or self.user_feedback.auto:
             self.set_param(
                 param_name="retrieve_topk", suggestion_type=SuggestionType.GRID_SEARCH, step=15, lower_limit=30, count=4
             )
@@ -467,6 +523,73 @@ class RetrievalTopkRerankerTopnTuner(Tuner):
             self.set_param(
                 param_name="top_n", suggestion_type=SuggestionType.GRID_SEARCH, step=5, lower_limit=5, count=2
             )
+            return True
+        else:
+            return False
+
+
+class PromptTuner(Tuner):
+
+    def __init__(self, adaptor: Adaptor):
+        # question
+        question = Question(
+            hint="Do you want to tune the prompt template?",
+            options=[
+                "Yes, iterate all prompts based on prompt candidates",
+                "Yes, choose from available prompt templates",
+                "No, skip this tuner",
+            ],
+        )
+        targets = {}
+        # targets
+        attribute = "prompt_path"
+        target = Target(
+            node_type="generator",
+            attribute=attribute,
+        )
+        targets[attribute] = target
+
+        attribute = "prompt_content"
+        target = Target(
+            node_type="generator",
+            attribute=attribute,
+        )
+        targets[attribute] = target
+        super().__init__(question, adaptor, targets)
+
+        path_target = targets["prompt_path"]
+        content_target = targets["prompt_content"]
+        target_obj_path = self.adaptor.get_module(path_target.node_type, path_target.module_type)
+        target_obj_content = self.adaptor.get_module(content_target.node_type, content_target.module_type)
+
+        prompt_contents = []
+        if target_obj_path:
+            paths = target_obj_path.get_params(path_target.attribute)
+            all_files = []
+            for cur_path in paths:
+                if os.path.isdir(cur_path):
+                    txt_files = glob.glob(os.path.join(cur_path, "*.txt"))
+                    all_files.extend(txt_files)
+                elif os.path.isfile(cur_path) and cur_path.endswith(".txt"):
+                    all_files.append(cur_path)
+            if all_files:
+                for file_path in all_files:
+                    try:
+                        with open(file_path, "r", encoding="utf-8") as f:
+                            content = f.read()
+                            prompt_contents.append(content)
+                    except Exception as e:
+                        print(f"Warning: Could not read file {file_path}: {e}")
+        if target_obj_content and prompt_contents:
+            target_obj_content.params[content_target.attribute].extend(prompt_contents)
+
+    def _feedback_to_suggestions(self):
+        assert isinstance(self.user_feedback, Feedback)
+        if self.user_feedback.feedback == 1 or self.user_feedback.auto:
+            self.set_param(param_name="prompt_content", suggestion_type=SuggestionType.ITERATE)
+            return True
+        elif self.user_feedback.feedback == 2:
+            self.set_param(param_name="prompt_content", suggestion_type=SuggestionType.CHOOSE)
             return True
         else:
             return False
