@@ -117,7 +117,7 @@ curl -X POST http://localhost:16030/v1/pilot/pipeline/active/run| jq '.'
 ```
 #### Get pipeline results
 ```bash
-#get detaill results
+#get detail results
 curl -X GET http://localhost:16030/v1/pilot/pipeline/{pipeline id}/results | jq '.'
 #get pipeline metrics
 curl -X GET http://localhost:16030/v1/pilot/pipeline/{pipeline id}/results/metrics | jq '.'

@@ -6,25 +6,23 @@ from collections import defaultdict
 from enum import Enum
 from time import sleep
 
-from components.pilot.base import (
-    RAGPipeline,
-    Metrics
-)
-from components.connect_utils import get_active_pipeline, reindex_data, load_pipeline_from_json
-from components.utils import read_yaml, load_rag_results_from_csv
+from api_schema import RAGStage
+from components.connect_utils import get_active_pipeline, load_pipeline_from_json, reindex_data
+from components.pilot.base import Metrics, RAGPipeline
 from components.pilot.pilot import Pilot
 from components.tuner.adaptor import Adaptor
 from components.tuner.tuner import (
     EmbeddingTuner,
     NodeParserTuner,
+    PromptTuner,
     RerankerTopnTuner,
     RetrievalTopkRerankerTopnTuner,
     RetrievalTopkTuner,
     SimpleNodeParserChunkTuner,
-    PromptTuner,
     input_parser,
 )
-from api_schema import RAGStage
+from components.utils import load_rag_results_from_csv, read_yaml
+
 
 class Mode(str, Enum):
     ONLINE = "online"
@@ -108,7 +106,7 @@ def main():
                 pl_list, params_candidates = tuner.apply_suggestions()
                 for pl, params in zip(pl_list, params_candidates):
                     print(f"Trying to update pipeline to {params}")
-                    is_prompt_tuning = stage == RAGStage.GENERATION and 'prompt_content' in params
+                    is_prompt_tuning = stage == RAGStage.GENERATION and "prompt_content" in params
                     if pl.id != active_pl.id:
                         pilot.add_rag_pipeline(pl)
                         pilot.curr_pl_id = pl.id
