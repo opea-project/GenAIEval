@@ -1,0 +1,5 @@
+{
+    "llm_name": "Qwen/Qwen2-7B-Instruct",
+    "evaluator_type": "deepeval",
+    "metrics": "all_metrics"
+}

@@ -40,22 +40,21 @@ class FileType(str, Enum):
 
 class NodeParserType(str, Enum):
 
-    DEFAULT = "default"
     SIMPLE = "simple"
     HIERARCHY = "hierarchical"
     SENTENCEWINDOW = "sentencewindow"
+    UNSTRUCTURED = "unstructured"
 
 
 class IndexerType(str, Enum):
 
-    DEFAULT = "default"
     FAISS_VECTOR = "faiss_vector"
     DEFAULT_VECTOR = "vector"
+    MILVUS_VECTOR = "milvus_vector"
 
 
 class RetrieverType(str, Enum):
 
-    DEFAULT = "default"
     VECTORSIMILARITY = "vectorsimilarity"
     AUTOMERGE = "auto_merge"
     BM25 = "bm25"
