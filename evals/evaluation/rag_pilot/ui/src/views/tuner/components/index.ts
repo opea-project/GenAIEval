@@ -1,6 +1,3 @@
-// Copyright (C) 2025 Intel Corporation
-// SPDX-License-Identifier: Apache-2.0
-
 import Retrieve from "./Retrieve.vue";
 import Rating from "./Rating.vue";
 import Postprocess from "./Postprocess.vue";

@@ -1,6 +1,3 @@
-// Copyright (C) 2025 Intel Corporation
-// SPDX-License-Identifier: Apache-2.0
-
 export default {
   headerTitle: "RAG Pilot Pipeline Autotune Tool",
   common: {
@@ -8,7 +5,7 @@ export default {
     edit: "编辑",
     delete: "删除",
     active: "启用",
-    deactivate: "停用",
+    deactive: "停用",
     cancel: "取消",
     confirm: "确认",
     save: "保存",
@@ -26,6 +23,7 @@ export default {
     uploadTip: "点击或将文件拖到此区域进行上传",
     exitTip: "您确定要退出吗？退出后，进程将重置。",
     ratingTip: "请耐心阅读每个问题，并对答案进行评分",
+    ratingTip1: "请耐心阅读每个问题，并对每个提示词模版中的答案进行评分,",
     rated: "已完成",
     total: "总计",
     retry: "重试",
@@ -33,17 +31,26 @@ export default {
     selected: "选择的",
     configuration: "Pipeline 配置",
     waitTip: "请耐心等待，在此期间不要刷新页面。",
+    reUpload: "重新上传",
+    upload: "选择文件上传",
   },
   home: {
     title: "您好, 我是RAG Pilot.",
-    des: " 请上传文件以进行调试和分析",
+    des: " 选择你喜欢的方式开始创建",
     tip: "没有可用的Pipeline。请先创建或激活它",
+    info: "直接上传或者手动创建调试样本",
     create: "创建调试样本",
-    edit: "编辑调试样本",
+    edit: "编辑",
+    upload: "上传文件",
     uploadSucc: "文件上传成功 !",
     uploadErr: "文件上传失败!",
-    fileFormat: "支持 CSV 和 JSON 格式，文件大小不超过 200MB",
-    created: "您已成功创建调试样本",
+    fileFormat: "支持 CSV 和 JSON 格式",
+    sizeFormat: "文件大小不超过 200MB",
+    manual: "手动创建",
+    createdText: "在线创建和编辑数据，操作更灵活",
+    createdTip: "支持数据下载到本地",
+    created: "创建成功 !",
+
     validSizeErr: "文件大小不能超过 200MB",
     form: {
       delContext: " 删除上下文",

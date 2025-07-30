@@ -10,7 +10,7 @@
         <StarFilled
           :style="{ fontSize: '16px', color: 'var(--color-warning)' }"
         />
-        <span>{{ $t("common.ratingTip") }}</span>
+        <span>{{ $t("common.ratingTip1") }}</span>
       </div>
       <div class="rated-wrap slider-wrap">
         <span>{{ $t("common.rated") }}:</span>
@@ -26,7 +26,8 @@
           v-for="(item, index) in resultsData"
           :key="index"
           :id="item?.query_id?.toString()"
-          ref="sectionRefs"
+          :ref="(el) => setSectionRef(el, item?.query_id?.toString())"
+          :data-section-id="item?.query_id?.toString()"
           class="query-item"
         >
           <div class="index-wrap">{{ index + 1 }}</div>
@@ -146,7 +147,9 @@ const resultsData = ref<ResultOut[]>([]);
 const headerHeight = 46;
 const sectionRefs = ref<HTMLElement[]>([]);
 let scrollContainer: any = null;
-const activeSection = ref<number>();
+const activeSection = ref<number>(0);
+const sectionOffsets = ref<Record<number, number>>({});
+const resizeObserver = ref<ResizeObserver | null>(null);
 
 const loading = computed(() => {
   return !resultsData.value?.length;
@@ -233,35 +236,62 @@ const handleBack = async () => {
 const handleUpdateId = (value: number) => {
   if (value) handleScrollTo(value!);
 };
-const handleScrollTo = (id: number) => {
-  const element = document.getElementById(id.toString());
-  if (element) {
-    const offsetPosition = element.offsetTop - headerHeight - 12;
+const setSectionRef = (el: HTMLElement | null, id: number) => {
+  if (el) {
+    sectionRefs.value[id] = el;
+    sectionOffsets.value[id] = el.offsetTop;
 
+    if (resizeObserver.value && el) {
+      resizeObserver.value.observe(el);
+    }
+  }
+};
+
+const handleScrollTo = async (id: number) => {
+  await nextTick();
+  const offsetPosition = sectionOffsets.value[id];
+
+  if (typeof offsetPosition === "number") {
     scrollContainer?.scrollTo({
-      top: offsetPosition,
+      top: offsetPosition - headerHeight - 12,
       behavior: "smooth",
     });
   }
 };
 const handleScroll = debounce(() => {
-  const scrollPosition = scrollContainer?.scrollTop! + headerHeight + 20;
+  const scrollTop = scrollContainer?.scrollTop || 0;
+  const viewportTop = scrollTop + headerHeight + 20;
 
-  for (let i = resultsData.value.length - 1; i >= 0; i--) {
-    const section = sectionRefs.value[i];
+  let foundId: number | null = null;
 
-    if (section) {
-      const sectionTop = section.offsetTop;
-      if (scrollPosition >= sectionTop) {
-        if (activeSection.value !== resultsData.value[i].query_id) {
-          activeSection.value = resultsData.value[i].query_id;
-        }
-        break;
-      }
+  for (const id of Object.keys(sectionOffsets.value).map(Number)) {
+    const offsetTop = sectionOffsets.value[id];
+    if (viewportTop >= offsetTop) {
+      foundId = id;
     }
   }
-}, 100);
 
+  if (foundId !== null && activeSection.value !== foundId) {
+    activeSection.value = foundId;
+  }
+}, 100);
+const initResizeObserver = () => {
+  resizeObserver.value = new ResizeObserver((entries) => {
+    entries.forEach((entry) => {
+      const id = Number(entry.target.id);
+      if (id) {
+        sectionOffsets.value[id] = entry.target?.offsetTop;
+      }
+    });
+  });
+
+  for (const id in sectionRefs.value) {
+    const el = sectionRefs.value[Number(id)];
+    if (el) {
+      resizeObserver.value.observe(el);
+    }
+  }
+};
 watch(
   () => props.baseResult,
   (value) => {
@@ -290,9 +320,17 @@ onMounted(() => {
     scrollContainer.addEventListener("scroll", handleScroll);
     handleScroll();
   }
+  initResizeObserver();
 });
 onUnmounted(() => {
-  scrollContainer?.removeEventListener("scroll", handleScroll);
+  if (scrollContainer) {
+    scrollContainer.removeEventListener("scroll", handleScroll);
+  }
+
+  if (resizeObserver.value) {
+    resizeObserver.value.disconnect();
+    resizeObserver.value = null;
+  }
 });
 </script>
 
@@ -409,6 +447,9 @@ onUnmounted(() => {
         padding: 0;
         background-color: transparent;
         max-width: 45%;
+        display: grid;
+        align-items: end;
+        height: 100%;
       }
       .rate-wrap {
         box-shadow: 0px 2px 4px 4px var(--bg-box-shadow);

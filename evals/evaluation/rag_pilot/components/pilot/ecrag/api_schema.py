@@ -25,6 +25,7 @@ class NodeParserIn(BaseModel):
 class IndexerIn(BaseModel):
     indexer_type: str
     embedding_model: Optional[ModelIn] = None
+    vector_uri: Optional[str] = None
 
 
 class RetrieverIn(BaseModel):
@@ -43,6 +44,7 @@ class GeneratorIn(BaseModel):
     prompt_content: Optional[str] = None
     model: Optional[ModelIn] = None
     inference_type: Optional[str] = "local"
+    vllm_endpoint: Optional[str] = None
 
 
 class PipelineCreateIn(BaseModel):
@@ -78,3 +80,7 @@ class KnowledgeBaseCreateIn(BaseModel):
     name: str
     description: Optional[str] = None
     active: Optional[bool] = None
+
+
+class MilvusConnectRequest(BaseModel):
+    vector_uri: str

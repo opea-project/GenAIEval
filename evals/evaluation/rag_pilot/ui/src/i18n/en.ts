@@ -1,6 +1,3 @@
-// Copyright (C) 2025 Intel Corporation
-// SPDX-License-Identifier: Apache-2.0
-
 export default {
   headerTitle: "RAG Pilot Pipeline Autotune Tool",
   common: {
@@ -8,7 +5,7 @@ export default {
     edit: "Edit",
     delete: "Delete",
     active: "Activate",
-    deactivate: "Deactivate",
+    deactive: "Deactive",
     cancel: "Cancel",
     confirm: "Confirm",
     save: "Save",
@@ -16,7 +13,7 @@ export default {
     reset: "Reset",
     error: "Error",
     exit: "Exit",
-    back: "Back",
+    back: "Prev",
     prompt: "Prompt",
     download: "Download",
     collapse: "Collapse",
@@ -26,6 +23,8 @@ export default {
     uploadTip: "Click or drag file to this area to upload",
     exitTip: "Are you sure to exit? After exiting, the process will be reset.",
     ratingTip: "Please read each question patiently and rate the answer.",
+    ratingTip1:
+      "Please read each question patiently and rate the answers in each prompt",
     rated: "Rated",
     total: "Total",
     retry: "Retry",
@@ -34,23 +33,31 @@ export default {
     configuration: "Pipeline configuration",
     waitTip:
       "Please wait patiently and do not refresh the page during this period.",
+    reUpload: "Re-upload",
+    upload: "Upload file",
   },
   home: {
     title: "Hi, I'm RAG Pilot.",
-    des: "Please upload the file for debugging and analysis.",
+    des: "Choose your preferred method to start creating.",
     tip: "There is no available pipeline. Please create or activate it first.",
+    info: "Upload or create ground truth.",
     create: " Create Ground Truth",
-    edit: "Edit Ground Truth",
+    edit: "Edit",
     uploadSucc: "Upload Successfully !",
     uploadErr: "Files upload failed!",
-    fileFormat: "Supports CSV JSON format, with file size not exceeding 200M.",
-    created: "You have successfully created ground truth.",
+    upload: "Upload File",
+    fileFormat: "Supports CSV JSON format.",
+    sizeFormat: "File size not exceeding 200M.",
+    manual: "Manually Create",
+    createdText: "Create and edit data online, with more flexible operations.",
+    createdTip: "Support data export to local storage.",
+    created: "Created successfully !",
     validSizeErr: "Single file size not exceeding 200M.",
     form: {
       delContext: "Delete Context",
       delQuery: "Delete Query",
-      addContext: "addete Context",
-      addQuery: "Delete Query",
+      addContext: "Add Context",
+      addQuery: "Add Query",
       label: {
         query: "Query",
         gt_context: "Contexts Ground Truth",

@@ -1,20 +1,23 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+from io import StringIO
 import json
 import uuid
-from io import BytesIO, StringIO
+
+from fastapi import FastAPI, File, HTTPException, UploadFile, Body
+from fastapi.responses import JSONResponse
+from fastapi.responses import StreamingResponse
+from io import BytesIO
 from typing import List
 
-from api_schema import GroundTruth, RAGStage, ResultOut, RunningStatus
-from components.connect_utils import create_pipeline, update_active_pipeline, update_pipeline, upload_files
-from components.pilot.base import RAGPipeline, convert_dict_to_pipeline
-from components.pilot.ecrag.api_schema import DataIn, PipelineCreateIn
+from components.pilot.base import convert_dict_to_pipeline, RAGPipeline
+from components.connect_utils import update_pipeline, upload_files, create_pipeline, update_active_pipeline
+from components.utils import load_rag_results_from_csv, load_rag_results_from_gt
+from components.pilot.ecrag.api_schema import PipelineCreateIn, DataIn
 from components.pilot.pilot import pilot, update_rag_pipeline
 from components.tuner.tunermgr import tunerMgr
-from components.utils import load_rag_results_from_csv, load_rag_results_from_gt
-from fastapi import Body, FastAPI, File, HTTPException, UploadFile
-from fastapi.responses import JSONResponse, StreamingResponse
+from api_schema import ResultOut, RAGStage, RunningStatus, GroundTruth
 
 pilot_app = FastAPI()
 
@@ -55,9 +58,7 @@ async def import_active_pipeline(file: UploadFile = File(...)):
     ret = create_pipeline(pipeline_req)
 
     if hasattr(ret, "status_code") and ret.status_code != 200:
-        raise HTTPException(
-            status_code=ret.status_code, detail=f"Failed to create pipeline: {getattr(ret, 'text', '')}"
-        )
+        raise HTTPException(status_code=ret.status_code, detail=f"Failed to create pipeline: {getattr(ret, 'text', '')}")
     if hasattr(ret, "text"):
         try:
             ret_dict = json.loads(ret.text)
@@ -91,7 +92,9 @@ async def export_active_pipeline():
         return StreamingResponse(
             BytesIO(json_bytes),
             media_type="application/json",
-            headers={"Content-Disposition": "attachment; filename=active_pipeline.json"},
+            headers={
+                "Content-Disposition": "attachment; filename=active_pipeline.json"
+            }
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to export pipeline: {e}")
@@ -157,7 +160,9 @@ async def export_pipeline_by_id(id: uuid.UUID):
         return StreamingResponse(
             BytesIO(json_bytes),
             media_type="application/json",
-            headers={"Content-Disposition": "attachment; filename=active_pipeline.json"},
+            headers={
+                "Content-Disposition": "attachment; filename=active_pipeline.json"
+            }
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to export pipeline: {e}")
@@ -181,13 +186,32 @@ async def run_pipeline_by_id(id: uuid.UUID):
     else:
         return f"Error: Pipeline {id} does not exist"
 
+@pilot_app.post(path="/v1/pilot/pipeline/restore")
+async def restore_pipeline():
+    success = pilot.restore_curr_pl()
+    if success:
+        current_pl = pilot.get_curr_pl()
+        return {
+            "message": "Pipeline restored successfully",
+            "pipeline_id": str(current_pl.get_id()) if current_pl else None,
+            "restored_from": "EdgeCraftRAG active pipeline"
+        }
+    else:
+        raise HTTPException(
+            status_code=404,
+            detail="Failed to restore pipeline: No active pipeline found in EdgeCraftRAG service or restore operation failed"
+        )
+
 
 @pilot_app.post(path="/v1/pilot/files")
 async def add_files(request: DataIn):
     ret = upload_files(request)
 
     if ret.status_code != 200:
-        raise HTTPException(status_code=ret.status_code, detail=f"Failed to upload files: {ret.text}")
+        raise HTTPException(
+            status_code=ret.status_code,
+            detail=f"Failed to upload files: {ret.text}"
+        )
 
     try:
         return ret.json()
@@ -196,7 +220,7 @@ async def add_files(request: DataIn):
 
 
 def load_rag_results_from_uploaded_file(uploaded_file: UploadFile, filetype: str):
-    content = uploaded_file.file.read().decode("utf-8")
+    content = uploaded_file.file.read().decode('utf-8')
     if filetype == "csv":
         csv_buffer = StringIO(content)
         return load_rag_results_from_csv(csv_buffer)
@@ -234,9 +258,9 @@ async def update_rag_ground_truth(gts: List[GroundTruth]):
 @pilot_app.post(path="/v1/pilot/ground_truth/file")
 async def update_rag_ground_truth_file(file: UploadFile = File(...)):
     filetype = ""
-    if file.filename.endswith(".csv"):
+    if file.filename.endswith('.csv'):
         filetype = "csv"
-    elif file.filename.endswith(".json"):
+    elif file.filename.endswith('.json'):
         filetype = "json"
     else:
         raise HTTPException(status_code=400, detail="Only CSV and JSON files are supported.")
@@ -277,7 +301,10 @@ async def update_pipeline_metrics(id: uuid.UUID, request: list[ResultOut] = Body
     update_results = []
     for result in request:
         success = pilot.update_result_metrics(id, result.query_id, result.metadata)
-        update_results.append({"query_id": result.query_id, "updated": success})
+        update_results.append({
+            "query_id": result.query_id,
+            "updated": success
+        })
 
     return update_results
 

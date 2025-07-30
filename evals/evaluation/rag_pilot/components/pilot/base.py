@@ -6,13 +6,14 @@ import csv
 import hashlib
 import json
 import re
-import uuid
 from difflib import SequenceMatcher
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Union
-
+from pydantic import BaseModel, model_serializer, Field
 import numpy as np
+import uuid
+
 from components.pilot.ecrag.api_schema import (
     GeneratorIn,
     IndexerIn,
@@ -22,7 +23,6 @@ from components.pilot.ecrag.api_schema import (
     PostProcessorIn,
     RetrieverIn,
 )
-from pydantic import BaseModel, Field, model_serializer
 
 
 class Metrics(str, Enum):
@@ -180,15 +180,15 @@ class RAGPipeline(BaseModel):
     def export_pipeline(self):
         self._restore_model_instances()
         exported_pl = copy.deepcopy(self.pl)
-        if hasattr(exported_pl, "generator") and exported_pl.generator:
-            if hasattr(exported_pl.generator, "prompt_content"):
-                delattr(exported_pl.generator, "prompt_content")
         self._replace_model_with_id()
         return exported_pl
 
     @model_serializer(mode="plain")
     def ser_model(self):
-        return {"id": self.id, **self.pl.model_dump()}
+        return {
+            "id": self.id,
+            **self.pl.model_dump()
+        }
 
     def copy(self):
         return copy.deepcopy(self)
@@ -372,7 +372,16 @@ class RAGResults(BaseModel):
     finished: bool = False
 
     def add_result(self, result):
-        self.results.append(result)
+        #if result.query_id has appear in self.results, then update the result,else append the results
+        updated_existing = False
+        if result.query_id is not None:
+            for idx, r in enumerate(self.results):
+                if r.query_id == result.query_id:
+                    self.results[idx] = result
+                    updated_existing = True
+                    break
+        if not updated_existing:
+            self.results.append(result)
         self.cal_metadata()
 
     def cal_recall(self):
@@ -418,7 +427,7 @@ class RAGResults(BaseModel):
         return self.metadata or {}
 
     def get_metric(self, metric: Metrics, default=float("-inf")):
-        return self.metadata.get(metric.value, default)
+        return (self.metadata or {}).get(metric.value, default)
 
     def update_result_metrics(self, query_id: int, metrics: Dict[str, Union[float, int]]):
         updated = False

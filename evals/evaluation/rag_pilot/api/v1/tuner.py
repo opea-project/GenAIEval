@@ -1,14 +1,16 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-import asyncio
+from fastapi import Path
 from typing import List, Optional
 
-from api_schema import RAGStage, RunningStatus, TunerOut
-from components.pilot.base import Metrics
-from components.pilot.pilot import pilot
+from fastapi import FastAPI
+import asyncio
+
 from components.tuner.tunermgr import tunerMgr
-from fastapi import FastAPI, Path
+from api_schema import RAGStage, TunerOut, RunningStatus
+from components.pilot.pilot import pilot
+from components.pilot.base import Metrics
 
 tuner_app = FastAPI()
 
@@ -81,9 +83,7 @@ async def run_tuners_in_background(stage: Optional[RAGStage], tuner_names: List[
                 for pl, params in zip(pl_list, params_candidates):
                     print(f"[Tuner {tuner_name}]: Running {pl.get_id()}")
                     for attr, tunerUpdate in params.items():
-                        print(
-                            f"[Tuner {tuner_name}][{pl.get_id()}]: Setting {tunerUpdate.node_type}.{tunerUpdate.module_type}.{attr} to {tunerUpdate.val}"
-                        )
+                        print(f"[Tuner {tuner_name}][{pl.get_id()}]: Setting {tunerUpdate.node_type}.{tunerUpdate.module_type}.{attr} to {tunerUpdate.val}")
                     if stage == RAGStage.RETRIEVAL or stage == RAGStage.POSTPROCESSING:
                         await asyncio.to_thread(pilot.run_pipeline_blocked, pl, True)
                     else:
@@ -156,6 +156,21 @@ async def get_stage_pipelines(stage: RAGStage = Path(...)):
             record.best_pipeline_id = best_pl_id
         pipeline_list.append(tunerMgr.get_tuner_update_outs_by_name(tuner_name))
     return pipeline_list
+
+
+@tuner_app.get(path="/v1/tuners/stage/{stage}/pipelines/best/id")
+async def get_stage_pipelines_best(stage: RAGStage = Path(...)):
+    tuner_names = tunerMgr.get_tuners_by_stage(stage)
+    pl_id_list = []
+    for tuner_name in tuner_names:
+        record = tunerMgr.get_tuner_record(tuner_name)
+        if record is not None:
+            pl_id_list.extend(list(record.all_pipeline_ids))
+            if record.base_pipeline_id not in pl_id_list:
+                pl_id_list.append(record.base_pipeline_id)
+    pl_id_list = list(set(pl_id_list))
+    best_pl_id = get_best_pl_id(pl_id_list, stage)
+    return best_pl_id
 
 
 @tuner_app.get(path="/v1/tuners/{tuner_name}/pipelines/best")

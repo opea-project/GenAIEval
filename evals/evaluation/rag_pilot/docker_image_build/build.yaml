@@ -1,7 +1,4 @@
 
-# Copyright (C) 2025 Intel Corporation
-# SPDX-License-Identifier: Apache-2.0
-
 services:
   ragpilot-ui:
     build:
@@ -9,7 +6,7 @@ services:
       args:
         http_proxy: ${http_proxy}
         https_proxy: ${https_proxy}
-      dockerfile: ../ui/Dockerfile.ui
+      dockerfile: ./ui/Dockerfile.ui
     image: ${REGISTRY:-opea}/ragpilot-ui:${TAG:-latest}
   ragpilot:
     build:
@@ -17,5 +14,5 @@ services:
       args:
         http_proxy: ${http_proxy}
         https_proxy: ${https_proxy}
-      dockerfile: ../Dockerfile
+      dockerfile: ./Dockerfile
     image: ${REGISTRY:-opea}/ragpilot:${TAG:-latest}

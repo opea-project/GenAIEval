@@ -14,7 +14,7 @@
               /></span>
             </template>
             <template #title>
-              <span @click="handleClickStep(menu)">{{ menu.title }}</span>
+              <span @click="handleClickStep(menu)">{{ $t(menu.title) }}</span>
             </template>
           </a-step>
         </a-steps>
@@ -39,31 +39,31 @@ const currentStep = ref<number>(0);
 const stepList = ref<EmptyArrayType>([
   {
     index: 0,
-    title: t("tuner.rating"),
+    title: "tuner.rating",
     icon: "icon-rating",
     name: "Rating",
   },
   {
     index: 1,
-    title: t("tuner.retriever"),
+    title: "tuner.retriever",
     icon: "icon-retriever",
     name: "Retrieve",
   },
   {
     index: 2,
-    title: t("tuner.processor"),
+    title: "tuner.processor",
     icon: "icon-post-processor",
     name: "Postprocess",
   },
   {
     index: 3,
-    title: t("tuner.generator"),
+    title: "tuner.generator",
     icon: "icon-generator",
     name: "Generation",
   },
   {
     index: 4,
-    title: t("tuner.results"),
+    title: "tuner.results",
     icon: "icon-results",
     name: "Results",
   },

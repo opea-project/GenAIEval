@@ -7,59 +7,124 @@
       </div>
       <div v-if="!activatedPipeline" class="warring-tip">
         <ExclamationCircleFilled />
-        {{ $t("home.title") }}
+        {{ $t("home.tip") }}
       </div>
-      <div class="add-wrap">
-        <template v-if="isCreated">
-          <div>
-            <a-button type="primary" @click="handleEdit">
-              <template #icon>
-                <EditOutlined />
-              </template>
-              {{ $t("home.edit") }}</a-button
-            >
-            <a-button @click="handleDownload">
-              <template #icon>
-                <DownloadOutlined />
-              </template>
-              {{ $t("common.download") }}</a-button
-            >
-          </div></template
-        >
-        <a-button v-else type="primary" @click="handleCreate">
-          <template #icon>
-            <PlusOutlined />
+      <div class="body-wrap">
+        <a-card hoverable>
+          <template #cover>
+            <div class="upload-wrap">
+              <a-upload-dragger
+                v-model:fileList="queryFile"
+                name="file"
+                :action="uploadQueryFileUrl"
+                accept=".csv,.json"
+                :showUploadList="false"
+                :before-upload="handleBeforeUploadQery"
+                @change="handleUploadQeryChange"
+              >
+                <div class="top-wrap">
+                  <template v-if="queryUploaded">
+                    <div class="icon-wrap is-success">
+                      <SvgIcon
+                        name="icon-results"
+                        :size="32"
+                        :style="{ color: 'var(--color-success)' }"
+                      />
+                    </div>
+                    <h2>{{ $t("home.uploadSucc") }}</h2>
+                  </template>
+                  <template v-else>
+                    <div class="icon-wrap">
+                      <SvgIcon
+                        name="icon-upload1"
+                        :size="32"
+                        :style="{ color: 'var(--color-primary)' }"
+                      />
+                    </div>
+                    <h2>{{ $t("home.upload") }}</h2>
+                  </template>
+                  <p>
+                    {{ $t("common.uploadTip") }}, {{ $t("home.fileFormat") }}
+                  </p>
+                </div>
+                <div class="bottom-wrap">
+                  <a-button
+                    type="primary"
+                    :icon="
+                      h(queryUploaded ? FileSyncOutlined : CloudUploadOutlined)
+                    "
+                    class="button-wrap"
+                  >
+                    {{
+                      $t(queryUploaded ? "common.reUpload" : "common.upload")
+                    }}</a-button
+                  >
+                  <p class="text-wrap">{{ $t("home.sizeFormat") }}</p>
+                </div>
+              </a-upload-dragger>
+            </div>
           </template>
-          {{ $t("home.create") }}</a-button
-        >
-      </div>
-      <div class="upload-wrap">
-        <a-upload-dragger
-          v-model:fileList="queryFile"
-          name="file"
-          :action="uploadQueryFileUrl"
-          accept=".csv,.json"
-          :showUploadList="false"
-          :before-upload="handleBeforeUploadQery"
-          @change="handleUploadQeryChange"
-        >
-          <template v-if="queryUploaded">
-            <CheckCircleFilled class="success-icon" />
-            <p class="success-text">{{ $t("home.uploadSucc") }}</p>
+        </a-card>
+        <a-card hoverable>
+          <template #cover>
+            <div class="upload-wrap">
+              <div class="top-wrap">
+                <template v-if="isCreated">
+                  <div class="icon-wrap is-success">
+                    <SvgIcon
+                      name="icon-results"
+                      :size="32"
+                      :style="{ color: 'var(--color-success)' }"
+                    />
+                  </div>
+                  <h2>{{ $t("home.created") }}</h2>
+                </template>
+                <template v-else>
+                  <div class="icon-wrap">
+                    <SvgIcon
+                      name="icon-edit"
+                      :size="32"
+                      :style="{ color: 'var(--color-primary)' }"
+                    />
+                  </div>
+                  <h2>{{ $t("home.manual") }}</h2>
+                </template>
+                <p>
+                  {{ $t("home.createdText") }}
+                </p>
+              </div>
+              <div class="bottom-wrap">
+                <div v-if="isCreated" class="edit-wrap">
+                  <a-button
+                    type="primary"
+                    :icon="h(EditOutlined)"
+                    @click="handleEdit"
+                  >
+                    {{ $t("home.edit") }}</a-button
+                  >
+                  <a-button
+                    type="primary"
+                    :icon="h(DownloadOutlined)"
+                    ghost
+                    @click="handleDownload"
+                  >
+                    {{ $t("common.download") }}</a-button
+                  >
+                </div>
+                <a-button
+                  v-else
+                  type="primary"
+                  :icon="h(PlusOutlined)"
+                  class="button-wrap"
+                  @click="handleCreate"
+                >
+                  {{ $t("home.create") }}</a-button
+                >
+                <p class="text-wrap">{{ $t("home.createdTip") }}</p>
+              </div>
+            </div>
           </template>
-          <template v-else>
-            <SvgIcon name="icon-cloudupload-fill" :size="50" />
-            <p class="intel-upload-text">
-              {{ $t("common.uploadTip") }}
-            </p>
-            <p class="intel-upload-hint">
-              {{ $t("home.fileFormat") }}
-            </p></template
-          >
-          <a-button type="primary" class="mt-12">{{
-            queryUploaded ? "Re-upload" : "Upload"
-          }}</a-button>
-        </a-upload-dragger>
+        </a-card>
       </div>
       <div class="footer-wrap">
         <a-button
@@ -96,7 +161,11 @@
 </template>
 
 <script lang="ts" setup name="UploadFile">
-import { getActivePipelineDetail, uploadQueryFileUrl } from "@/api/ragPilot";
+import {
+  getActivePipelineDetail,
+  uploadQueryFileUrl,
+  requestPipelineReset,
+} from "@/api/ragPilot";
 import router from "@/router";
 import { useNotification, downloadJson } from "@/utils/common";
 import { NextLoading } from "@/utils/loading";
@@ -104,12 +173,13 @@ import EnterDrawer from "./components/EnterDrawer.vue";
 import {
   RedoOutlined,
   ArrowRightOutlined,
-  CheckCircleFilled,
   ExclamationCircleFilled,
   PlusOutlined,
   EditOutlined,
   DownloadOutlined,
   CheckCircleOutlined,
+  FileSyncOutlined,
+  CloudUploadOutlined,
 } from "@ant-design/icons-vue";
 import { message, UploadProps } from "ant-design-vue";
 import { h, ref } from "vue";
@@ -165,6 +235,9 @@ const queryActivePipeline = async () => {
 
   activatedPipeline.value = !!data;
 };
+const handlePipelineReset = async () => {
+  await requestPipelineReset();
+};
 const handleReset = () => {
   queryFile.value = [];
   queryUploaded.value = false;
@@ -190,6 +263,7 @@ const handleUpdate = (data: EmptyObjectType) => {
   Object.assign(groundTruthData, data);
 };
 onMounted(() => {
+  handlePipelineReset();
   queryActivePipeline();
 });
 </script>
@@ -219,17 +293,74 @@ onMounted(() => {
     line-height: 24px;
     width: 100%;
     text-align: center;
+    padding-bottom: 32px;
+  }
+  .tip-wrap {
+    font-size: 12px;
+    color: var(--font-tip-color);
+    text-align: center;
     padding-bottom: 16px;
   }
-  .add-wrap {
-    .flex-end;
-    gap: 6px;
+
+  .body-wrap {
+    .flex-between;
+    .mt-16;
+    gap: 24px;
+
+    .intel-card {
+      flex: 1;
+      :deep(.intel-upload-btn) {
+        padding: 0;
+      }
+      .top-wrap {
+        background-color: var(--color-second-primaryBg);
+        padding: 20px;
+        height: 210px;
+        .icon-wrap {
+          width: 64px;
+          height: 64px;
+          border-radius: 50%;
+          background-color: var(--color-primaryBg);
+          margin: 0 auto;
+          .vertical-center;
+          &.is-success {
+            background-color: var(--color-successBg);
+          }
+        }
+      }
+      .bottom-wrap {
+        padding: 16px;
+        .button-wrap {
+          width: 100%;
+          height: 38px;
+          .vertical-center;
+          .icon-intel {
+            margin-right: 8px;
+          }
+        }
+        .text-wrap {
+          color: var(--font-tip-color);
+          font-size: 12px;
+          .mt-12;
+        }
+        .edit-wrap {
+          .flex-between;
+          .intel-btn {
+            flex: 1;
+          }
+        }
+      }
+    }
   }
   .upload-wrap {
     width: 100%;
-    margin-top: 16px;
+    text-align: center;
+    padding: 1px;
+    border-radius: 8px;
+    overflow: hidden;
     :deep(.intel-upload-drag) {
-      background-color: var(--bg-card-color);
+      background-color: var(--bg-content-color);
+      border: none;
     }
     .upload-title {
       font-size: 20px;
@@ -242,7 +373,7 @@ onMounted(() => {
     }
     .success-icon {
       color: var(--color-success);
-      font-size: 60px;
+      font-size: 32px;
     }
     .success-text {
       .mt-12;
@@ -253,9 +384,10 @@ onMounted(() => {
     border: 1px solid var(--border-warning);
     background-color: var(--color-warningBg);
     color: var(--color-second-warning);
-    padding: 8px 12px;
+    padding: 4px 12px;
     border-radius: 4px;
     .flex-left;
+    .mb-12;
     gap: 4px;
   }
   .footer-wrap {

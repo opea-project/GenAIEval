@@ -1,16 +1,15 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-import glob
-import os
 from abc import ABC, abstractmethod
 from itertools import product
 from typing import Dict, Optional
 
-from api_schema import RunningStatus
 from components.tuner.adaptor import Adaptor
 from components.tuner.base import ContentType, Feedback, Question, Suggestion, SuggestionType, Target, TargetUpdate
-
+import os
+import glob
+from api_schema import RunningStatus
 
 def input_parser(upper_limit: int = None):
     if upper_limit:
@@ -179,8 +178,11 @@ class Tuner(ABC):
             for idx in range(count):
                 candidate = {a: t.new_vals[idx] for a, t in grouped_targets.items()}
                 new_values_dict = {
-                    a: TargetUpdate(node_type=t.node_type, module_type=t.module_type, attribute=a, val=t.new_vals[idx])
-                    for a, t in grouped_targets.items()
+                    a: TargetUpdate(
+                        node_type=t.node_type,
+                        module_type=t.module_type,
+                        attribute=a,
+                        val=t.new_vals[idx]) for a, t in grouped_targets.items()
                 }
                 params_candidates.append(new_values_dict)
             if len(params_candidates) > 0:
@@ -202,8 +204,7 @@ class Tuner(ABC):
                         node_type=self.targets[a].node_type,
                         module_type=self.targets[a].module_type,
                         attribute=a,
-                        val=val,
-                    )
+                        val=val)
                 params_candidates.append(new_values_dict)
             if len(params_candidates) > 0:
                 return self.adaptor.get_rag_pipelines_candidates(params_candidates)
@@ -220,11 +221,10 @@ class Tuner(ABC):
                     print(f"{suggestion}")
                     if suggestion.options:
                         new_values_dict[attr] = TargetUpdate(
-                            node_type=target.node_type,
-                            module_type=target.module_type,
-                            attribute=attr,
-                            val=suggestion.options[0].content,
-                        )
+                                node_type=target.node_type,
+                                module_type=target.module_type,
+                                attribute=attr,
+                                val=suggestion.options[0].content)
                     else:
                         valid, user_input = input_parser()
                         if valid:
@@ -232,8 +232,7 @@ class Tuner(ABC):
                                 node_type=target.node_type,
                                 module_type=target.module_type,
                                 attribute=attr,
-                                val=user_input,
-                            )
+                                val=user_input)
 
                 case SuggestionType.CHOOSE:
                     print(f"{suggestion}")
@@ -242,22 +241,20 @@ class Tuner(ABC):
                     if valid:
                         chosed_val = suggestion.options[user_input - 1]
                         new_values_dict[attr] = TargetUpdate(
-                            node_type=target.node_type,
-                            module_type=target.module_type,
-                            attribute=attr,
-                            val=chosed_val.content,
-                        )
+                                node_type=target.node_type,
+                                module_type=target.module_type,
+                                attribute=attr,
+                                val=chosed_val.content)
 
                 case SuggestionType.ITERATE:
                     print(f"{suggestion}")
                     for option in suggestion.options:
                         new_values_dict = {}
                         new_values_dict[attr] = TargetUpdate(
-                            node_type=target.node_type,
-                            module_type=target.module_type,
-                            attribute=attr,
-                            val=option.content,
-                        )
+                                node_type=target.node_type,
+                                module_type=target.module_type,
+                                attribute=attr,
+                                val=option.content)
                         params_candidates.append(new_values_dict)
                     if len(params_candidates) > 0:
                         return self.adaptor.get_rag_pipelines_candidates(params_candidates)
@@ -266,15 +263,19 @@ class Tuner(ABC):
                     if len(target.new_vals) == 1:
                         val = target.new_vals[idx]
                         new_values_dict[attr] = TargetUpdate(
-                            node_type=target.node_type, module_type=target.module_type, attribute=attr, val=val
-                        )
+                                node_type=target.node_type,
+                                module_type=target.module_type,
+                                attribute=attr,
+                                val=val)
                     else:
                         for idx in range(len(target.new_vals)):
                             new_values_dict = {}
                             val = target.new_vals[idx]
                             new_values_dict[attr] = TargetUpdate(
-                                node_type=target.node_type, module_type=target.module_type, attribute=attr, val=val
-                            )
+                                node_type=target.node_type,
+                                module_type=target.module_type,
+                                attribute=attr,
+                                val=val)
                             params_candidates.append(new_values_dict)
                         if len(params_candidates) > 0:
                             return self.adaptor.get_rag_pipelines_candidates(params_candidates)
@@ -538,7 +539,7 @@ class PromptTuner(Tuner):
                 "Yes, iterate all prompts based on prompt candidates",
                 "Yes, choose from available prompt templates",
                 "No, skip this tuner",
-            ],
+            ]
         )
         targets = {}
         # targets
@@ -570,12 +571,12 @@ class PromptTuner(Tuner):
                 if os.path.isdir(cur_path):
                     txt_files = glob.glob(os.path.join(cur_path, "*.txt"))
                     all_files.extend(txt_files)
-                elif os.path.isfile(cur_path) and cur_path.endswith(".txt"):
+                elif os.path.isfile(cur_path) and cur_path.endswith('.txt'):
                     all_files.append(cur_path)
             if all_files:
                 for file_path in all_files:
                     try:
-                        with open(file_path, "r", encoding="utf-8") as f:
+                        with open(file_path, 'r', encoding='utf-8') as f:
                             content = f.read()
                             prompt_contents.append(content)
                     except Exception as e:
@@ -586,10 +587,12 @@ class PromptTuner(Tuner):
     def _feedback_to_suggestions(self):
         assert isinstance(self.user_feedback, Feedback)
         if self.user_feedback.feedback == 1 or self.user_feedback.auto:
-            self.set_param(param_name="prompt_content", suggestion_type=SuggestionType.ITERATE)
+            self.set_param(param_name="prompt_content",
+                           suggestion_type=SuggestionType.ITERATE)
             return True
         elif self.user_feedback.feedback == 2:
-            self.set_param(param_name="prompt_content", suggestion_type=SuggestionType.CHOOSE)
+            self.set_param(param_name="prompt_content",
+                           suggestion_type=SuggestionType.CHOOSE)
             return True
         else:
             return False

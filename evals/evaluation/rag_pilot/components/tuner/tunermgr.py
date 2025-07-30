@@ -1,23 +1,24 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-import uuid
 from typing import Dict, List, Optional, Type
 
-from api_schema import RAGStage, RunningStatus, TunerOut, TunerUpdateOut
-from components.tuner.adaptor import Adaptor
+from pydantic import BaseModel
+
 from components.tuner.base import TargetUpdate
+from components.tuner.adaptor import Adaptor
 from components.tuner.tuner import (
+    Tuner,
     EmbeddingTuner,
     NodeParserTuner,
-    PromptTuner,
     RerankerTopnTuner,
     RetrievalTopkTuner,
     SimpleNodeParserChunkTuner,
-    Tuner,
+    PromptTuner,
 )
 from components.utils import read_yaml
-from pydantic import BaseModel
+from api_schema import RAGStage, TunerOut, TunerUpdateOut, RunningStatus
+import uuid
 
 
 class TunerRecord(BaseModel):
@@ -66,7 +67,7 @@ class TunerMgr:
                 stage=stage.value if hasattr(stage, "value") else str(stage),
                 name=name,
                 targets=targets_str,
-                status=tuner.get_status().value,
+                status=tuner.get_status().value
             )
         else:
             tunerOut = None

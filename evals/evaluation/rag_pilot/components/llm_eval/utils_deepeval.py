@@ -1,26 +1,22 @@
-# Copyright (C) 2025 Intel Corporation
-# SPDX-License-Identifier: Apache-2.0
-
-import json
-
-import transformers
-from deepeval.metrics import (
-    AnswerRelevancyMetric,
-    ContextualPrecisionMetric,
-    ContextualRecallMetric,
-    ContextualRelevancyMetric,
-    FaithfulnessMetric,
-)
 from deepeval.models import DeepEvalBaseLLM
+from pydantic import BaseModel
+
 from lmformatenforcer import JsonSchemaParser
 from lmformatenforcer.integrations.transformers import (
     build_transformers_prefix_allowed_tokens_fn,
 )
-from pydantic import BaseModel
-
-from .metrics import *
+import transformers
+import json
 from .utils_eval import load_huggingface_llm
 
+from deepeval.metrics import (
+    ContextualPrecisionMetric,
+    ContextualRecallMetric,
+    ContextualRelevancyMetric,
+    AnswerRelevancyMetric,
+    FaithfulnessMetric
+)
+from .metrics import *
 DEEPEVAL_METRIC_FUNC_MAP = {
     context_recall: ContextualRecallMetric,
     context_precision: ContextualPrecisionMetric,
@@ -28,7 +24,6 @@ DEEPEVAL_METRIC_FUNC_MAP = {
     answer_relevancy: AnswerRelevancyMetric,
     faithfulness: FaithfulnessMetric,
 }
-
 
 class DeepEvalCustomEvalLLM(DeepEvalBaseLLM):
     def __init__(self, model_name):
@@ -56,7 +51,9 @@ class DeepEvalCustomEvalLLM(DeepEvalBaseLLM):
 
         # Create parser required for JSON confinement using lmformatenforcer
         parser = JsonSchemaParser(schema.schema())
-        prefix_function = build_transformers_prefix_allowed_tokens_fn(pipeline.tokenizer, parser)
+        prefix_function = build_transformers_prefix_allowed_tokens_fn(
+            pipeline.tokenizer, parser
+        )
 
         # Output and load valid JSON
         output_dict = pipeline(prompt, prefix_allowed_tokens_fn=prefix_function)

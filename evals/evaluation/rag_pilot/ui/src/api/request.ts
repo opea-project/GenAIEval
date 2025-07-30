@@ -1,6 +1,3 @@
-// Copyright (C) 2025 Intel Corporation
-// SPDX-License-Identifier: Apache-2.0
-
 import { NextLoading } from "@/utils/loading";
 import serviceManager from "@/utils/serviceManager";
 import axios, { AxiosInstance } from "axios";

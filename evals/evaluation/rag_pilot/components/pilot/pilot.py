@@ -3,12 +3,12 @@
 
 import csv
 import os
-import threading
 from datetime import datetime
+import threading
 
+from components.pilot.base import ContextItem, ContextType, RAGPipeline, RAGResults, Metrics
+from components.connect_utils import get_ragqna, get_retrieval, update_active_pipeline, get_active_pipeline, load_prompt
 from api_schema import RAGStage
-from components.connect_utils import get_active_pipeline, get_ragqna, get_retrieval, load_prompt, update_active_pipeline
-from components.pilot.base import ContextItem, ContextType, Metrics, RAGPipeline, RAGResults
 
 
 def update_rag_pipeline(rag_pipeline: RAGPipeline):
@@ -185,6 +185,17 @@ class Pilot:
             else:
                 return None
 
+    def restore_curr_pl(self):
+        pilot.curr_pl_id = None
+        pl_raw = get_active_pipeline()
+        if pl_raw:
+            active_pl = RAGPipeline(pl_raw)
+            active_pl.regenerate_id()
+            pilot.add_rag_pipeline(active_pl)
+            return self.rag_pipeline_dict[self.curr_pl_id]
+        else:
+            return None
+
     def get_curr_pl_id(self):
         if self.curr_pl_id:
             return self.curr_pl_id
@@ -233,12 +244,13 @@ class Pilot:
                 recall_rate = float("-inf")
 
             total_score = sum(
-                v
-                for k, v in rag_results.get_metrics().items()
+                v for k, v in rag_results.get_metrics().items()
                 if k in {metric.value for metric in Metrics} and isinstance(v, (int, float))
             )
 
-            if recall_rate > best_avg_recall or (recall_rate == best_avg_recall and total_score > best_total_score):
+            if recall_rate > best_avg_recall or (
+                recall_rate == best_avg_recall and total_score > best_total_score
+            ):
                 best_avg_recall = recall_rate
                 best_total_score = total_score
                 best_pl_id = pl_id

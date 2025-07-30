@@ -1,6 +1,3 @@
-// Copyright (C) 2025 Intel Corporation
-// SPDX-License-Identifier: Apache-2.0
-
 import request from "../request";
 export const getActivePipeline = () => {
   return request({
@@ -52,14 +49,14 @@ export const getMetricsByPipelineId = (pipelineId: Number) => {
   });
 };
 
-export const requesPipelineRun = () => {
+export const requestPipelineRun = () => {
   return request({
     url: "v1/pilot/pipeline/active/run",
     method: "post",
   });
 };
 
-export const requesStageRun = (stageName: String) => {
+export const requestStageRun = (stageName: String) => {
   return request({
     url: `v1/tuners/stage/${stageName}/run`,
     method: "post",
@@ -99,9 +96,9 @@ export const getMetricsByStage = (stage: String) => {
     method: "get",
   });
 };
-export const getBasePipelineByTuner = (tunerName: String) => {
+export const getPipelinesByTuner = (tunerName: String) => {
   return request({
-    url: `v1/tuners/${tunerName}/pipeline/base`,
+    url: `v1/tuners/${tunerName}/pipelines`,
     method: "get",
   });
 };
@@ -120,7 +117,7 @@ export const getPrompById = (pipelineId: number) => {
   });
 };
 
-export const requesPromptUpdate = (data: Object) => {
+export const requestPromptUpdate = (data: Object) => {
   return request({
     url: `v1/tuners/results/getPromptList`,
     method: "patch",
@@ -131,7 +128,7 @@ export const requesPromptUpdate = (data: Object) => {
   });
 };
 
-export const requesPromptActive = (data: Object) => {
+export const requestPromptActive = (data: Object) => {
   return request({
     url: `v1/tuners/results/getPromptList`,
     method: "patch",
@@ -139,13 +136,13 @@ export const requesPromptActive = (data: Object) => {
   });
 };
 
-export const requesTopnUpdate = (top_n: String) => {
+export const requestTopnUpdate = (top_n: String) => {
   return request({
     url: `v1/pilot/pipeline/active/top_n/${top_n}`,
     method: "patch",
   });
 };
-export const requesStageReset = (stage: String) => {
+export const requestStageReset = (stage: String) => {
   return request({
     url: `v1/tuners/stage/${stage}/reset`,
     method: "post",
@@ -183,6 +180,12 @@ export const getBestPipelineByStage = (stage: String) => {
   return request({
     url: `v1/tuners/stage/${stage}/pipelines/best/id`,
     method: "get",
+  });
+};
+export const requestPipelineReset = () => {
+  return request({
+    url: "v1/pilot/pipeline/restore",
+    method: "post",
   });
 };
 

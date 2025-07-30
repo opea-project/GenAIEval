@@ -1,38 +1,29 @@
-# Copyright (C) 2025 Intel Corporation
-# SPDX-License-Identifier: Apache-2.0
+from typing import Any, Optional, List
 
-from typing import Any, List, Optional
-
-from comps import opea_microservices, register_microservice
 from pydantic import BaseModel
+from comps import opea_microservices, register_microservice
 
 from .doc import RAGResults
 from .metrics import *
-from .metrics_parser import DeepevalMetricsParser, EvaluatorType, RagasMetricsParser
+from .metrics_parser import EvaluatorType, RagasMetricsParser, DeepevalMetricsParser
 
-default_llm_name = "Qwen/Qwen2-7B-Instruct"
-
-
+default_llm_name="Qwen/Qwen2-7B-Instruct"
 class EvaluatorCreateIn(BaseModel):
 
     llm_name: Optional[str] = default_llm_name
     evaluator_type: Optional[str] = EvaluatorType.RAGAS
     metrics: Optional[str] = "all_metrics"
 
-
 class MetricsIn(BaseModel):
 
     metrics: str
 
-
-class Evaluator:
+class Evaluator():
     def __init__(self):
         self.metrics_parser = None
 
 
-@register_microservice(
-    name="opea_service@ec_rag", endpoint="/v1/settings/evaluator", host="0.0.0.0", port=16020, methods=["POST"]
-)
+@register_microservice(name="opea_service@ec_rag", endpoint="/v1/settings/evaluator", host="0.0.0.0", port=16020, methods=['POST'])
 async def create_metrics(request: EvaluatorCreateIn):
     match request.evaluator_type:
         case EvaluatorType.RAGAS:
@@ -48,10 +39,7 @@ async def create_metrics(request: EvaluatorCreateIn):
     else:
         return f"Fail to create evaluator {request.evaluator_type} with metrics {request.metrics}"
 
-
-@register_microservice(
-    name="opea_service@ec_rag", endpoint="/v1/settings/metrics", host="0.0.0.0", port=16020, methods=["POST"]
-)
+@register_microservice(name="opea_service@ec_rag", endpoint="/v1/settings/metrics", host="0.0.0.0", port=16020, methods=['POST'])
 async def update_metrics(request: MetricsIn):
     if evaluator.metrics_parser is not None:
         evaluator.metrics_parser.create_metrics(request.metrics)
@@ -59,10 +47,7 @@ async def update_metrics(request: MetricsIn):
     else:
         return "Metrics parser is not initiated"
 
-
-@register_microservice(
-    name="opea_service@ec_rag", endpoint="/v1/data/ragresults", host="0.0.0.0", port=16020, methods=["POST"]
-)
+@register_microservice(name="opea_service@ec_rag", endpoint="/v1/data/ragresults", host="0.0.0.0", port=16020, methods=['POST'])
 async def evaluate(request: RAGResults):
     if evaluator.metrics_parser is not None:
         evaluator.metrics_parser.evaluate(request)

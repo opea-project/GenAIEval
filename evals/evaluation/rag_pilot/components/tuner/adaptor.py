@@ -6,8 +6,8 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, Optional
 
-from components.connect_utils import COMP_TYPE_MAP, get_ecrag_module_map
 from components.pilot.base import RAGPipeline
+from components.connect_utils import COMP_TYPE_MAP, get_ecrag_module_map
 
 
 def get_support_modules(module_name: str, module_map) -> Callable:
