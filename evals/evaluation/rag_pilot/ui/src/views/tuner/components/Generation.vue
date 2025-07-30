@@ -16,7 +16,7 @@ import { ref, onMounted } from "vue";
 import { GenerationResults, Prompt } from "./index";
 import {
   getResultsByStage,
-  requesStageRun,
+  requestStageRun,
   getStagePipelines,
   getResultsByPipelineId,
 } from "@/api/ragPilot";
@@ -31,7 +31,7 @@ const promptsList = ref<EmptyArrayType>([]);
 const basePipeline = ref<number | null>();
 const baseResults = ref<ResultOut[]>([]);
 
-const querypipelineIds = async () => {
+const queryPipelineIds = async () => {
   const data: any = await getStagePipelines("generation");
 
   const uniquePipelineIds = new Set();
@@ -104,7 +104,7 @@ const handleResultsData = (originalData: Record<string, any>) => {
 
   return { results: transformedResults };
 };
-const querysBaseResult = async () => {
+const queryBaseResult = async () => {
   basePipeline.value = Local.get("pipelineInfo")?.basePipeline;
   if (basePipeline.value) {
     const data: any = (await getResultsByPipelineId(basePipeline.value!)) || [];
@@ -126,13 +126,13 @@ const querysBaseResult = async () => {
   }
 };
 const handleGenerationRun = async () => {
-  await requesStageRun("generation");
-  querypipelineIds();
+  await requestStageRun("generation");
+  queryPipelineIds();
   intervalId.value = setInterval(() => queryResultsByStage(), 5000);
 };
 onMounted(() => {
   handleGenerationRun();
-  querysBaseResult();
+  queryBaseResult();
 });
 onUnmounted(() => {
   clearInterval(intervalId.value);

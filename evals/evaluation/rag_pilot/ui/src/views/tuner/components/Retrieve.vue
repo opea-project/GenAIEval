@@ -62,8 +62,12 @@
         </a-table>
       </div>
       <div class="ground-truth" id="Query" v-if="currentQuery.query_id">
-        <a-affix :offset-top="64" :target="getScrollContainer">
-          <div class="query-item">
+        <a-affix
+          :offset-top="64"
+          :target="getScrollContainer"
+          @change="handleQueryScroll"
+        >
+          <div class="query-item" id="queryDes">
             <div class="index-wrap">{{ currentQueryIndex }}</div>
             <div class="query-wrap">
               <div class="query-title">
@@ -160,8 +164,11 @@
                       <a-divider v-if="k" />
                       <div class="top-wrap">
                         <span class="file-name">
+                          <a-tag :bordered="false" color="success">
+                            #{{ item.context_idx + 1 }}
+                          </a-tag>
                           <a-tag :bordered="false">
-                            {{ context.file_name }}
+                            {{ item.file_name }}
                           </a-tag></span
                         >
                       </div>
@@ -187,7 +194,7 @@
             ></a-badge-ribbon>
           </div>
         </div>
-        <div id="Retrieval" class="contexts-container retrieval-wrap mt-16">
+        <div id="Retrieval" class="contexts-container retrieval-wrap">
           <div class="top-wrap">
             <div class="left-wrap">
               <span class="title-wrap"> {{ $t("retriever.chunk") }}</span>
@@ -255,14 +262,15 @@
 import { ref, reactive, computed, onMounted } from "vue";
 import { QueryMenu } from "./index";
 import {
-  requesStageRun,
+  requestStageRun,
   getPipelineDetailById,
   getResultsByPipelineId,
   getStagePipelines,
   getMetricsByStage,
   getTunerStatus,
   getMetricsByPipelineId,
-  getActivePipeline,
+  getBestPipelineByStage,
+  getPipelinesByTuner,
 } from "@/api/ragPilot";
 import {
   EyeOutlined,
@@ -303,6 +311,7 @@ let tunerList = ref<EmptyArrayType>([]);
 const currentQuery = reactive<ResultOut>({});
 const currentQueryId = ref<number>();
 const keywords = ref<string>("");
+const headerHeight = 105;
 const tableColumns = ref<TableColumns[]>([
   {
     title: "Pipeline ID",
@@ -327,6 +336,7 @@ const showContextText = ref<boolean[]>([]);
 const expandedMap = ref<boolean[]>([]);
 const showRetrievalText = ref<boolean[]>([]);
 const expandedRetrievalMap = ref<boolean[]>([]);
+const queryAffixed = ref<boolean>(false);
 
 const tunerDone = computed(() => {
   const statusList = ["completed", "inactive"];
@@ -363,7 +373,7 @@ const retrievalSearchData = computed(() => {
   }));
 });
 const handleRetrieveRun = async () => {
-  const data: any = await requesStageRun("retrieval");
+  const data: any = await requestStageRun("retrieval");
   const tunerData = data
     ?.filter((item: any) => item.status !== "inactive")
     .map((item: any) => item.name);
@@ -376,8 +386,8 @@ const handleRetrieveRun = async () => {
   });
   handleTunerStatus(tunerData);
 };
-const handleTunerStatus = async (tnnerLiist: any) => {
-  tnnerLiist.forEach((tunerName: any) => {
+const handleTunerStatus = async (tunerList: any) => {
+  tunerList.forEach((tunerName: any) => {
     queryTunerStatus(tunerName);
     timers[tunerName] = setInterval(() => queryTunerStatus(tunerName), 5000);
   });
@@ -390,10 +400,11 @@ const queryTunerStatus = async (tunerName: string) => {
       if (item.name === tunerName) item.status = status;
     });
 
-    queryStagePipelines();
+    queryTunerPipelines(tunerName);
     clearInterval(timers[tunerName]);
     delete timers[tunerName];
     if (tunerDone.value) {
+      queryStagePipelines();
       queryActivePipelineId();
       clearTimers();
     }
@@ -486,9 +497,18 @@ const checkTextOverflow = () => {
   });
 };
 
+const queryTunerPipelines = async (tuner: string) => {
+  basePipeline.value = Local.get("pipelineInfo")?.basePipeline;
+  const data: any = await getPipelinesByTuner(tuner);
+
+  handlePipelines(data);
+};
 const queryStagePipelines = async () => {
   basePipeline.value = Local.get("pipelineInfo")?.basePipeline;
   const data: any = await getStagePipelines("retrieval");
+  handlePipelines(data);
+};
+const handlePipelines = (data: any) => {
   const allPipelineItems = Object.values(data).flat();
   const pipelineIds = [
     ...new Set(allPipelineItems.flatMap((item: any) => [item.pipeline_id])),
@@ -587,12 +607,12 @@ const inItTableColumns = (targets: EmptyArrayType) => {
 };
 
 const queryActivePipelineId = async () => {
-  const pipeline_id: any = await getActivePipeline();
+  const pipeline_id: any = await getBestPipelineByStage("retrieval");
   bestPipelineId.value = pipeline_id;
 
-  getQuerysResult();
+  getQueryResult();
 };
-const getQuerysResult = async () => {
+const getQueryResult = async () => {
   const data: any = await getResultsByPipelineId(bestPipelineId.value!);
 
   resultsData.value = [].concat(data?.results);
@@ -612,10 +632,18 @@ const handleScrollQuery = async () => {
   }
 };
 const handleSearch = async () => {
+  if (!keywords.value) return;
   const element = document.getElementById("Retrieval");
+  const queryEl = document.getElementById("queryDes");
 
-  if (element) {
-    const offsetPosition = element.offsetTop - 140;
+  if (element && queryEl) {
+    const desHeight = queryEl.offsetHeight;
+
+    const offsetPosition =
+      element.offsetTop -
+      headerHeight -
+      desHeight +
+      (queryAffixed.value ? 105 : 10);
 
     scrollContainer?.scrollTo({
       top: offsetPosition,
@@ -646,7 +674,10 @@ const clearTimers = () => {
     clearInterval(timerId);
   });
 };
-onMounted(async () => {
+const handleQueryScroll = (affixed: boolean) => {
+  queryAffixed.value = affixed;
+};
+onMounted(() => {
   handleRetrieveRun();
   scrollContainer = document.querySelector(".layout-main");
   window.addEventListener("resize", checkTextOverflow);
@@ -769,7 +800,7 @@ onUnmounted(() => {
       border: 1px solid var(--border-primary);
       border-radius: 8px;
       padding: 20px;
-      margin: 16px 12px 0 12px;
+      margin: 0 12px;
       .top-wrap {
         margin-bottom: 8px;
         .flex-between;
@@ -827,12 +858,15 @@ onUnmounted(() => {
               }
             }
             .expand-link {
-              .flex-end;
-              gap: 4px;
+              display: inline-block;
+              position: absolute;
+              bottom: 0;
+              right: 0;
+              padding-left: 12px;
+              background-color: var(--bg-content-color);
               font-size: 12px;
               color: var(--color-primary-second);
               cursor: pointer;
-              position: relative;
               &:hover {
                 color: var(--color-primary-tip);
               }
@@ -873,12 +907,24 @@ onUnmounted(() => {
     }
     :deep(.intel-affix) {
       background-color: var(--bg-content-color);
+      height: 72px !important;
       .query-item {
         padding: 20px 20px 0 20px;
+        box-shadow: 0 4px 8px var(--bg-box-shadow);
+        .title-wrap {
+          height: 20px;
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 1;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          .word-wrap;
+        }
       }
     }
   }
   .retrieval-wrap {
+    margin-top: 16px !important;
     background-color: var(--color-second-successBg) !important;
     border: 1px solid var(--border-success) !important;
     color: var(--font-info-color) !important;

@@ -28,7 +28,7 @@ const props = defineProps({
   },
   title: {
     type: String,
-    default: "Loading",
+    default: "Loading...",
   },
   describe: {
     type: String,

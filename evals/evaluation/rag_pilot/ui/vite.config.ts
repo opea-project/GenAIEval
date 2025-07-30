@@ -40,16 +40,8 @@ const viteConfig = defineConfig((mode: ConfigEnv) => {
     resolve: { alias },
     server: {
       host: "0.0.0.0",
-      port: 7777,
+      port: 8888,
       hmr: true,
-      //   proxy: {
-      //     '/api': {
-      //       target: 'http://10.67.106.236:16010',
-      //       ws: true,
-      //       changeOrigin: true,
-      //       rewrite: (path) => path.replace(/^\/api/, ''),
-      //     },
-      //   },
     },
     build: {
       outDir: "dist",

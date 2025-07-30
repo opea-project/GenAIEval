@@ -40,7 +40,7 @@
 <script lang="ts" setup name="UpdateDrawer">
 import { FormInstance } from "ant-design-vue";
 import { reactive, ref } from "vue";
-import { requesPromptUpdate } from "@/api/ragPilot";
+import { requestPromptUpdate } from "@/api/ragPilot";
 import JsonEditorVue from "json-editor-vue";
 import "jsoneditor/dist/jsoneditor.css";
 import "jsoneditor/dist/jsoneditor.min.css";
@@ -75,7 +75,7 @@ const handleClose = () => {
 const handleSubmit = () => {
   formRef.value?.validate().then(() => {
     submitLoading.value = true;
-    requesPromptUpdate(form)
+    requestPromptUpdate(form)
       .then(() => {
         emit("search");
         handleClose();

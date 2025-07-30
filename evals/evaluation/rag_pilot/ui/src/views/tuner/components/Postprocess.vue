@@ -55,8 +55,12 @@
         </div>
       </div>
       <div class="ground-truth" id="Query" v-if="currentQuery.query_id">
-        <a-affix :offset-top="64" :target="getScrollContainer">
-          <div class="query-item">
+        <a-affix
+          :offset-top="64"
+          :target="getScrollContainer"
+          @change="handleQueryScroll"
+        >
+          <div class="query-item" id="queryDes">
             <div class="index-wrap">{{ currentQueryIndex }}</div>
             <div class="query-wrap">
               <div class="query-title">
@@ -231,11 +235,11 @@
 import { ref, reactive, computed, onMounted, watch } from "vue";
 import { QueryMenu } from "./index";
 import {
-  requesStageRun,
+  requestStageRun,
   getStagePipelines,
   getMetricsByStage,
   getResultsByStage,
-  requesTopnUpdate,
+  requestTopnUpdate,
   getTunerStatus,
 } from "@/api/ragPilot";
 import {
@@ -297,6 +301,9 @@ const showContextText = ref<boolean[]>([]);
 const expandedMap = ref<boolean[]>([]);
 const showPostprocessText = ref<boolean[]>([]);
 const expandedPostprocessMap = ref<boolean[]>([]);
+const queryAffixed = ref<boolean>(false);
+const headerHeight = 105;
+
 const lineChartOption = computed(() => ({
   grid: { top: 50, right: 20, bottom: 50, left: 50 },
   tooltip: {
@@ -387,7 +394,7 @@ const postprocessSearchData = computed(() => {
   }));
 });
 const handlePostprocessRun = async () => {
-  const data: any = await requesStageRun("postprocessing");
+  const data: any = await requestStageRun("postprocessing");
   const tunerData = data
     ?.filter((item: any) => item.status !== "inactive")
     .map((item: any) => item.name);
@@ -400,8 +407,8 @@ const handlePostprocessRun = async () => {
   });
   handleTunerStatus(tunerData);
 };
-const handleTunerStatus = async (tnnerLiist: any) => {
-  tnnerLiist.forEach((tunerName: any) => {
+const handleTunerStatus = async (tunerList: any) => {
+  tunerList.forEach((tunerName: any) => {
     queryTunerStatus(tunerName);
     timers[tunerName] = setInterval(() => queryTunerStatus(tunerName), 5000);
   });
@@ -490,10 +497,18 @@ const recallRate = computed(() => {
 });
 
 const handleSearch = async () => {
+  if (!keywords.value) return;
   const element = document.getElementById("Postprocess");
+  const queryEl = document.getElementById("queryDes");
 
-  if (element) {
-    const offsetPosition = element.offsetTop - 140;
+  if (element && queryEl) {
+    const desHeight = queryEl.offsetHeight;
+
+    const offsetPosition =
+      element.offsetTop -
+      headerHeight -
+      desHeight +
+      (queryAffixed.value ? 105 : 20);
 
     scrollContainer?.scrollTo({
       top: offsetPosition,
@@ -514,7 +529,7 @@ const handleNext = async () => {
     )}`,
     okText: t("common.confirm"),
     async onOk() {
-      await requesTopnUpdate(selectedPipeline.value.top_n);
+      await requestTopnUpdate(selectedPipeline.value.top_n);
       router.push({ name: "Generation" });
     },
   });
@@ -600,6 +615,9 @@ const clearTimers = () => {
   Object.values(timers).forEach((timerId: any) => {
     clearInterval(timerId);
   });
+};
+const handleQueryScroll = (affixed: boolean) => {
+  queryAffixed.value = affixed;
 };
 watch(
   () => currentQueryId.value,
@@ -812,13 +830,15 @@ onUnmounted(() => {
               }
             }
             .expand-link {
-              .flex-end;
-              gap: 4px;
+              display: inline-block;
+              position: absolute;
+              bottom: 0;
+              right: 0;
+              padding-left: 12px;
+              background-color: var(--bg-content-color);
               font-size: 12px;
               color: var(--color-primary-second);
               cursor: pointer;
-              position: relative;
-              bottom: -4px;
               &:hover {
                 color: var(--color-primary-tip);
               }
@@ -866,8 +886,19 @@ onUnmounted(() => {
     }
     :deep(.intel-affix) {
       background-color: var(--bg-content-color);
+      height: 72px !important;
       .query-item {
         padding: 20px 20px 0 20px;
+        box-shadow: 0 4px 8px var(--bg-box-shadow);
+        .title-wrap {
+          height: 20px;
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 1;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          .word-wrap;
+        }
       }
     }
   }

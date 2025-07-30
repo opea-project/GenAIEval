@@ -182,6 +182,23 @@ async def run_pipeline_by_id(id: uuid.UUID):
         return f"Error: Pipeline {id} does not exist"
 
 
+@pilot_app.post(path="/v1/pilot/pipeline/restore")
+async def restore_pipeline():
+    success = pilot.restore_curr_pl()
+    if success:
+        current_pl = pilot.get_curr_pl()
+        return {
+            "message": "Pipeline restored successfully",
+            "pipeline_id": str(current_pl.get_id()) if current_pl else None,
+            "restored_from": "EdgeCraftRAG active pipeline",
+        }
+    else:
+        raise HTTPException(
+            status_code=404,
+            detail="Failed to restore pipeline: No active pipeline found in EdgeCraftRAG service or restore operation failed",
+        )
+
+
 @pilot_app.post(path="/v1/pilot/files")
 async def add_files(request: DataIn):
     ret = upload_files(request)

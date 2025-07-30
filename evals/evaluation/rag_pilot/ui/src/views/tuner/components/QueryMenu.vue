@@ -1,5 +1,5 @@
 <template>
-  <div class="mune-flex">
+  <div class="menu-flex">
     <a-affix :offset-top="180">
       <div class="query-list">
         <a-pagination
@@ -16,11 +16,13 @@
 </template>
 
 <script setup lang="ts" name="TunerProcess">
-import { ref, computed } from "vue";
-import { ResultOut } from "../type";
+import { ref, computed, watch } from "vue";
+import type { PropType } from "vue";
+import type { ResultOut } from "../type";
+
 const props = defineProps({
   menu: {
-    type: Array,
+    type: Array as PropType<ResultOut[]>,
     required: true,
     default: () => [],
   },
@@ -29,59 +31,75 @@ const props = defineProps({
     default: null,
   },
 });
+
 const emit = defineEmits(["updateId", "switch"]);
-const currentIndex = ref(0);
-const currentQuery = ref<number | null>(null);
+
 const queryList = ref<ResultOut[]>([]);
-const listTotal = computed(() => {
-  return queryList.value?.length || 0;
-});
+const currentIndex = ref<number>(1);
+const currentQuery = ref<number | null>(null);
 
-const updateQueryMenu = (list: any) => {
-  queryList.value = [].concat(list);
+const listTotal = computed(() => queryList.value.length);
 
-  if (queryList.value.length) currentQuery.value = queryList.value[0]?.query_id;
+const updateQueryMenu = (list: ResultOut[]) => {
+  queryList.value = [...list];
+  if (list.length && !currentQuery.value) {
+    const firstId = list[0]?.query_id;
+    currentQuery.value = firstId;
+    emit("updateId", firstId);
+  }
 };
-const updateCurrentQuery = (id: number) => {
+
+const updateCurrentQuery = (id: number | null) => {
+  if (!id) return;
   currentQuery.value = id;
 };
-const updateQueryId = (index: number) => {
-  currentQuery.value = queryList.value[index - 1]?.query_id;
-  emit("updateId", currentQuery.value);
-};
-const updateQueryIndex = (id: number) => {
-  currentIndex.value =
-    queryList.value.findIndex((item) => item.query_id === id) + 1;
-};
+
 const handlePaginationChange = () => {
   emit("switch");
 };
+
+watch(
+  () => props.menu,
+  (newMenu) => {
+    if (newMenu.length) {
+      updateQueryMenu(newMenu);
+    }
+  },
+  { immediate: true, deep: true }
+);
+
 watch(
   () => props.currentId,
-  (value) => {
-    if (value) updateCurrentQuery(value!);
+  (newId) => {
+    if (newId) {
+      updateCurrentQuery(newId);
+    }
   },
   { immediate: true }
 );
+
 watch(
-  () => props.menu,
-  (data) => {
-    if (data.length) {
-      updateQueryMenu(data);
-      watch(
-        () => currentQuery.value,
-        (value) => {
-          if (value) updateQueryIndex(value!);
-        },
-        { immediate: true }
-      );
-      watch(
-        () => currentIndex.value,
-        (value) => {
-          if (value) updateQueryId(value!);
-        },
-        { immediate: true }
-      );
+  () => currentQuery.value,
+  (newId) => {
+    if (!newId) return;
+
+    const index = queryList.value.findIndex((item) => item.query_id === newId);
+    if (index >= 0) {
+      currentIndex.value = index + 1;
+    }
+  },
+  { immediate: true }
+);
+
+watch(
+  () => currentIndex.value,
+  (newIndex) => {
+    if (!newIndex || !queryList.value.length) return;
+
+    const item = queryList.value[newIndex - 1];
+    if (item?.query_id && item.query_id !== currentQuery.value) {
+      currentQuery.value = item.query_id;
+      emit("updateId", item.query_id);
     }
   },
   { immediate: true }
@@ -89,7 +107,7 @@ watch(
 </script>
 
 <style lang="less" scoped>
-.mune-flex {
+.menu-flex {
   display: flex;
   position: relative;
   height: calc(100vh - 240px);
@@ -173,6 +191,11 @@ watch(
   .intel-pagination-jump-prev,
   .intel-pagination-next {
     transform: rotate(90deg);
+  }
+}
+@media (max-width: 960px) {
+  .menu-flex {
+    left: -6px;
   }
 }
 </style>

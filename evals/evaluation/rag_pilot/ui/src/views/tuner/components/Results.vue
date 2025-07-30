@@ -81,7 +81,7 @@ import { BarChart } from "echarts/charts";
 import {
   exportPipelineUrl,
   requestPipelineSync,
-  requesStageReset,
+  requestStageReset,
   getResultsByPipelineId,
   getPipelineDetailById,
   getResultsByStage,
@@ -152,7 +152,7 @@ const barChartOption = computed(() => {
   chatKeys.forEach((key, index) => {
     const color = colorList[index % colorList.length];
     seriesData.push({
-      name: handlelegend(index),
+      name: handleLegend(index),
       type: "bar",
       data: chatMap[key].results.map(
         (item: any) => item?.metadata.answer_relevancy ?? 0
@@ -160,7 +160,7 @@ const barChartOption = computed(() => {
       barStyle: { color },
       itemStyle: { color, borderColor: color },
     });
-    legendData.push(handlelegend(index));
+    legendData.push(handleLegend(index));
   });
 
   const xAxisDataLength =
@@ -202,7 +202,7 @@ const barChartOption = computed(() => {
     series: seriesData,
   };
 });
-const handlelegend = (index: number) => {
+const handleLegend = (index: number) => {
   return `${t("prompt.title")} ${index + 1}`;
 };
 const handleSync = (id: number) => {
@@ -222,7 +222,7 @@ const handleDownload = (id: number) => {
 };
 const handleReset = async () => {
   try {
-    const promises = stageList.value.map((stage) => requesStageReset(stage));
+    const promises = stageList.value.map((stage) => requestStageReset(stage));
     await Promise.all(promises);
     pipelineStore.setPipeline("");
   } catch (err) {

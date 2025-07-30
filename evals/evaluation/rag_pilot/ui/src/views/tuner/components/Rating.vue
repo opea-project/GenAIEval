@@ -73,8 +73,8 @@ import {
   getActivePipeline,
   requestResultsMetrics,
   getResultsByPipelineId,
-  requesPipelineRun,
-  requesStageReset,
+  requestPipelineRun,
+  requestStageReset,
 } from "@/api/ragPilot";
 import { ResultOut } from "../type";
 import { StarFilled, ArrowRightOutlined } from "@ant-design/icons-vue";
@@ -131,11 +131,11 @@ const getPipelineId = async () => {
   const pipeline_id: any = await getActivePipeline();
   pipelineId.value = pipeline_id;
   pipelineStore.setPipeline(pipelineId.value);
-  getQuerysResult();
+  getQueryResult();
 
-  intervalId.value = setInterval(getQuerysResult, 5000);
+  intervalId.value = setInterval(getQueryResult, 5000);
 };
-const getQuerysResult = async () => {
+const getQueryResult = async () => {
   if (!scrollContainer) return;
   const prevScrollTop = scrollContainer.scrollTop;
 
@@ -189,7 +189,7 @@ const handleExit = async () => {
     async onOk() {
       try {
         const promises = stageList.value.map((stage) =>
-          requesStageReset(stage)
+          requestStageReset(stage)
         );
         await Promise.all(promises);
         pipelineStore.setPipeline("");
@@ -202,7 +202,7 @@ const handleExit = async () => {
 };
 const handlePipelineRun = async () => {
   loading.visible = true;
-  await requesPipelineRun();
+  await requestPipelineRun();
   getPipelineId();
 };
 const handleScrollTo = (id: number) => {
@@ -311,6 +311,9 @@ onUnmounted(() => {
       .icon-loading {
         color: var(--color-primary) !important;
         animation: spin 3s linear infinite;
+      }
+      .right-wrap {
+        height: max-content;
       }
     }
   }
