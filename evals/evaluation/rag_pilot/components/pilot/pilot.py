@@ -185,6 +185,17 @@ class Pilot:
             else:
                 return None
 
+    def restore_curr_pl(self):
+        pilot.curr_pl_id = None
+        pl_raw = get_active_pipeline()
+        if pl_raw:
+            active_pl = RAGPipeline(pl_raw)
+            active_pl.regenerate_id()
+            pilot.add_rag_pipeline(active_pl)
+            return self.rag_pipeline_dict[self.curr_pl_id]
+        else:
+            return None
+
     def get_curr_pl_id(self):
         if self.curr_pl_id:
             return self.curr_pl_id

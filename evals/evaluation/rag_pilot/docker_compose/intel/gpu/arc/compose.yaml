@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 services:
-  ui:
+  ragpilot-ui:
     image: ${REGISTRY:-opea}/ragpilot-ui:${TAG:-latest}
     container_name: ragpilot-ui
     environment:

@@ -158,6 +158,21 @@ async def get_stage_pipelines(stage: RAGStage = Path(...)):
     return pipeline_list
 
 
+@tuner_app.get(path="/v1/tuners/stage/{stage}/pipelines/best/id")
+async def get_stage_pipelines_best(stage: RAGStage = Path(...)):
+    tuner_names = tunerMgr.get_tuners_by_stage(stage)
+    pl_id_list = []
+    for tuner_name in tuner_names:
+        record = tunerMgr.get_tuner_record(tuner_name)
+        if record is not None:
+            pl_id_list.extend(list(record.all_pipeline_ids))
+            if record.base_pipeline_id not in pl_id_list:
+                pl_id_list.append(record.base_pipeline_id)
+    pl_id_list = list(set(pl_id_list))
+    best_pl_id = get_best_pl_id(pl_id_list, stage)
+    return best_pl_id
+
+
 @tuner_app.get(path="/v1/tuners/{tuner_name}/pipelines/best")
 async def get_pipeline_best(tuner_name):
     record = tunerMgr.get_tuner_record(tuner_name)
