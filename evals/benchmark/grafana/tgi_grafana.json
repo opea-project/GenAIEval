@@ -1,14 +1,5 @@
 {
-    "__inputs": [
-      {
-        "name": "DS_PROMETHEUS_EKS API INFERENCE PROD",
-        "label": "Prometheus EKS API Inference Prod",
-        "description": "",
-        "type": "datasource",
-        "pluginId": "prometheus",
-        "pluginName": "Prometheus"
-      }
-    ],
+    "__inputs": [],
     "__elements": {},
     "__requires": [
       {
@@ -74,7 +65,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -129,7 +120,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "(histogram_quantile(0.5, sum by (le) (rate(tgi_request_queue_duration_bucket{job=\"$job\"}[10m]))) * 1000) > 0",
@@ -142,7 +133,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "(histogram_quantile(0.5, sum by (le) (rate(tgi_batch_inference_duration_bucket{method=\"prefill\", job=\"$job\"}[10m]))) * 1000) > 0",
@@ -170,7 +161,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -224,7 +215,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "(histogram_quantile(0.5, sum by (le) (rate(tgi_batch_forward_duration_bucket{method=\"decode\", job=\"$job\"}[10m]))) * 1000)>0",
@@ -239,7 +230,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -289,7 +280,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "sum((rate(tgi_request_generated_tokens_sum{job=\"$job\"}[10m]) / rate(tgi_request_generated_tokens_count{job=\"$job\"}[10m]))>0)",
@@ -304,7 +295,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -434,7 +425,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_request_input_length_bucket{job=\"$job\"}[10m])))",
@@ -445,7 +436,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_request_input_length_bucket{job=\"$job\"}[10m])))",
@@ -457,7 +448,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_request_input_length_bucket{job=\"$job\"}[10m])))",
@@ -473,7 +464,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -603,7 +594,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_request_generated_tokens_bucket{job=\"$job\"}[10m])))",
@@ -614,7 +605,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_request_generated_tokens_bucket{job=\"$job\"}[10m])))",
@@ -626,7 +617,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_request_generated_tokens_bucket{job=\"$job\"}[10m])))",
@@ -655,7 +646,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -739,7 +730,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "sum(increase(tgi_request_success{job=\"$job\"}[1m]))",
@@ -750,7 +741,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "sum(increase(tgi_request_failure{job=\"$job\"}[1m])) by (err)",
@@ -766,7 +757,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -896,7 +887,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_request_mean_time_per_token_duration_bucket{job=\"$job\"}[10m])))",
@@ -907,7 +898,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_request_mean_time_per_token_duration_bucket{job=\"$job\"}[10m])))",
@@ -919,7 +910,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_request_mean_time_per_token_duration_bucket{job=\"$job\"}[10m])))",
@@ -945,7 +936,7 @@
         "dataFormat": "tsbuckets",
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -1023,7 +1014,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "exemplar": true,
@@ -1055,7 +1046,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -1140,7 +1131,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "count(tgi_request_count{job=\"$job\"})",
@@ -1155,7 +1146,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -1207,7 +1198,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "sum(tgi_queue_size{job=\"$job\"})",
@@ -1235,7 +1226,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -1317,7 +1308,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "avg(tgi_batch_current_max_tokens{job=\"$job\"})",
@@ -1332,7 +1323,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -1462,7 +1453,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_request_skipped_tokens_bucket{job=\"$job\"}[10m])))",
@@ -1473,7 +1464,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_request_skipped_tokens_bucket{job=\"$job\"}[10m])))",
@@ -1485,7 +1476,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_request_skipped_tokens_bucket{job=\"$job\"}[10m])))",
@@ -1501,7 +1492,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -1631,7 +1622,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_request_input_length_bucket{job=\"$job\"}[10m])))",
@@ -1642,7 +1633,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_request_input_length_bucket{job=\"$job\"}[10m])))",
@@ -1654,7 +1645,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_request_input_length_bucket{job=\"$job\"}[10m])))",
@@ -1670,7 +1661,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -1800,7 +1791,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_request_duration_bucket{job=\"$job\"}[10m])))",
@@ -1811,7 +1802,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_request_duration_bucket{job=\"$job\"}[10m])))",
@@ -1823,7 +1814,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_request_duration_bucket{job=\"$job\"}[10m])))",
@@ -1839,7 +1830,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -1921,7 +1912,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "avg(tgi_batch_current_size{job=\"$job\"})",
@@ -1936,7 +1927,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -2020,7 +2011,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "sum(increase(tgi_batch_concat{job=\"$job\"}[1m])) by (reason)",
@@ -2036,7 +2027,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -2166,7 +2157,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_request_queue_duration_bucket{job=\"$job\"}[10m])))",
@@ -2177,7 +2168,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_request_queue_duration_bucket{job=\"$job\"}[10m])))",
@@ -2189,7 +2180,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_request_queue_duration_bucket{job=\"$job\"}[10m])))",
@@ -2218,7 +2209,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -2346,7 +2337,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_batch_inference_duration_bucket{method=\"prefill\", job=\"$job\"}[10m])))",
@@ -2357,7 +2348,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_batch_inference_duration_bucket{method=\"prefill\", job=\"$job\"}[10m])))",
@@ -2369,7 +2360,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_batch_inference_duration_bucket{method=\"prefill\", job=\"$job\"}[10m])))",
@@ -2395,7 +2386,7 @@
         "dataFormat": "tsbuckets",
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -2472,7 +2463,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "exemplar": true,
@@ -2517,7 +2508,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -2645,7 +2636,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_batch_inference_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
@@ -2656,7 +2647,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_batch_inference_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
@@ -2668,7 +2659,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_batch_inference_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
@@ -2694,7 +2685,7 @@
         "dataFormat": "tsbuckets",
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -2771,7 +2762,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "exemplar": true,
@@ -2816,7 +2807,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -2944,7 +2935,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_batch_forward_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
@@ -2955,7 +2946,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_batch_forward_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
@@ -2967,7 +2958,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_batch_forward_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
@@ -2993,7 +2984,7 @@
         "dataFormat": "tsbuckets",
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -3070,7 +3061,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "exemplar": true,
@@ -3102,7 +3093,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -3230,7 +3221,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_batch_decode_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
@@ -3241,7 +3232,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_batch_decode_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
@@ -3253,7 +3244,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_batch_decode_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
@@ -3279,7 +3270,7 @@
         "dataFormat": "tsbuckets",
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -3356,7 +3347,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "exemplar": true,
@@ -3388,7 +3379,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -3516,7 +3507,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_batch_filter_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
@@ -3527,7 +3518,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_batch_filter_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
@@ -3539,7 +3530,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_batch_filter_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
@@ -3565,7 +3556,7 @@
         "dataFormat": "tsbuckets",
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -3642,7 +3633,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "exemplar": true,
@@ -3674,7 +3665,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -3802,7 +3793,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.5, sum by (le) (rate(tgi_batch_concat_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
@@ -3813,7 +3804,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.9, sum by (le) (rate(tgi_batch_concat_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
@@ -3825,7 +3816,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "expr": "histogram_quantile(0.99, sum by (le) (rate(tgi_batch_concat_duration_bucket{method=\"decode\", job=\"$job\"}[10m])))",
@@ -3851,7 +3842,7 @@
         "dataFormat": "tsbuckets",
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -3928,7 +3919,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "editorMode": "code",
             "exemplar": true,
@@ -3964,6 +3955,21 @@
     "templating": {
       "list": [
         {
+          "type": "datasource",
+          "name": "DS_PROMETHEUS",
+          "label": "datasource",
+          "current": {},
+          "hide": 0,
+          "includeAll": false,
+          "multi": false,
+          "options": [],
+          "query": "prometheus",
+          "queryValue": "",
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false
+        },
+        {
           "current": {
             "isNone": true,
             "selected": true,
@@ -3972,7 +3978,7 @@
           },
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS_EKS API INFERENCE PROD}"
+            "uid": "${DS_PROMETHEUS}"
           },
           "definition": "label_values(tgi_request_count, job)",
           "hide": 0,
