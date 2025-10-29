@@ -140,6 +140,7 @@ In this folder, we also provides some Grafana dashboard JSON files for your refe
 - `tei_grafana.json`: A sample Grafana dashboard JSON file for visualizing TEI metrics.
 - `tgi_grafana.json`: A sample Grafana dashboard JSON file for visualizing TGI metrics.
 - `redis_grafana.json`: A sample Grafana dashboard JSON file for visualizing the Redis metrics. For importing the redis metrics, you need to add the new connection and Redis data source in Grafana. Please refer this [link](https://grafana.com/grafana/plugins/redis-datasource/?tab=installation) for more details.
-- `gaudi_grafana.json`: A sample Grafana dashboard JSON file for visualizing the Intel® Gaudi® AI accelerator metrics in a container cluster for compute workload.
+- `gaudi_grafana.json`: (Deprecated) A sample Grafana dashboard JSON file for visualizing the Intel® Gaudi® AI accelerator metrics in a k8s cluster for compute workload.
+- `gaudi_grafana_v2.json`: A sample Grafana dashboard JSON file for visualizing the Intel® Gaudi® AI accelerator metrics in a container cluster for compute workload.
 - `cpu_grafana.json`: A sample Grafana dashboard JSON file for visualizing the CPU metrics.
 - `node_grafana.json`: A sample Grafana dashboard JSON file for visualizing the node metrics.
