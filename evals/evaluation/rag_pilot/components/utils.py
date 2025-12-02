@@ -2,14 +2,14 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-from typing import Union, TextIO
-import yaml
-import pandas as pd
 from collections import defaultdict
-from typing import List
-from components.pilot.base import ContextType, GTType, ContextGT
-from components.pilot.result import RAGResults, RAGResult
+from typing import List, TextIO, Union
+
+import pandas as pd
+import yaml
 from api_schema import GroundTruth
+from components.pilot.base import ContextGT, ContextType, GTType
+from components.pilot.result import RAGResult, RAGResults
 
 
 def load_rag_results_from_csv(file_obj: Union[str, TextIO]):
@@ -20,7 +20,9 @@ def load_rag_results_from_csv(file_obj: Union[str, TextIO]):
 
     required_columns = {"query_id", "query", "gt_context", "file_name"}
     if not required_columns.issubset(rag_results_raw.columns):
-        raise ValueError(f"Missing required columns. Required: {required_columns}, Found: {set(rag_results_raw.columns)}")
+        raise ValueError(
+            f"Missing required columns. Required: {required_columns}, Found: {set(rag_results_raw.columns)}"
+        )
 
     rag_results_dict = defaultdict(lambda: {"gt_contexts": []})
 
@@ -34,7 +36,9 @@ def load_rag_results_from_csv(file_obj: Union[str, TextIO]):
                 rag_results_dict[query_id].update(
                     {
                         "query": rag_result.get("query", ""),
-                        "ground_truth": rag_result.get("ground_truth", "") if "ground_truth" in rag_results_raw.columns else "",
+                        "ground_truth": (
+                            rag_result.get("ground_truth", "") if "ground_truth" in rag_results_raw.columns else ""
+                        ),
                     }
                 )
 
@@ -75,9 +79,7 @@ def load_rag_results_from_gt(gts: List[GroundTruth]):
                 ground_truth=gt.answer,
             )
             for ctx in gt.contexts:
-                result.gt_contexts.append(
-                    ContextGT(gt_type=GTType.TRADITIONAL,text=ctx.text, file_name=ctx.filename)
-                )
+                result.gt_contexts.append(ContextGT(gt_type=GTType.TRADITIONAL, text=ctx.text, file_name=ctx.filename))
             result.init_context_idx(ContextType.GT)
             rag_results.add_result(result)
 
@@ -85,6 +87,7 @@ def load_rag_results_from_gt(gts: List[GroundTruth]):
 
     except Exception as e:
         raise ValueError(f"Error processing RAG results from GroundTruth: {e}")
+
 
 def load_rag_results_from_gt_match_results(gt_match_results: List):
     try:
@@ -100,8 +103,8 @@ def load_rag_results_from_gt_match_results(gt_match_results: List):
                     node_id=chunk.node_id,
                     node_text=chunk.text,
                     text=context_match_res.context_text,
-                    file_name=chunk.metadata.get("file_name","unknown"),
-                    page_label=chunk.metadata.get("page_label", "")
+                    file_name=chunk.metadata.get("file_name", "unknown"),
+                    page_label=chunk.metadata.get("page_label", ""),
                 )
                 gt_contexts.append(gt_context_item)
 
@@ -116,12 +119,10 @@ def load_rag_results_from_gt_match_results(gt_match_results: List):
         return rag_results
 
     except Exception as e:
-        raise ValueError(
-            f"Error processing RAG results from GTMatchResult: {e}")
+        raise ValueError(f"Error processing RAG results from GTMatchResult: {e}")
 
 
 def read_yaml(file_path):
     with open(file_path, "r") as file:
         yaml_content = file.read()
     return yaml.safe_load(yaml_content)
-

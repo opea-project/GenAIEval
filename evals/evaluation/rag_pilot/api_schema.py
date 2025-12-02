@@ -1,11 +1,11 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-from pydantic import BaseModel, Field
-
-from typing import Optional, Dict, List, Union
-from enum import Enum
 import uuid
+from enum import Enum
+from typing import Dict, List, Optional, Union
+
+from pydantic import BaseModel, Field
 
 
 class RunningStatus(str, Enum):
@@ -114,7 +114,8 @@ class MatchSettings(BaseModel):
 class AnnotationOutput(BaseModel):
     suggested_query_ids: list[int]
 
+
 class PilotSettings(BaseModel):
-    #{ECRAG_SERVICE_HOST_IP}:{ECRAG_SERVICE_PORT}
+    # {ECRAG_SERVICE_HOST_IP}:{ECRAG_SERVICE_PORT}
     target_endpoint: Optional[str] = None
     target_type: Optional[str] = "ecrag"

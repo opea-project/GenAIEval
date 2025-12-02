@@ -1,16 +1,14 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-from fastapi import Path
-from typing import List, Optional
-
-from fastapi import FastAPI, HTTPException
 import asyncio
 from collections import defaultdict
+from typing import List, Optional
 
-from api_schema import Tuner, RAGStage, TunerOut, RunningStatus, TunerRequest
+from api_schema import RAGStage, RunningStatus, Tuner, TunerOut, TunerRequest
 from components.pilot.pilot import pilot
 from components.pilot.result import Metrics
+from fastapi import FastAPI, HTTPException, Path
 
 tuner_app = FastAPI()
 
@@ -46,38 +44,23 @@ async def register_tuner(reg_tuner_req: TunerRequest):
         tuners_dict = {}
         for t in reg_tuner_req.tuners:
             if t.type is None:
-                raise HTTPException(
-                    status_code=422,
-                    detail="Error: Tuner.type not specified."
-                )
+                raise HTTPException(status_code=422, detail="Error: Tuner.type not specified.")
             if t.params is None:
-                raise HTTPException(
-                    status_code=422,
-                    detail="Error: Tuner.params not specified."
-                )
+                raise HTTPException(status_code=422, detail="Error: Tuner.params not specified.")
             if "name" in t.params and t.params["name"] != "":
                 stage_tuner_list.append((reg_tuner_req.stage, t.params["name"]))
                 tuner_name_list.append(t.params["name"])
                 tuners_dict[t.params["name"]] = t.dict()
             else:
-                raise HTTPException(
-                    status_code=422,
-                    detail="Error: Tuner.params.name not specified."
-                )
+                raise HTTPException(status_code=422, detail="Error: Tuner.params.name not specified.")
         if pilot.tuner_mgr.init_tuner(stage_tuner_list, tuners_dict):
             return f"Tuner {tuner_name_list} registered"
         else:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Error registering tuner: {tuner_name_list}"
-            )
+            raise HTTPException(status_code=500, detail=f"Error registering tuner: {tuner_name_list}")
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error registering tuner: {e}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error registering tuner: {e}")
 
 
 @tuner_app.get(path="/v1/tuners")
@@ -86,10 +69,7 @@ async def get_tuners() -> List[TunerRequest]:
     stage_and_tuner_list = pilot.tuner_mgr.get_stage_and_tuner_name_list()
     print(stage_and_tuner_list)
     for k, v in stage_and_tuner_list.items():
-        r = TunerRequest(
-            stage=k,
-            tuners=[Tuner(**pilot.tuner_mgr.get_tuner(t).node.to_dict()) for t in v]
-        )
+        r = TunerRequest(stage=k, tuners=[Tuner(**pilot.tuner_mgr.get_tuner(t).node.to_dict()) for t in v])
         out.append(r)
     return out
 
@@ -117,10 +97,7 @@ async def get_available_tuners():
 
         return [TunerRequest(stage=stage, tuners=tuner_list) for stage, tuner_list in grouped.items()]
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error getting available tuners: {e}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error getting available tuners: {e}")
 
 
 @tuner_app.get(path="/v1/tuners/stage/{stage}", response_model=List[TunerOut])
@@ -166,7 +143,9 @@ async def run_tuners_in_background(stage: Optional[RAGStage], tuner_names: List[
                 for node in pl.nodes:
                     for module in node.modules:
                         attr_val = module.attributes[0].params["value"]
-                        print(f"[Tuner {tuner_name}][{pl.get_id()}]: Setting {node.type}.{module.type}.{module.attributes[0].type} to {attr_val}")
+                        print(
+                            f"[Tuner {tuner_name}][{pl.get_id()}]: Setting {node.type}.{module.type}.{module.attributes[0].type} to {attr_val}"
+                        )
                 if stage == RAGStage.RETRIEVAL or stage == RAGStage.POSTPROCESSING:
                     await asyncio.to_thread(pilot.run_pipeline_blocked, pl, True)
                 else:
@@ -264,10 +243,7 @@ async def get_stage_pipelines_best(stage: RAGStage = Path(...)):
 async def get_pipeline_best(tuner_name):
     best_pl = pilot.tuner_mgr.get_pipeline_best(tuner_name)
     if not best_pl:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Error: Invalid info tuner {tuner_name}"
-        )
+        raise HTTPException(status_code=404, detail=f"Error: Invalid info tuner {tuner_name}")
 
     return best_pl
 
@@ -276,10 +252,7 @@ async def get_pipeline_best(tuner_name):
 async def get_pipeline_base(tuner_name):
     base_pl = pilot.tuner_mgr.get_pipeline_base(tuner_name)
     if not base_pl:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Error: Invalid info tuner {tuner_name}"
-        )
+        raise HTTPException(status_code=404, detail=f"Error: Invalid info tuner {tuner_name}")
 
     return base_pl
 
@@ -302,10 +275,7 @@ async def reset_tuner(tuner_name):
 async def get_tuner(tuner_name):
     tuner = pilot.tuner_mgr.get_tuner(tuner_name)
     if not tuner:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Error: Tuner {tuner_name} not found"
-        )
+        raise HTTPException(status_code=404, detail=f"Error: Tuner {tuner_name} not found")
     return tuner
 
 
@@ -313,10 +283,7 @@ async def get_tuner(tuner_name):
 async def get_stage_status_by_tuner_name(tuner_name):
     status = pilot.tuner_mgr.get_tuner_status(tuner_name)
     if not status:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Error: Invalid info tuner {tuner_name}"
-        )
+        raise HTTPException(status_code=404, detail=f"Error: Invalid info tuner {tuner_name}")
     return status.value
 
 
