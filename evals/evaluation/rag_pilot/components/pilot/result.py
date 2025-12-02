@@ -6,15 +6,15 @@ import csv
 import hashlib
 import json
 import re
+import uuid
 from difflib import SequenceMatcher
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Union
-from pydantic import BaseModel, model_serializer, Field
-import numpy as np
-import uuid
 
-from components.pilot.base import ContextItem, ContextType, ContextGT, GTType, fuzzy_contains
+import numpy as np
+from components.pilot.base import ContextGT, ContextItem, ContextType, GTType, fuzzy_contains
+from pydantic import BaseModel, Field, model_serializer
 
 # Import matcher for advanced text matching
 try:
@@ -78,7 +78,7 @@ class RAGResult(BaseModel):
         context.context_idx = len(context_list)
         context_list.append(context)
 
-    def update_metadata_hits(self, threshold=1, enable_fuzzy=False,confidence_topn=5):
+    def update_metadata_hits(self, threshold=1, enable_fuzzy=False, confidence_topn=5):
         if self.gt_contexts:
             for context_type in [ContextType.RETRIEVAL, ContextType.POSTPROCESSING]:
                 context_list_name = f"{context_type.value}_contexts"
@@ -86,7 +86,9 @@ class RAGResult(BaseModel):
                 if context_list is None:
                     continue
                 for context in context_list:
-                    self.context_matches_gt(self.gt_contexts, context, context_type, threshold,enable_fuzzy,confidence_topn)
+                    self.context_matches_gt(
+                        self.gt_contexts, context, context_type, threshold, enable_fuzzy, confidence_topn
+                    )
 
             for context_type in [ContextType.RETRIEVAL, ContextType.POSTPROCESSING]:
                 count = 0
@@ -100,7 +102,10 @@ class RAGResult(BaseModel):
         # if self.ground_truth:
         #     self.metadata = self.cal_metric(self.query, self.ground_truth, response)
 
-    def append_gt_contexts(self, new_gts: List[ContextGT],) -> dict:
+    def append_gt_contexts(
+        self,
+        new_gts: List[ContextGT],
+    ) -> dict:
         if self.gt_contexts is None:
             self.gt_contexts = []
 
@@ -118,11 +123,7 @@ class RAGResult(BaseModel):
                 existing_node_ids.add(gt.node_id)
 
         self.init_context_idx(ContextType.GT)
-        return {
-            'added': added,
-            'skipped_duplicates': set(skipped_ids),
-            'total_gt_contexts': len(self.gt_contexts)
-        }
+        return {"added": added, "skipped_duplicates": set(skipped_ids), "total_gt_contexts": len(self.gt_contexts)}
 
     @classmethod
     def check_parts_in_text(cls, gt_context, text, threshold):
@@ -135,16 +136,22 @@ class RAGResult(BaseModel):
     @classmethod
     def check_annotation_gt_match(cls, gt: ContextGT, candidate_context: ContextItem):
         # Primary matching: node_id comparison (most accurate)
-        if (candidate_context.node_id and gt.node_id and
-                candidate_context.node_id == gt.node_id):
+        if candidate_context.node_id and gt.node_id and candidate_context.node_id == gt.node_id:
             return True
-        # Secondly matching: context comparsion
+        # Secondly matching: context comparison
         candidate_content = candidate_context.text.strip()
         gt_content = gt.node_text.strip()
         return candidate_content == gt_content
 
     @classmethod
-    def check_traditional_gt_match(cls, gt: ContextGT, candidate_context: ContextItem, threshold: float = 1.0,enable_fuzzy=False, confidence_topn=5) -> bool:
+    def check_traditional_gt_match(
+        cls,
+        gt: ContextGT,
+        candidate_context: ContextItem,
+        threshold: float = 1.0,
+        enable_fuzzy=False,
+        confidence_topn=5,
+    ) -> bool:
         # First check file name matching if both are available
         file_match = True
         if candidate_context.file_name and gt.file_name and gt.file_name != "":
@@ -152,7 +159,9 @@ class RAGResult(BaseModel):
 
         if not file_match:
             return False
-        default_matcher.update_settings(similarity_threshold=threshold,enable_fuzzy=enable_fuzzy, confidence_topn=confidence_topn)
+        default_matcher.update_settings(
+            similarity_threshold=threshold, enable_fuzzy=enable_fuzzy, confidence_topn=confidence_topn
+        )
         match_type, confidence = default_matcher.match_texts(candidate_context.text, gt.text)
         # Consider exact matches and high-confidence partial matches
         if match_type == "exact":
@@ -161,14 +170,24 @@ class RAGResult(BaseModel):
             return True
 
     @classmethod
-    def context_matches_gt(cls, gt_contexts: List[ContextGT], candidate_context: ContextItem, context_type: ContextType, threshold=1, enable_fuzzy=False, confidence_topn=5):
+    def context_matches_gt(
+        cls,
+        gt_contexts: List[ContextGT],
+        candidate_context: ContextItem,
+        context_type: ContextType,
+        threshold=1,
+        enable_fuzzy=False,
+        confidence_topn=5,
+    ):
         hit_indices = []
         for gt in gt_contexts:
             matched = False
             if gt.gt_type == GTType.ANNOTATION:
                 matched = cls.check_annotation_gt_match(gt, candidate_context)
             else:
-                matched = cls.check_traditional_gt_match(gt, candidate_context, threshold, enable_fuzzy, confidence_topn)
+                matched = cls.check_traditional_gt_match(
+                    gt, candidate_context, threshold, enable_fuzzy, confidence_topn
+                )
 
             if matched:
                 gt.metadata = gt.metadata or {}
