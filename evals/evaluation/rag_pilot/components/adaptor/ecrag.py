@@ -1,19 +1,19 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-import os
 import json
+import os
 import uuid
 from enum import Enum
-from typing import Any, Optional
-from typing import List
+from typing import Any, List, Optional
+from urllib.parse import quote
+
+import requests
+from components.adaptor.adaptor import AdaptorBase
+from components.pilot.base import Attribute, Module, Node
+from components.pilot.pipeline import Pipeline
 from llama_index.core.schema import TextNode
 from pydantic import BaseModel
-from components.adaptor.adaptor import AdaptorBase
-from components.pilot.pipeline import Pipeline
-from components.pilot.base import Node, Module, Attribute
-import requests
-from urllib.parse import quote
 
 ECRAG_SERVICE_HOST_IP = os.getenv("ECRAG_SERVICE_HOST_IP", "127.0.0.1")
 ECRAG_SERVICE_PORT = int(os.getenv("ECRAG_SERVICE_PORT", 16010))
@@ -261,22 +261,16 @@ class ECRAGAdaptor(AdaptorBase):
 
     def create_pipeline(self, pipeline_conf):
         path = "/v1/settings/pipelines"
-        return requests.post(
-            f"{self.server_addr}{path}", json=pipeline_conf, proxies={"http": None}
-        )
+        return requests.post(f"{self.server_addr}{path}", json=pipeline_conf, proxies={"http": None})
 
     def update_pipeline(self, pipeline_conf):
         path = "/v1/settings/pipelines"
         pl_name = pipeline_conf["name"]
-        return requests.patch(
-            f"{self.server_addr}{path}/{pl_name}", json=pipeline_conf, proxies={"http": None}
-        )
+        return requests.patch(f"{self.server_addr}{path}/{pl_name}", json=pipeline_conf, proxies={"http": None})
 
     def upload_files(self, file_conf):
         path = "/v1/data"
-        return requests.post(
-            f"{self.server_addr}{path}", json=file_conf.dict(), proxies={"http": None}
-        )
+        return requests.post(f"{self.server_addr}{path}", json=file_conf.dict(), proxies={"http": None})
 
     def get_prompt(self):
         path = "/v1/chatqna/prompt"
@@ -285,7 +279,7 @@ class ECRAGAdaptor(AdaptorBase):
         if res.status_code == 200:
             return res.json()
         else:
-            error_detail = res.text if hasattr(res, 'text') else "Unknown error"
+            error_detail = res.text if hasattr(res, "text") else "Unknown error"
             print(f"Failed to get prompt: {error_detail}")
             return False
 
@@ -296,7 +290,7 @@ class ECRAGAdaptor(AdaptorBase):
         if res.status_code == 200:
             return res.json()
         else:
-            error_detail = res.text if hasattr(res, 'text') else "Unknown error"
+            error_detail = res.text if hasattr(res, "text") else "Unknown error"
             print(f"Failed to get default prompt: {error_detail}")
             return False
 
@@ -338,7 +332,7 @@ class ECRAGAdaptor(AdaptorBase):
         return pl
 
     def get_document_chunks(self, file_name: str) -> List[TextNode]:
-        encoded_file_name = quote(file_name, safe='')
+        encoded_file_name = quote(file_name, safe="")
         # Use the actual EdgeCraftRAG API endpoint with properly encoded filename
         path = f"/v1/data/{encoded_file_name}/nodes"
         res = requests.get(f"{self.server_addr}{path}", proxies={"http": None})
@@ -376,70 +370,65 @@ class ECRAGAdaptor(AdaptorBase):
 def convert_ecrag_schema_to_node(n_type, node, ecrag_comp):
     if n_type == "node_parser":
         if ecrag_comp["parser_type"] == NodeParserType.SIMPLE:
-            node.modules.append(Module(
-                type="direct",
+            node.modules.append(
+                Module(
+                    type="direct",
+                    params={},
+                    attributes=[
+                        Attribute(type="chunk_size", params={"value": ecrag_comp["chunk_size"]}),
+                        Attribute(type="chunk_overlap", params={"value": ecrag_comp["chunk_overlap"]}),
+                    ],
+                )
+            )
+    elif n_type == "indexer":
+        node.modules.append(
+            Module(
+                type="embedding_model",
+                params={},
+                attributes=[
+                    Attribute(type="model_name", params={"value": ecrag_comp["embedding_model"]["model_id"]}),
+                ],
+            )
+        )
+    elif n_type == "retriever":
+        node.modules.append(
+            Module(
+                type="vectorsimilarity",
+                params={},
+                attributes=[
+                    Attribute(type="top_k", params={"value": ecrag_comp["retrieve_topk"]}),
+                ],
+            )
+        )
+    elif n_type == "postprocessor":
+        node.modules.append(
+            Module(
+                type="reranker",
                 params={},
                 attributes=[
                     Attribute(
-                        type="chunk_size",
-                        params={"value": ecrag_comp["chunk_size"]}
+                        type="top_n",
+                        # TODO: Consider reranker not the only postprocessor
+                        params={"value": ecrag_comp[0]["top_n"]},
                     ),
                     Attribute(
-                        type="chunk_overlap",
-                        params={"value": ecrag_comp["chunk_overlap"]}
+                        type="model_name",
+                        # TODO: Consider reranker not the only postprocessor
+                        params={"value": ecrag_comp[0]["reranker_model"]["model_id"]},
                     ),
-                ]
-            ))
-    elif n_type == "indexer":
-        node.modules.append(Module(
-            type="embedding_model",
-            params={},
-            attributes=[
-                Attribute(
-                    type="model_name",
-                    params={"value": ecrag_comp["embedding_model"]["model_id"]}
-                ),
-            ]
-        ))
-    elif n_type == "retriever":
-        node.modules.append(Module(
-            type="vectorsimilarity",
-            params={},
-            attributes=[
-                Attribute(
-                    type="top_k",
-                    params={"value": ecrag_comp["retrieve_topk"]}
-                ),
-            ]
-        ))
-    elif n_type == "postprocessor":
-        node.modules.append(Module(
-            type="reranker",
-            params={},
-            attributes=[
-                Attribute(
-                    type="top_n",
-                    # TODO: Consider reranker not the only postprocessor
-                    params={"value": ecrag_comp[0]["top_n"]}
-                ),
-                Attribute(
-                    type="model_name",
-                    # TODO: Consider reranker not the only postprocessor
-                    params={"value": ecrag_comp[0]["reranker_model"]["model_id"]}
-                ),
-            ]
-        ))
+                ],
+            )
+        )
     elif n_type == "generator":
-        node.modules.append(Module(
-            type="prompt",
-            params={},
-            attributes=[
-                Attribute(
-                    type="content",
-                    params={"value": ecrag_comp["prompt_content"]}
-                ),
-            ]
-        ))
+        node.modules.append(
+            Module(
+                type="prompt",
+                params={},
+                attributes=[
+                    Attribute(type="content", params={"value": ecrag_comp["prompt_content"]}),
+                ],
+            )
+        )
 
     return node
 
@@ -483,7 +472,9 @@ def update_ecrag_direct(ecrag_pl: dict, target_attr: Attribute, spec_node_name: 
     return ecrag_pl
 
 
-def update_ecrag_embedding_model(ecrag_pl: dict, target_attr: Attribute, spec_node_name: str, spec_module_name: str) -> dict:
+def update_ecrag_embedding_model(
+    ecrag_pl: dict, target_attr: Attribute, spec_node_name: str, spec_module_name: str
+) -> dict:
     embedding_model = ecrag_pl[spec_node_name][spec_module_name]
     if target_attr.type == "model_name":
         embedding_model["model_id"] = target_attr.params["value"]
