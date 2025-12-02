@@ -252,7 +252,6 @@ class Matcher:
             return True
 
         # 4. Keyword matching: extract key parts for matching
-        # For title-like texts (e.g. "14.14 How to clean nozzle/pedestal/OT camera/Asymetk setup tray")
         shorter, longer = (
             (normalized_text1, normalized_text2)
             if len(normalized_text1) < len(normalized_text2)
