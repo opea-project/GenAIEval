@@ -43,15 +43,15 @@
         {{ $t("postprocess.top_n") }} :
         <div
           v-for="item in pipelineList"
-          :key="item.pipeline_id"
+          :key="item.id"
           :class="{
             'option-wrap': true,
-            'is-active': item.pipeline_id === activePipelineId,
+            'is-active': item.id === currentPipelineId,
           }"
-          @click="handleTopnChange(item.pipeline_id)"
+          @click="handleTopnChange(item.id)"
         >
           <SettingFilled :style="{ color: 'var(--color-warning)' }" />
-          {{ item.top_n }}
+          {{ item?.postprocessor.reranker.top_n }}
         </div>
       </div>
       <div class="ground-truth" id="Query" v-if="currentQuery.query_id">
@@ -65,7 +65,7 @@
             <div class="query-wrap">
               <div class="query-title">
                 <div class="left-wrap">
-                  <div class="id-wrap">#{{ currentQuery.query_id }}</div>
+                  <div class="id-wrap">#{{ currentQueryIndex }}</div>
                   <div class="title-wrap">{{ currentQuery.query }}</div>
                 </div>
                 <div class="flex-end search-wrap">
@@ -177,9 +177,10 @@
               <div class="top-wrap">
                 <span class="file-name">
                   <a-tag :bordered="false">
-                    {{ postprocess.file_name }}
-                  </a-tag></span
-                >
+                    <span
+                      v-html="postprocess.highlightedFileName"
+                    ></span> </a-tag
+                ></span>
               </div>
               <div class="text-wrapper" ref="postprocessRefs">
                 <div
@@ -208,39 +209,77 @@
           </div>
         </div>
       </div>
+      <a-empty v-if="tunerDone && !currentQuery.query_id" />
+      <TunerLoading :visible="inProgress" />
     </div>
     <div class="footer-container">
-      <a-button type="primary" ghost @click="handleBack">
-        <ArrowLeftOutlined />
-        {{ $t("common.back") }}
-      </a-button>
-
       <div>
-        <span class="text-wrap">
+        <a-button v-if="!inProgress" type="primary" ghost @click="handleBack">
+          <ArrowLeftOutlined />
+          {{ $t("common.back") }}
+        </a-button>
+        <a-button type="primary" ghost @click="handleExit">
+          <LogoutOutlined />
+          {{ $t("common.exit") }}
+        </a-button>
+      </div>
+      <div>
+        <span class="text-wrap" v-if="tunerDone">
           <InfoCircleFilled
             :style="{ fontSize: '16px', color: 'var(--color-warning)' }"
           />
           {{ $t("postprocess.tip") }}
         </span>
-        <a-button type="primary" :disabled="!tunerDone" @click="handleNext">
+        <template v-if="!inProgress">
+          <a-button type="primary" ghost @click="handleSkip"
+            >{{ $t("common.skip") }}
+            <SvgIcon name="icon-skip1" :size="16" inherit class="ml-8" />
+          </a-button>
+          <a-button
+            class="next-btn"
+            type="primary"
+            @click="handleConfiguretuner"
+            >{{ $t("tuner.configure") }} <SettingOutlined
+          /></a-button>
+          <a-button type="primary" @click="handleRunTuner">
+            {{ $t("common.run") }}
+            <PlayCircleOutlined />
+          </a-button>
+        </template>
+        <a-button
+          type="primary"
+          v-if="tunerDone"
+          :disabled="!tunerDone"
+          @click="handleNext"
+        >
           {{ $t("common.next") }}
           <ArrowRightOutlined />
         </a-button>
       </div>
     </div>
+    <!-- TunerConfigure -->
+    <TunerConfigure
+      v-if="tunerConfigure.visible"
+      :stage="tunerConfigure.type"
+      @confirm="handleUpdateConfiguration"
+      @close="tunerConfigure.visible = false"
+    />
   </div>
 </template>
 
 <script lang="ts" setup name="postprocess">
 import { ref, reactive, computed, onMounted, watch } from "vue";
-import { QueryMenu } from "./index";
+import { QueryMenu, TunerLoading } from "./index";
 import {
   requestStageRun,
   getStagePipelines,
-  getMetricsByStage,
-  getResultsByStage,
-  requestTopnUpdate,
+  requestPipelineActive,
   getTunerStatus,
+  requestStageReset,
+  getPipelineDetailById,
+  getMetricsByPipelineId,
+  getResultsByPipelineId,
+  getBestPipelineByStage,
 } from "@/api/ragPilot";
 import {
   UpOutlined,
@@ -251,6 +290,9 @@ import {
   ArrowLeftOutlined,
   ExclamationCircleFilled,
   SearchOutlined,
+  LogoutOutlined,
+  PlayCircleOutlined,
+  SettingOutlined,
 } from "@ant-design/icons-vue";
 import { formatPercentage, transformTunerName } from "@/utils/common";
 import { ResultOut } from "../type";
@@ -269,8 +311,12 @@ import CustomRenderer from "@/utils/customRenderer";
 import { marked } from "marked";
 import router from "@/router";
 import { useI18n } from "vue-i18n";
+import { pipelineAppStore } from "@/store/pipeline";
+import { TunerConfigure } from "./index";
 
 const { t } = useI18n();
+const pipelineStore = pipelineAppStore();
+
 marked.setOptions({
   pedantic: false,
   gfm: true,
@@ -290,12 +336,10 @@ const isInit = ref<boolean>(true);
 let scrollContainer: any = null;
 const resultsData = ref<ResultOut[]>([]);
 const pipelineList = ref<EmptyArrayType>([]);
-const activePipelineId = ref<number>();
 const currentQuery = reactive<ResultOut>({});
 const currentQueryId = ref<number>();
 const timers = reactive<any>({});
 let tunerList = ref<EmptyArrayType>([]);
-let allResult = reactive<EmptyObjectType>({});
 const keywords = ref<string>("");
 const showContextText = ref<boolean[]>([]);
 const expandedMap = ref<boolean[]>([]);
@@ -303,6 +347,13 @@ const showPostprocessText = ref<boolean[]>([]);
 const expandedPostprocessMap = ref<boolean[]>([]);
 const queryAffixed = ref<boolean>(false);
 const headerHeight = 105;
+const stageList = ref<string[]>(["retrieval", "postprocessing"]);
+const currentPipelineId = ref<number>();
+const tunerConfigure = reactive<DialogType>({
+  type: "postprocessing",
+  data: {},
+  visible: true,
+});
 
 const lineChartOption = computed(() => ({
   grid: { top: 50, right: 20, bottom: 50, left: 50 },
@@ -321,7 +372,7 @@ const lineChartOption = computed(() => ({
       fontSize: "14",
     },
     boundaryGap: false,
-    data: pipelineList.value.map((item) => item.top_n),
+    data: pipelineList.value.map((item) => item.postprocessor.reranker.top_n),
   },
   yAxis: [
     {
@@ -365,19 +416,31 @@ const lineChartOption = computed(() => ({
     },
   ],
 }));
+
 const tunerDone = computed(() => {
   const statusList = ["completed", "inactive"];
-  return tunerList.value?.every((item) => statusList.includes(item.status));
-});
 
+  const list = tunerList.value;
+  return (
+    Array.isArray(list) &&
+    list.length > 0 &&
+    list.every((item) => statusList.includes(item.status))
+  );
+});
+const inProgress = computed(() => {
+  const statusList = ["not_started", "process"];
+
+  return tunerList.value.some((item) => statusList.includes(item.status));
+});
 const getScrollContainer = () =>
   document.querySelector(".layout-main") as HTMLElement;
 const postprocessSearchData = computed(() => {
   const { postprocessing_contexts = [] } = currentQuery;
   const kw = keywords.value.trim();
   if (!kw) {
-    return postprocessing_contexts.map((item) => ({
+    return postprocessing_contexts?.map((item) => ({
       ...item,
+      highlightedFileName: item.file_name,
       highlightedText: item.text,
     }));
   }
@@ -385,14 +448,19 @@ const postprocessSearchData = computed(() => {
     text.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
   const safeKw = escapeRegExp(kw);
   const regex = new RegExp(`(${safeKw})`, "gi");
-  return postprocessing_contexts.map((item) => ({
+  return postprocessing_contexts?.map((item) => ({
     ...item,
+    highlightedFileName: item.file_name.replace(
+      regex,
+      "<mark class='highlighted'>$1</mark>"
+    ),
     highlightedText: item.text.replace(
       regex,
       "<mark class='highlighted'>$1</mark>"
     ),
   }));
 });
+
 const handlePostprocessRun = async () => {
   const data: any = await requestStageRun("postprocessing");
   const tunerData = data
@@ -422,9 +490,9 @@ const queryTunerStatus = async (tunerName: string) => {
     });
     clearInterval(timers[tunerName]);
     delete timers[tunerName];
-    queryStagePipelines();
-    queryStageResults();
     if (tunerDone.value) {
+      queryStagePipelines();
+      queryActivePipelineId();
       clearTimers();
     }
   }
@@ -442,14 +510,19 @@ const getStatusIcon = (menu: EmptyObjectType) => {
 };
 const getCurrentQuery = async () => {
   let queryData: any =
-    resultsData.value.find((item) => item?.query_id === currentQueryId.value) ||
+    resultsData.value.find((item) => item?.query_id === currentQueryId.value) ??
     {};
 
   queryData?.gt_contexts?.forEach((item: any) => {
     item.retrievalHit = !!item.metadata?.retrieval?.length;
     item.postprocessHit = !!item.metadata?.postprocessing?.length;
   });
+  Object.keys(currentQuery).forEach((key) => {
+    delete currentQuery[key];
+  });
+
   Object.assign(currentQuery, queryData);
+
   handleMapReset();
   nextTick(() => {
     checkTextOverflow();
@@ -464,8 +537,8 @@ const currentQueryIndex = computed(() => {
   );
 });
 const handleTopnChange = (id: number) => {
-  activePipelineId.value = id;
-  handleResultsBuyCurrentPipeline();
+  currentPipelineId.value = id;
+  getQueryResult();
 };
 const toggleExpand = (index: number) => {
   expandedMap.value[index] = !expandedMap.value[index];
@@ -477,7 +550,7 @@ const groundTruthRefs = ref<Array<HTMLElement | null>>([]);
 const postprocessRefs = ref<Array<HTMLElement | null>>([]);
 const selectedPipeline = computed(() => {
   return pipelineList.value?.find(
-    (item) => item?.pipeline_id === activePipelineId.value
+    (item) => item?.id === currentPipelineId.value
   );
 });
 const contextsTotal = computed(() => {
@@ -524,12 +597,12 @@ const handleBack = async () => {
 const handleNext = async () => {
   Modal.confirm({
     title: t("common.prompt"),
-    content: `${t("postprocess.tip1")} ${selectedPipeline.value.top_n}${t(
-      "postprocess.tip2"
-    )}`,
+    content: `${t("postprocess.tip1")} ${
+      selectedPipeline.value?.postprocessor.reranker.top_n
+    }${t("postprocess.tip2")}`,
     okText: t("common.confirm"),
     async onOk() {
-      await requestTopnUpdate(selectedPipeline.value.top_n);
+      await requestPipelineActive(currentPipelineId.value!);
       router.push({ name: "Generation" });
     },
   });
@@ -566,40 +639,70 @@ const checkTextOverflow = () => {
   });
 };
 
-const queryStageResults = async () => {
-  const data: any = await getResultsByStage("postprocessing");
-
-  Object.assign(allResult, data);
-  handleResultsBuyCurrentPipeline();
+const queryActivePipelineId = async () => {
+  const id: any = await getBestPipelineByStage("postprocessing");
+  currentPipelineId.value = id;
+  getQueryResult();
 };
-const handleResultsBuyCurrentPipeline = () => {
-  resultsData.value = [].concat(allResult[activePipelineId.value!]?.results);
+const getQueryResult = async () => {
+  const data: any = await getResultsByPipelineId(currentPipelineId.value!);
+
+  resultsData.value = [].concat(data?.results ?? []);
+
   getCurrentQuery();
 };
 const queryStagePipelines = async () => {
-  const data: any = await getStagePipelines("postprocessing");
-  pipelineList.value = data.flat().map((item: any) => ({
-    pipeline_id: item.pipeline_id,
-    top_n: item.targets["postprocessor.reranker.top_n"],
-  }));
+  const data = await getStagePipelines("postprocessing");
+  const allPipelineItems = Object.values(data).flat();
+  const pipelineIds = [
+    ...new Set(
+      allPipelineItems.flatMap((item: any) => [
+        item.base_pipeline_id,
+        item.pipeline_id,
+      ])
+    ),
+  ];
 
-  queryPipelinesRecall();
+  queryPipelinesConfig(pipelineIds);
+};
+const queryPipelinesConfig = async (pipelines: EmptyArrayType) => {
+  try {
+    const promises = pipelines.map((id) => getPipelineDetailById(id));
+    const responses: any = await Promise.all(promises);
+    const validResponses = responses.filter(
+      (response: any) => response != null
+    );
+
+    pipelineList.value = validResponses;
+    queryPipelinesRecall();
+  } catch (err) {
+    console.log(err);
+  }
 };
 const queryPipelinesRecall = async () => {
-  const data: any = await getMetricsByStage("postprocessing");
+  try {
+    const promises = pipelineList.value.map(({ id }) =>
+      getMetricsByPipelineId(id!)
+    );
 
-  pipelineList.value = pipelineList.value.map((item) => ({
-    ...item,
-    ...data[item.pipeline_id.toString()],
-  }));
+    const responses = await Promise.all(promises);
 
-  activePipelineId.value = pipelineList.value.reduce((max, current) => {
-    return current.postprocessing_recall_rate > max.postprocessing_recall_rate
-      ? current
-      : max;
-  })?.pipeline_id;
+    const recallRateMap = pipelineList.value.reduce<Record<string, number>>(
+      (map, item, index) => {
+        const response = responses[index];
+        map[item.id] = response?.postprocessing_recall_rate || 0;
+        return map;
+      },
+      {}
+    );
 
-  handleResultsBuyCurrentPipeline();
+    pipelineList.value = pipelineList.value.map((item) => ({
+      ...item,
+      postprocessing_recall_rate: recallRateMap[item.id],
+    }));
+  } catch (err) {
+    console.error(err);
+  }
 };
 const handleUpdateId = (value: number) => {
   if (value) {
@@ -619,6 +722,45 @@ const clearTimers = () => {
 const handleQueryScroll = (affixed: boolean) => {
   queryAffixed.value = affixed;
 };
+const handleReset = async () => {
+  try {
+    const promises = stageList.value.map((stage) => requestStageReset(stage));
+    await Promise.all(promises);
+    pipelineStore.setPipeline("");
+  } catch (err) {
+    console.log(err);
+  }
+};
+const handleExit = () => {
+  Modal.confirm({
+    title: t("common.prompt"),
+    content: t("common.exitTip"),
+    okText: t("common.confirm"),
+    async onOk() {
+      await handleReset();
+      router.push({ name: "Home" });
+    },
+  });
+};
+const handleConfiguretuner = () => {
+  tunerConfigure.visible = true;
+  tunerConfigure.data = [];
+};
+const handleRunTuner = () => {
+  resultsData.value = [];
+  Object.keys(currentQuery).forEach((key) => {
+    delete currentQuery[key as keyof ResultOut];
+  });
+  handlePostprocessRun();
+};
+const handleUpdateConfiguration = () => {
+  tunerConfigure.visible = false;
+  handleRunTuner();
+};
+const handleSkip = () => {
+  clearTimers();
+  router.push({ name: "Generation" });
+};
 watch(
   () => currentQueryId.value,
   async () => {
@@ -626,8 +768,8 @@ watch(
   },
   { immediate: false }
 );
+
 onMounted(async () => {
-  await handlePostprocessRun();
   scrollContainer = document.querySelector(".layout-main");
   window.addEventListener("resize", checkTextOverflow);
 });
@@ -763,7 +905,7 @@ onUnmounted(() => {
     }
   }
   .ground-truth {
-    margin-top: 16px;
+    margin: 16px 0;
     padding: 0 12px 20px 12px;
     border-radius: 6px;
     background-color: var(--bg-content-color);
@@ -916,6 +1058,12 @@ onUnmounted(() => {
     top: -8px;
     width: 220px;
     text-align: end;
+  }
+  .intel-empty {
+    .mt-24;
+  }
+  .loading-container {
+    min-height: 300px;
   }
 }
 </style>

@@ -26,7 +26,9 @@ docker build --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg HTTP_PROXYS=$HTTP_PR
 cd ./rag_pilot/docker_image_build
 docker compose -f build.yaml build
 # Setup ENV
-export ECRAG_SERVICE_HOST_IP=${HOST_IP} # HOST IP of EC-RAG Service, usually current host ip
+
+# If you want to set HOST_IP in command lines instead of in UI 
+#export ECRAG_SERVICE_HOST_IP=${HOST_IP} # HOST IP of EC-RAG Service, usually current host ip
 
 # If EC-RAG Service port is not default
 #export ECRAG_SERVICE_PORT=16010

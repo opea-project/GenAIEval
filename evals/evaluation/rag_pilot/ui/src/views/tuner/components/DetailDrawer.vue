@@ -6,48 +6,29 @@
     width="500px"
     @close="handleClose"
   >
-    <!-- basic -->
-    <div class="basic-wrap">
-      <p class="basic-item">
-        <span class="label-wrap">{{ $t("pipeline.name") }}</span>
-        <span class="content-wrap">{{ formData.name }}</span>
-      </p>
-    </div>
     <!-- Node Parser -->
     <div class="module-wrap">
       <a-collapse v-model:activeKey="nodeParserActive" expandIconPosition="end">
         <a-collapse-panel key="nodeParser" :header="$t('pipeline.nodeParser')">
           <ul class="form-wrap">
-            <li class="item-wrap">
-              <span class="label-wrap">{{ $t("pipeline.nodeParser") }}</span>
+            <li
+              class="item-wrap"
+              v-if="formData.node_parser?.direct?.chunk_size"
+            >
+              <span class="label-wrap"> {{ $t("pipeline.chunkSize") }}</span>
               <span class="content-wrap">{{
-                formData.node_parser.parser_type
+                formData.node_parser?.direct.chunk_size
               }}</span>
             </li>
-            <template v-if="!isHierarchical && !isSentencewindow">
-              <li class="item-wrap">
-                <span class="label-wrap"> {{ $t("pipeline.chunkSize") }}</span>
-                <span class="content-wrap">{{
-                  formData.node_parser.chunk_size
-                }}</span>
-              </li>
-              <li class="item-wrap">
-                <span class="label-wrap">{{
-                  $t("pipeline.chunkOverlap")
-                }}</span>
-                <span class="content-wrap">{{
-                  formData.node_parser.chunk_overlap
-                }}</span>
-              </li></template
+            <li
+              class="item-wrap"
+              v-if="formData.node_parser?.direct?.chunk_overlap"
             >
-            <template v-if="isSentencewindow">
-              <li class="item-wrap">
-                <span class="label-wrap">{{ $t("pipeline.windowSize") }}</span>
-                <span class="content-wrap">{{
-                  formData.node_parser.window_size
-                }}</span>
-              </li></template
-            >
+              <span class="label-wrap">{{ $t("pipeline.chunkOverlap") }}</span>
+              <span class="content-wrap">{{
+                formData.node_parser.direct.chunk_overlap
+              }}</span>
+            </li>
           </ul>
         </a-collapse-panel>
       </a-collapse>
@@ -57,16 +38,13 @@
       <a-collapse v-model:activeKey="indexerActive" expandIconPosition="end">
         <a-collapse-panel key="indexer" :header="$t('pipeline.indexer')">
           <ul class="form-wrap">
-            <li class="item-wrap">
-              <span class="label-wrap">{{ $t("pipeline.indexerType") }}</span>
-              <span class="content-wrap">{{
-                formData.indexer.indexer_type
-              }}</span>
-            </li>
-            <li class="item-wrap">
+            <li
+              class="item-wrap"
+              v-if="formData.indexer?.embedding_model?.model_name"
+            >
               <span class="label-wrap">{{ $t("pipeline.embedding") }}</span>
               <span class="content-wrap">{{
-                formData.indexer.embedding_model
+                formData.indexer.embedding_model.model_name
               }}</span>
             </li>
           </ul>
@@ -78,16 +56,13 @@
       <a-collapse v-model:activeKey="retrieverActive" expandIconPosition="end">
         <a-collapse-panel key="retriever" :header="$t('pipeline.retriever')">
           <ul class="form-wrap">
-            <li class="item-wrap">
-              <span class="label-wrap">{{ $t("pipeline.retrieverType") }}</span>
-              <span class="content-wrap">{{
-                formData.retriever.retriever_type
-              }}</span>
-            </li>
-            <li class="item-wrap">
+            <li
+              class="item-wrap"
+              v-if="formData.retriever?.vectorsimilarity?.top_k"
+            >
               <span class="label-wrap">{{ $t("pipeline.topk") }}</span>
               <span class="content-wrap">{{
-                formData.retriever.retrieve_topk
+                formData.retriever.vectorsimilarity.top_k
               }}</span>
             </li>
           </ul>
@@ -104,56 +79,25 @@
           key="postProcessor"
           :header="$t('pipeline.postProcessor')"
         >
-          <ul
-            v-for="(item, index) in formData.postprocessor"
-            key="index"
-            :class="['form-wrap', index ? 'bt-border' : '']"
-          >
-            <li class="item-wrap">
-              {{ `${$t("pipeline.postProcessorType")}${index + 1}:` }}
-              <span class="content-wrap">{{ item.processor_type }}</span>
-            </li>
-            <template v-if="item.processor_type === 'reranker'">
-              <li class="item-wrap">
-                <span class="label-wrap">{{ $t("pipeline.rerank") }}</span>
-                <span class="content-wrap">{{ item.reranker_model }}</span>
-              </li>
-              <li class="item-wrap">
-                <span class="label-wrap">{{ $t("pipeline.top_n") }}</span>
-                <span class="content-wrap">{{ item.top_n }}</span>
-              </li></template
-            >
-          </ul>
-        </a-collapse-panel>
-      </a-collapse>
-    </div>
-    <!-- Generator -->
-    <div class="module-wrap">
-      <a-collapse v-model:activeKey="generatorActive" expandIconPosition="end">
-        <a-collapse-panel key="generator" :header="$t('pipeline.generator')">
           <ul class="form-wrap">
-            <li class="item-wrap">
-              <span class="label-wrap">{{ $t("pipeline.generatorType") }}</span>
-              <span class="content-wrap"> chatqna </span>
-            </li>
-            <li class="item-wrap">
-              <span class="label-wrap">{{ $t("pipeline.llm") }}</span>
+            <li
+              class="item-wrap"
+              v-if="formData.postprocessor?.reranker?.model_name"
+            >
+              <span class="label-wrap">{{ $t("pipeline.rerank") }}</span>
               <span class="content-wrap">{{
-                formData.generator.inference_type
+                formData.postprocessor.reranker.model_name
               }}</span>
             </li>
-            <li class="item-wrap">
-              <span class="label-wrap">{{ $t("pipeline.language") }}</span>
-              <span class="content-wrap">{{ formData.generator.model }}</span>
-            </li>
-            <template v-if="formData.generator.inference_type === 'local'">
-              <li class="item-wrap">
-                <span class="label-wrap">{{ $t("pipeline.weights") }}</span>
-                <span class="content-wrap">{{
-                  formData.generator.model.weight
-                }}</span>
-              </li></template
+            <li
+              class="item-wrap"
+              v-if="formData.postprocessor?.reranker?.top_n"
             >
+              <span class="label-wrap">{{ $t("pipeline.top_n") }}</span>
+              <span class="content-wrap">{{
+                formData.postprocessor.reranker.top_n
+              }}</span>
+            </li>
           </ul>
         </a-collapse-panel>
       </a-collapse>

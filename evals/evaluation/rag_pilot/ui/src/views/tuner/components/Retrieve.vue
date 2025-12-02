@@ -45,19 +45,21 @@
           size="middle"
           :scroll="{ x: 760, y: 320 }"
           :row-class-name="setSelectedClass"
+          :customRow="handleCustomRow"
         >
-          <template #bodyCell="{ column, record }">
+          <template #bodyCell="{ text, column, record }">
             <template v-if="column.dataIndex === 'id'">
               <div class="rate-wrap">
-                <span class="state-wrap" v-if="record.isSelected">{{
-                  $t("common.selected")
-                }}</span>
+                <span class="active-icon" v-if="record.id === currentPipelineId"
+                  ><CheckOutlined :style="{ fontSize: '12px' }"
+                /></span>
                 {{ record.id }}
               </div>
             </template>
-            <template v-if="column.dataIndex === 'retrieval_recall_rate'">
+            <template v-else-if="column.dataIndex === 'retrieval_recall_rate'">
               {{ formatPercentage(record.retrieval_recall_rate ?? 0) }}
             </template>
+            <template v-else>{{ text ? text : "--" }}</template>
           </template>
         </a-table>
       </div>
@@ -72,7 +74,7 @@
             <div class="query-wrap">
               <div class="query-title">
                 <div class="left-wrap">
-                  <div class="id-wrap">#{{ currentQuery.query_id }}</div>
+                  <div class="id-wrap">#{{ currentQueryIndex }}</div>
                   <div class="title-wrap">{{ currentQuery.query }}</div>
                 </div>
                 <div class="flex-end search-wrap">
@@ -96,8 +98,7 @@
             <div class="left-wrap">
               <span class="title-wrap">{{ $t("retriever.gt_context") }} </span>
               <a-tag color="success">
-                {{ $t("retriever.recall") }}:
-                {{ recallRate }}
+                {{ $t("retriever.recall") }}: {{ recallRate }}
               </a-tag>
             </div>
             <a-tag color="processing"
@@ -213,9 +214,8 @@
               <div class="top-wrap">
                 <span class="file-name">
                   <a-tag :bordered="false">
-                    {{ retrieval.file_name }}
-                  </a-tag></span
-                >
+                    <span v-html="retrieval.highlightedFileName"></span> </a-tag
+                ></span>
               </div>
               <div class="text-wrapper" ref="retrievalRefs">
                 <div
@@ -244,33 +244,78 @@
           </div>
         </div>
       </div>
+      <a-empty v-if="tunerDone && !currentQuery.query_id" />
+      <TunerLoading :visible="inProgress" />
     </div>
     <div class="footer-container">
-      <a-button type="primary" ghost @click="handleBack">
-        <ArrowLeftOutlined />
-        {{ $t("common.back") }}
-      </a-button>
-      <a-button type="primary" :disabled="!tunerDone" @click="handleNext">
-        {{ $t("common.next") }}
-        <ArrowRightOutlined />
-      </a-button>
+      <div>
+        <a-button v-if="!inProgress" type="primary" ghost @click="handleBack">
+          <ArrowLeftOutlined />
+          {{ $t("common.back") }}
+        </a-button>
+        <a-button type="primary" ghost @click="handleExit">
+          <LogoutOutlined />
+          {{ $t("common.exit") }}
+        </a-button>
+      </div>
+      <div>
+        <span class="text-wrap" v-if="tunerDone">
+          <InfoCircleFilled
+            :style="{ fontSize: '16px', color: 'var(--color-warning)' }"
+          />
+          {{ $t("retriever.tip") }}
+        </span>
+        <template v-if="!inProgress">
+          <a-button type="primary" ghost @click="handleSkip"
+            >{{ $t("common.skip") }}
+            <SvgIcon name="icon-skip1" :size="16" inherit class="ml-8" />
+          </a-button>
+          <a-button
+            class="next-btn"
+            type="primary"
+            @click="handleConfiguretuner"
+            >{{ $t("tuner.configure") }} <SettingOutlined
+          /></a-button>
+          <a-button type="primary" @click="handleRunTuner">
+            {{ $t("common.run") }}
+            <PlayCircleOutlined />
+          </a-button>
+        </template>
+        <a-button
+          type="primary"
+          v-if="tunerDone"
+          :disabled="!tunerDone"
+          @click="handleNext"
+        >
+          {{ $t("common.next") }}
+          <ArrowRightOutlined />
+        </a-button>
+      </div>
     </div>
+    <!-- TunerConfigure -->
+    <TunerConfigure
+      v-if="tunerConfigure.visible"
+      :stage="tunerConfigure.type"
+      @confirm="handleUpdateConfiguration"
+      @close="tunerConfigure.visible = false"
+    />
   </div>
 </template>
 
 <script lang="ts" setup name="Retrieve">
 import { ref, reactive, computed, onMounted } from "vue";
-import { QueryMenu } from "./index";
+import { QueryMenu, TunerLoading } from "./index";
 import {
   requestStageRun,
   getPipelineDetailById,
   getResultsByPipelineId,
-  getStagePipelines,
   getMetricsByStage,
   getTunerStatus,
   getMetricsByPipelineId,
   getBestPipelineByStage,
   getPipelinesByTuner,
+  requestStageReset,
+  requestPipelineActive,
 } from "@/api/ragPilot";
 import {
   EyeOutlined,
@@ -281,6 +326,11 @@ import {
   ArrowRightOutlined,
   SearchOutlined,
   ExclamationCircleFilled,
+  LogoutOutlined,
+  InfoCircleFilled,
+  CheckOutlined,
+  PlayCircleOutlined,
+  SettingOutlined,
 } from "@ant-design/icons-vue";
 import { formatTextStrict, formatPercentage } from "@/utils/common";
 import { ResultOut } from "../type";
@@ -289,9 +339,12 @@ import { marked } from "marked";
 import { transformTunerName } from "@/utils/common";
 import router from "@/router";
 import { useI18n } from "vue-i18n";
-import { Local } from "@/utils/storage";
+import { Modal } from "ant-design-vue";
+import { pipelineAppStore } from "@/store/pipeline";
+import { TunerConfigure } from "./index";
 
 const { t } = useI18n();
+const pipelineStore = pipelineAppStore();
 
 marked.setOptions({
   pedantic: false,
@@ -304,6 +357,7 @@ const basePipeline = ref<number | null>();
 const isInit = ref<boolean>(true);
 let scrollContainer: any = null;
 const bestPipelineId = ref<number>();
+const currentPipelineId = ref<number>();
 const resultsData = ref<ResultOut[]>([]);
 const timers = reactive<any>({});
 const tableList = ref<EmptyArrayType>([]);
@@ -312,6 +366,7 @@ const currentQuery = reactive<ResultOut>({});
 const currentQueryId = ref<number>();
 const keywords = ref<string>("");
 const headerHeight = 105;
+
 const tableColumns = ref<TableColumns[]>([
   {
     title: "Pipeline ID",
@@ -337,15 +392,30 @@ const expandedMap = ref<boolean[]>([]);
 const showRetrievalText = ref<boolean[]>([]);
 const expandedRetrievalMap = ref<boolean[]>([]);
 const queryAffixed = ref<boolean>(false);
+const tunerConfigure = reactive<DialogType>({
+  type: "retrieval",
+  data: {},
+  visible: true,
+});
 
 const tunerDone = computed(() => {
   const statusList = ["completed", "inactive"];
-  return tunerList.value?.every((item) => statusList.includes(item.status));
-});
 
-const setSelectedClass = (record: any, index: number) => {
-  if (record.isSelected) {
-    return "is-selected";
+  const list = tunerList.value;
+  return (
+    Array.isArray(list) &&
+    list.length > 0 &&
+    list.every((item) => statusList.includes(item.status))
+  );
+});
+const inProgress = computed(() => {
+  const statusList = ["not_started", "process"];
+
+  return tunerList.value.some((item) => statusList.includes(item.status));
+});
+const setSelectedClass = (record: any) => {
+  if (record.id === currentPipelineId.value) {
+    return "is-active";
   }
 };
 const getScrollContainer = () =>
@@ -355,8 +425,9 @@ const retrievalSearchData = computed(() => {
   const { retrieval_contexts = [] } = currentQuery;
   const kw = keywords.value.trim();
   if (!kw) {
-    return retrieval_contexts.map((item) => ({
+    return retrieval_contexts?.map((item) => ({
       ...item,
+      highlightedFileName: item.file_name,
       highlightedText: item.text,
     }));
   }
@@ -364,8 +435,12 @@ const retrievalSearchData = computed(() => {
     text.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
   const safeKw = escapeRegExp(kw);
   const regex = new RegExp(`(${safeKw})`, "gi");
-  return retrieval_contexts.map((item) => ({
+  return retrieval_contexts?.map((item) => ({
     ...item,
+    highlightedFileName: item.file_name.replace(
+      regex,
+      "<mark class='highlighted'>$1</mark>"
+    ),
     highlightedText: item.text.replace(
       regex,
       "<mark class='highlighted'>$1</mark>"
@@ -404,7 +479,6 @@ const queryTunerStatus = async (tunerName: string) => {
     clearInterval(timers[tunerName]);
     delete timers[tunerName];
     if (tunerDone.value) {
-      queryStagePipelines();
       queryActivePipelineId();
       clearTimers();
     }
@@ -421,6 +495,11 @@ const getStatusIcon = (menu: EmptyObjectType) => {
     return "icon-loading1";
   }
 };
+const queryBasePipelineConfig = async () => {
+  basePipeline.value = pipelineStore.basePipeline;
+  const data: any = await getPipelineDetailById(basePipeline.value!);
+  tableList.value = [].concat([data]);
+};
 const getCurrentQuery = () => {
   let queryData: any =
     resultsData.value.find((item) => item?.query_id === currentQueryId.value) ||
@@ -431,6 +510,9 @@ const getCurrentQuery = () => {
     item.hitRetrieveContexts = retrieval_contexts?.filter((k: any) =>
       item.metadata.retrieval?.includes(k.context_idx)
     );
+  });
+  Object.keys(currentQuery).forEach((key) => {
+    delete currentQuery[key as keyof ResultOut];
   });
   Object.assign(currentQuery, queryData);
   handleMapReset();
@@ -464,12 +546,16 @@ const retrievalTotal = computed(() => {
 });
 const recallRate = computed(() => {
   const { gt_contexts = [] } = currentQuery;
+
+  const pipeline = tableList.value.find(
+    (item) => item.id === currentPipelineId.value
+  );
+  const rate = formatPercentage(pipeline?.retrieval_recall_rate ?? 0);
+
   const count = gt_contexts.filter(
     (item) => item.metadata?.retrieval?.length
   ).length;
-  return `${formatPercentage(count / contextsTotal.value)}(${count}/${
-    contextsTotal.value
-  })`;
+  return `${rate}(${count}/${contextsTotal.value})`;
 });
 
 const toggleContext = (index: number) => {
@@ -498,39 +584,31 @@ const checkTextOverflow = () => {
 };
 
 const queryTunerPipelines = async (tuner: string) => {
-  basePipeline.value = Local.get("pipelineInfo")?.basePipeline;
   const data: any = await getPipelinesByTuner(tuner);
 
   handlePipelines(data);
 };
-const queryStagePipelines = async () => {
-  basePipeline.value = Local.get("pipelineInfo")?.basePipeline;
-  const data: any = await getStagePipelines("retrieval");
-  handlePipelines(data);
-};
+
 const handlePipelines = (data: any) => {
   const allPipelineItems = Object.values(data).flat();
   const pipelineIds = [
     ...new Set(allPipelineItems.flatMap((item: any) => [item.pipeline_id])),
   ];
-  pipelineIds.push(basePipeline.value);
   const targetKeys = allPipelineItems.flatMap((item: any) => {
     return Object.keys(item.targets || {}).map((fullKey) => {
       const parts = fullKey.split(".");
       return {
         name: parts[parts.length - 1],
-        key:
-          parts.length > 2
-            ? [parts.slice(0, 1), parts.slice(-1)].flat()
-            : parts,
+        key: parts,
       };
     });
   });
   const uniqueTargetKeys = Array.from(
     new Map(targetKeys.map((item) => [item.name, item])).values()
   );
-  queryPipelinesConfig(pipelineIds);
+
   inItTableColumns(uniqueTargetKeys);
+  queryPipelinesConfig(pipelineIds);
 };
 const queryPipelinesConfig = async (pipelines: EmptyArrayType) => {
   try {
@@ -540,11 +618,8 @@ const queryPipelinesConfig = async (pipelines: EmptyArrayType) => {
       (response: any) => response != null
     );
 
-    tableList.value = [].concat(...validResponses);
-
-    if (tunerDone.value) {
-      queryPipelinesRecall();
-    }
+    tableList.value = [...tableList.value, ...validResponses];
+    if (tunerDone.value) queryPipelinesRecall();
   } catch (err) {
     console.log(err);
   }
@@ -555,7 +630,7 @@ const queryPipelinesRecall = async () => {
       getMetricsByStage("retrieval"),
       getMetricsByPipelineId(basePipeline.value!),
     ]);
-    tableList.value = tableList.value.map((item, index) => {
+    tableList.value = tableList.value.map((item) => {
       if (item.id === basePipeline.value) {
         return {
           ...item,
@@ -582,9 +657,10 @@ const handleSelectedPipeline = () => {
   );
   if (index === -1) return;
 
-  const item = { ...tableList.value[index], isSelected: true };
+  const item = tableList.value[index];
   tableList.value.splice(index, 1);
   tableList.value.unshift(item);
+  currentPipelineId.value = bestPipelineId.value;
 };
 
 const inItTableColumns = (targets: EmptyArrayType) => {
@@ -609,16 +685,27 @@ const inItTableColumns = (targets: EmptyArrayType) => {
 const queryActivePipelineId = async () => {
   const pipeline_id: any = await getBestPipelineByStage("retrieval");
   bestPipelineId.value = pipeline_id;
-
+  currentPipelineId.value = pipeline_id;
   getQueryResult();
 };
 const getQueryResult = async () => {
-  const data: any = await getResultsByPipelineId(bestPipelineId.value!);
+  const data: any = await getResultsByPipelineId(currentPipelineId.value!);
 
   resultsData.value = [].concat(data?.results);
   getCurrentQuery();
 };
 
+const handleCustomRow = (record: EmptyObjectType) => {
+  return {
+    onClick: () => {
+      currentPipelineId.value = record.id;
+      getQueryResult();
+    },
+    style: {
+      cursor: "pointer",
+    },
+  };
+};
 const handleScrollQuery = async () => {
   const element = document.getElementById("Query");
 
@@ -657,7 +744,17 @@ const handleBack = async () => {
   router.push({ name: "Rating" });
 };
 const handleNext = async () => {
-  router.push({ name: "Postprocess" });
+  Modal.confirm({
+    title: t("common.prompt"),
+    content: `${t("retriever.tip1")} ${currentPipelineId.value}${t(
+      "retriever.tip2"
+    )}`,
+    okText: t("common.confirm"),
+    async onOk() {
+      await requestPipelineActive(currentPipelineId.value!);
+      router.push({ name: "Postprocess" });
+    },
+  });
 };
 const handleUpdateId = (value: number) => {
   if (value) {
@@ -677,8 +774,41 @@ const clearTimers = () => {
 const handleQueryScroll = (affixed: boolean) => {
   queryAffixed.value = affixed;
 };
-onMounted(() => {
+const handleExit = () => {
+  Modal.confirm({
+    title: t("common.prompt"),
+    content: t("common.exitTip"),
+    okText: t("common.confirm"),
+    async onOk() {
+      await requestStageReset("retrieval");
+      pipelineStore.setPipeline("");
+      router.push({ name: "Home" });
+    },
+  });
+};
+const handleConfiguretuner = () => {
+  tunerConfigure.visible = true;
+  tunerConfigure.data = [];
+};
+const handleRunTuner = () => {
+  tableList.value = [];
+  resultsData.value = [];
+  Object.keys(currentQuery).forEach((key) => {
+    delete currentQuery[key as keyof ResultOut];
+  });
+
   handleRetrieveRun();
+  queryBasePipelineConfig();
+};
+const handleUpdateConfiguration = () => {
+  tunerConfigure.visible = false;
+  handleRunTuner();
+};
+const handleSkip = () => {
+  clearTimers();
+  router.push({ name: "Postprocess" });
+};
+onMounted(() => {
   scrollContainer = document.querySelector(".layout-main");
   window.addEventListener("resize", checkTextOverflow);
 });
@@ -709,6 +839,7 @@ onUnmounted(() => {
     min-width: 600px;
     padding: 12px 0;
     :deep(.intel-steps) {
+      justify-content: center;
       .intel-steps-item-tail::after {
         height: 2px;
         background: var(--color-primary-tip) !important;
@@ -765,10 +896,10 @@ onUnmounted(() => {
     background-color: var(--bg-card-color);
     border-radius: 6px;
     :deep(.intel-table) {
-      .is-selected {
+      .is-active {
         .intel-table-cell {
-          background-color: var(--color-successBg);
           overflow: hidden;
+          background-color: var(--color-successBg);
         }
       }
     }
@@ -787,10 +918,24 @@ onUnmounted(() => {
         transform: rotate(45deg) scale(0.7);
         .vertical-center;
       }
+      .active-icon {
+        position: absolute;
+        right: -10px;
+        top: -12px;
+        border-radius: 0 0 0 6px;
+        width: 20px;
+        height: 20px;
+        background-color: var(--color-success);
+        color: var(--color-white);
+        .vertical-center;
+        &.is-experience {
+          background-color: var(--color-purple);
+        }
+      }
     }
   }
   .ground-truth {
-    margin-top: 20px;
+    margin: 20px 0;
     padding-bottom: 20px;
     border-radius: 6px;
     background-color: var(--bg-content-color);
@@ -938,6 +1083,12 @@ onUnmounted(() => {
     top: -8px;
     width: 220px;
     text-align: end;
+  }
+  .intel-empty {
+    .mt-24;
+  }
+  .loading-container {
+    min-height: 300px;
   }
 }
 </style>

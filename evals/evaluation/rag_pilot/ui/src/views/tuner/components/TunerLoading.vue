@@ -6,16 +6,20 @@
         class="loading-title"
         :style="{ fontSize: size === 'default' ? '14px' : '18px' }"
       >
-        {{ title }}
+        {{ title ? title : t("common.loading") }}...
       </p>
       <p class="loading-text" v-if="showDes">
-        {{ describe }}
+        {{ describe ? describe : t("common.waitTip") }}
       </p>
     </div>
   </div>
 </template>
 
-<script setup lang="ts" name="xxx">
+<script setup lang="ts" name="TunerLoading">
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
+
 const props = defineProps({
   visible: {
     type: Boolean,
@@ -28,12 +32,11 @@ const props = defineProps({
   },
   title: {
     type: String,
-    default: "Loading...",
+    default: "",
   },
   describe: {
     type: String,
-    default:
-      "Please wait patiently and do not refresh the page during this period",
+    default: "",
   },
   showDes: {
     type: Boolean,
