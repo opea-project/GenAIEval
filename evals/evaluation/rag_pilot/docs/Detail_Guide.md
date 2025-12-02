@@ -44,7 +44,7 @@ First time you use Rag Pilot you can start with `Create Now`.
 - `Add Context`: Add context of the same query.
 - `Add Query` : Add other queries infornation.
 - `Save`: Save single query ground truth information.
-- `Batch Save`: Save all quries ground truth informations.
+- `Batch Save`: Save all queries ground truth information.
 - Once the user click `Save` or `Batch Save` button ,RAG Pilot will search matched nodes based on the ground truth information you entered as ground truth. If no matched node, RAG Pilot will will return the top few nodes with the highest match scores for the user to select:
   ![select ground truth](../pics/gt_select.png)
 - After create gt, you can click `download` button to download ground truth file for `Upload Files`.
@@ -181,7 +181,7 @@ curl -X POST http://localhost:16030/v1/pilot/pipeline/active/run| jq '.'
 ```
 #### Get pipeline results
 ```bash
-#get detaill results
+#get detail results
 curl -X GET http://localhost:16030/v1/pilot/pipeline/{pipeline id}/results | jq '.'
 #get pipeline metrics
 curl -X GET http://localhost:16030/v1/pilot/pipeline/{pipeline id}/results/metrics | jq '.'
