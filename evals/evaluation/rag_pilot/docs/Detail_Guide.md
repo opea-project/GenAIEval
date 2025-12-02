@@ -24,14 +24,14 @@ These tuners help in optimizing document parsing, chunking strategies, reranking
 RAG Pilot provides an interactive UI interface to assist with usage, including the following stages：
 #### 1. Set EC-RAG endpoint
 Click the gear button to set EC-RAG endpoint:
-![Set ecrag endpoint](pics/set_ecragendpoint.png)
+![Set ecrag endpoint](../pics/set_ecragendpoint.png)
 #### 2. Ground truth upload
 We provide two ways to upload Ground truth:
 `Upload File` and `Create New`
 First time you use Rag Pilot you can start with `Create Now`.
 ##### 2.1 Create Now
 
-  ![Ground truth upload](pics/creat_gt1.png)
+  ![Ground truth upload](../pics/creat_gt1.png)
 - Available options and  meanings:
   | Item | usage |
   |---|---|
@@ -46,9 +46,9 @@ First time you use Rag Pilot you can start with `Create Now`.
 - `Save`: Save single query ground truth information.
 - `Batch Save`: Save all quries ground truth informations.
 - Once the user click `Save` or `Batch Save` button ,RAG Pilot will search matched nodes based on the ground truth information you entered as ground truth. If no matched node, RAG Pilot will will return the top few nodes with the highest match scores for the user to select:
-  ![select ground truth](pics/gt_select.png)
+  ![select ground truth](../pics/gt_select.png)
 - After create gt, you can click `download` button to download ground truth file for `Upload Files`.
-![download gt](pics/download.png)
+![download gt](../pics/download.png)
 ##### 2.2 Upload files
 After create gt, you can use downloaded json file as upload file.
 
@@ -57,14 +57,14 @@ After groud truth loading, RAG Pilot wii generate response bases on EC-RAG curre
 - Click `Run` to get rating results.
 - Click  `Skip` to skip rating.
 
-  ![Rating](pics/rating1.png)
+  ![Rating](../pics/rating1.png)
 
 After clicking `Run`:
 - You can rating each result after the responses generated.
 - Click numbers on the left to switch between responses of different queries.
 - Click `Next` to the next stage.
 
-  ![Rating2](pics/rating2.png)
+  ![Rating2](../pics/rating2.png)
 #### 4. Retrieve Context Tuning
 During this stage, RAG Pilot will execute four tuners:`ObserberTuner`, `EmbeddingModelTuner`, `NodeParserTuner` and `RetrievalTopKTuner`.
 
@@ -74,19 +74,19 @@ You can configure the specific content for each tuners.
 - Click `Cancel` then click `Skip` to skip the Retrieve Context Tuning stage.
 - Support exporting and importing tuners configure with `Export` and `Import` buttons.
 
-  ![retrieval config](pics/retrieval_config.png)
+  ![retrieval config](../pics/retrieval_config.png)
 ##### 4.2 Retrieve Context Tuning Run & Results
 After clicking `Run Tuners`, these tuners will experiment with various parameter combinations to construct corresponding pipelines, ultimately selecting the most effective pipeline as the operational one.
 
 - Click numbers on the left to switch between different queries.
 
-  ![retrieva lpipelines](pics/retrieved_pipelines.png)
+  ![retrieva lpipelines](../pics/retrieved_pipelines.png)
 
 - Once the seleted tuners have completed their tasks, the page will display the results, including the `ground truth hits` and the `retrieved chunks`.
 
 - Users can search text via the search box in the upper-right corner to observe which parts of the context match the ground truth context. Text entered into the search box will be highlighted.
 
-  ![retrieved chunks](pics/retrieved_chunks.png)
+  ![retrieved chunks](../pics/retrieved_chunks.png)
 
 - Click `Next` to the Postprocess Context Tuning stage.
 
@@ -99,13 +99,13 @@ Users can configure `RerankerTopnTuner` with UI.
 - Click `Cancel` then click `Skip` to skip the Postprocess Context Tuning.
 - Support exporting and importing tuners configure with `Export` and `Import` buttons.
 
-  ![postprocess config](pics/postprocessing_config.png)
+  ![postprocess config](../pics/postprocessing_config.png)
 
 ##### 5.2 Postprocess Context Tuning Run & Results
 
 After the tuning finished, the page will show recall plots of different `topn`.
 
-![recall plot](pics/recall_plot.png)
+![recall plot](../pics/recall_plot.png)
 
 - You can select the desired `Top n` value.
 
@@ -117,7 +117,7 @@ After the tuning finished, the page will show recall plots of different `topn`.
 
 
 
-  ![postprocess chunks](pics/postprocess_chunks.png)
+  ![postprocess chunks](../pics/postprocess_chunks.png)
 
 - Click `Next` to the generation tuning stage.
 
@@ -128,11 +128,11 @@ Users can configure `PromptTuner` with UI:
 - Click `Cancel` then click `Skip` to skip the Generation Tuning.
 - Support exporting and importing tuners configure with `Export` and `Import` buttons.
 
-  ![prompt configs](pics/prompt_config.png)
+  ![prompt configs](../pics/prompt_config.png)
 
 - Click `Run tuners` will display all activated prompts:
 
-  ![activated prompts](pics/activated_prompt.png)
+  ![activated prompts](../pics/activated_prompt.png)
 
 - Click `Next` to utilize these prompts to generate answers.
 
@@ -143,14 +143,14 @@ Once the response is generated, you can then evaluate and rate the responses gen
 
 Click numbers on the left to switch between different queries.
 
-![different promp answers](pics/answer_wi_diff_prompts.png)
+![different promp answers](../pics/answer_wi_diff_prompts.png)
 
 Click `Next` to the next stage.
 
 #### 7. View Results
 After `Generation tuning` stage, you can see the overall rating of different prompts. For each pipeline, you can view configuration details and update them to EC-RAG.
 
-![different prompts results](pics/diff_prompt_res.png)
+![different prompts results](../pics/diff_prompt_res.png)
 
 
 Note that once you run `retrieval`,`postprocessing` or `generation` stage , the EC-RAG active pipeline will be changed, you have to reset EC-RAG pipeline in EC-RAG server if needed.
@@ -221,7 +221,7 @@ RAG Pilot represents each stage of the RAG pipeline as a **node**, such as `node
 
 Here is an example of nodes and modules for EdgeCraftRAG.
 
-![RAG Pilot Architecture](pics/RAG_Pilot.png)
+![RAG Pilot Architecture](../pics/RAG_Pilot.png)
 
 ### ⚙️ How to Configure Nodes and Modules
 
