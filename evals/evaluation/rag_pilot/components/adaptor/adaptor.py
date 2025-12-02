@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from abc import ABC, abstractmethod
+
 import yaml
 
 
@@ -13,7 +14,7 @@ class AdaptorBase(ABC):
 
         if spec_file:
             """Load a complete pipeline from YAML file."""
-            with open(spec_file, 'r') as f:
+            with open(spec_file, "r") as f:
                 for doc in yaml.safe_load_all(f):
                     self.spec.update(doc)
             if not self.spec:
