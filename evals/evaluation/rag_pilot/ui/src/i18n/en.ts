@@ -1,6 +1,3 @@
-// Copyright (C) 2025 Intel Corporation
-// SPDX-License-Identifier: Apache-2.0
-
 export default {
   headerTitle: "RAG Pilot-Pipeline Tuning Tool",
   common: {
@@ -8,7 +5,7 @@ export default {
     edit: "Edit",
     delete: "Delete",
     active: "Activate",
-    deactivate: "Deactivate",
+    deactive: "Deactive",
     cancel: "Cancel",
     confirm: "Confirm",
     save: "Save",
@@ -76,7 +73,7 @@ export default {
     validSizeErr: "Single file size not exceeding 200M.",
     annotationAdd: "Create Annotation",
     selected: "Selected",
-    query: "queries",
+    query: "querys",
     batchSub: "Batch Save",
     bestContext: "Match context",
     matchScore: "Match score",

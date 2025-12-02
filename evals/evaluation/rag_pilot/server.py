@@ -2,14 +2,15 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
-
 import uvicorn
-from api.v1.pilot import pilot_app
-from api.v1.tuner import tuner_app
-from components.adaptor.ecrag import ECRAGAdaptor
-from components.pilot.pilot import pilot
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from api.v1.pilot import pilot_app
+from api.v1.tuner import tuner_app
+from components.pilot.pilot import pilot
+from components.adaptor.ecrag import ECRAGAdaptor
+
 
 app = FastAPI()
 app.add_middleware(
