@@ -1,6 +1,3 @@
-# Copyright (C) 2025 Intel Corporation
-# SPDX-License-Identifier: Apache-2.0
-
 overall_metrics = "overall_metrics"
 precision = "precision"
 recall = "recall"
@@ -26,16 +23,8 @@ METRIC_GROUP_MAP = {
     retriever_metrics: [context_recall, context_precision, context_entity_recall, context_relevancy],
     generator_metrics: [answer_correctness, answer_relevancy, answer_similarity, faithfulness],
     all_metrics: [
-        precision,
-        recall,
-        f1,
-        context_recall,
-        context_precision,
-        context_entity_recall,
-        context_relevancy,
-        answer_correctness,
-        answer_relevancy,
-        answer_similarity,
-        faithfulness,
-    ],
+        precision, recall, f1,
+		context_recall, context_precision, context_entity_recall, context_relevancy,
+        answer_correctness, answer_relevancy, answer_similarity, faithfulness
+    ]
 }

@@ -2,14 +2,15 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
-
 import uvicorn
-from api.v1.pilot import pilot_app
-from api.v1.tuner import tuner_app
-from components.pilot.pilot import init_active_pipeline
-from components.tuner.tunermgr import init_tuners
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from api.v1.pilot import pilot_app
+from api.v1.tuner import tuner_app
+from components.pilot.pilot import pilot
+from components.adaptor.ecrag import ECRAGAdaptor
+
 
 app = FastAPI()
 app.add_middleware(
@@ -29,8 +30,7 @@ for sub_app in sub_apps:
 
 @app.on_event("startup")
 def startup():
-    init_active_pipeline()
-    init_tuners()
+    pilot.add_adaptor(ECRAGAdaptor())
 
 
 if __name__ == "__main__":

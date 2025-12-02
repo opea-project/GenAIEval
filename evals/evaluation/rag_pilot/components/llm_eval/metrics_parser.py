@@ -1,20 +1,16 @@
-# Copyright (C) 2025 Intel Corporation
-# SPDX-License-Identifier: Apache-2.0
-
-import threading
-import warnings
 from abc import ABC, abstractmethod
+from typing import Any, Optional, List
 from enum import Enum
-from typing import Any, List, Optional
-
-import numpy as np
+import warnings
 import torch
+
 from datasets import Dataset
+import numpy as np
+import threading
 
-from .doc import RAGResult, RAGResults
+from .doc import RAGResults, RAGResult
 from .metrics import *
-from .utils_eval import clean_memory, load_hf_pipeline
-
+from .utils_eval import load_hf_pipeline, clean_memory
 
 class EvaluatorType(str, Enum):
 
@@ -58,11 +54,9 @@ class MetricsParser(ABC):
 
 
 default_embedding_model_name = "BAAI/bge-small-zh-v1.5"
-
-
 class RagasMetricsParser(MetricsParser):
 
-    def __init__(self, llm_name, embedding_model_name=default_embedding_model_name):
+    def __init__(self, llm_name, embedding_model_name = default_embedding_model_name):
         super().__init__()
 
         self.llm_name = llm_name
@@ -74,25 +68,23 @@ class RagasMetricsParser(MetricsParser):
         self.load_model()
 
     def load_model(self):
-        from langchain_community.embeddings import HuggingFaceEmbeddings
         from langchain_huggingface.llms import HuggingFacePipeline
-        from ragas import RunConfig
+        from langchain_community.embeddings import HuggingFaceEmbeddings
         from ragas.embeddings.base import LangchainEmbeddingsWrapper
+        from ragas import RunConfig
 
         pipe = load_hf_pipeline(self.llm_name)
         self.llm = HuggingFacePipeline(pipeline=pipe)
         self.embedding = LangchainEmbeddingsWrapper(
             HuggingFaceEmbeddings(
-                model_name=self.embedding_model_name,
-                model_kwargs={"device": "cuda" if torch.cuda.is_available() else "cpu"},
-                encode_kwargs={"normalize_embeddings": True},  # Normalize for cosine similarity
-            )
-        )
+            model_name=self.embedding_model_name,
+            model_kwargs={"device": "cuda" if torch.cuda.is_available() else "cpu"},
+            encode_kwargs={"normalize_embeddings": True},  # Normalize for cosine similarity
+            ))
         self.run_config = RunConfig(timeout=12000)
 
     def create_metrics(self, eval_metrics: List[str]):
         from .utils_ragas import RAGAS_METRIC_FUNC_MAP
-
         if isinstance(eval_metrics, str):
             eval_metrics = [eval_metrics]
 
@@ -118,18 +110,14 @@ class RagasMetricsParser(MetricsParser):
         data_collections = {
             "question": [result.query for result in results.results],
             "answer": [result.response for result in results.results],
-            "ground_truth": [result.gt_answer if result.gt_answer else "" for result in results.results],
-            "contexts": [
-                [doc.text for doc in result.retrieved_contexts] if result.retrieved_contexts else [""]
-                for result in results.results
-            ],
+            "ground_truth": [result.gt_answer if result.gt_answer else "" for result in results.results] ,
+            "contexts": [[doc.text for doc in result.retrieved_contexts] if result.retrieved_contexts else [""] for result in results.results ],
         }
 
         return Dataset.from_dict(data_collections)
 
     def evaluate(self, results: RAGResults, save_path=None):
         from ragas import evaluate
-
         from .utils_ragas import RAGAS_METRIC_FUNC_MAP
 
         dataset = self.results2datasets(results)
@@ -139,7 +127,7 @@ class RagasMetricsParser(MetricsParser):
             llm=self.llm,
             embeddings=self.embedding,
             raise_exceptions=False,
-            run_config=self.run_config,
+            run_config=self.run_config
         )
         df = scores.to_pandas()
         for metric in self.metrics:
@@ -154,7 +142,7 @@ class RagasMetricsParser(MetricsParser):
 
         return results.metrics
 
-
+    
 class DeepevalMetricsParser(MetricsParser):
 
     def __init__(self, llm_name):
@@ -167,12 +155,10 @@ class DeepevalMetricsParser(MetricsParser):
 
     def load_model(self):
         from .utils_deepeval import DeepEvalCustomEvalLLM
-
         self.llm = DeepEvalCustomEvalLLM(self.llm_name)
 
     def create_metrics(self, eval_metrics: List[str]):
         from .utils_deepeval import DEEPEVAL_METRIC_FUNC_MAP
-
         if isinstance(eval_metrics, str):
             eval_metrics = [eval_metrics]
 
@@ -190,8 +176,8 @@ class DeepevalMetricsParser(MetricsParser):
         metrics_func = {}
         for metric in ret_metrics:
             if metric in DEEPEVAL_METRIC_FUNC_MAP:
-                # metric_instance = DEEPEVAL_METRIC_FUNC_MAP[metric](model=llm)
-                metric_instance = DEEPEVAL_METRIC_FUNC_MAP[metric](model=llm, include_reason=False)  # TODO Test
+                #metric_instance = DEEPEVAL_METRIC_FUNC_MAP[metric](model=llm)
+                metric_instance = DEEPEVAL_METRIC_FUNC_MAP[metric](model=llm, include_reason = False) #TODO Test
                 metrics_func[metric] = metric_instance
 
         self.metrics_func = metrics_func
@@ -199,7 +185,6 @@ class DeepevalMetricsParser(MetricsParser):
 
     def result2dataset(self, result: RAGResult):
         from deepeval.test_case import LLMTestCase
-
         test_case = LLMTestCase(
             input=result.query,
             actual_output=result.response,
@@ -217,17 +202,16 @@ class DeepevalMetricsParser(MetricsParser):
             for metric, metric_func in self.metrics_func.items():
                 if metric not in result.metrics:
                     clean_memory()
-
                     def evaluate_metric():
                         metric_func.measure(test_case)
                         result.metrics[metric] = metric_func.score
                         print(f"result {result.query_id} metrics[{metric}]={metric_func.score}")
                         self.save_results(results, save_path)
-
+                    
                     evaluation_thread = threading.Thread(target=evaluate_metric)
                     evaluation_thread.start()
                     evaluation_thread.join()
-
+        
         self.aggregate_results_metrics(results)
         self.save_results(results, save_path)
 

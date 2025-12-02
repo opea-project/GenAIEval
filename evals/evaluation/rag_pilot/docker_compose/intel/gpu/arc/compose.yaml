@@ -24,6 +24,8 @@ services:
     restart: always
     ports:
       - ${RAGPILOT_SERVICE_PORT:-16030}:16030
+    volumes:
+      - ${RAGPILOT_CONFIG_DIR:-${PWD}}:/home/user/rag_pilot/configs
 
 networks:
   default:

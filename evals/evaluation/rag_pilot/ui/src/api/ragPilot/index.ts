@@ -1,12 +1,8 @@
-// Copyright (C) 2025 Intel Corporation
-// SPDX-License-Identifier: Apache-2.0
-
 import request from "../request";
 export const getActivePipeline = () => {
   return request({
     url: "v1/pilot/pipeline/active/id",
     method: "get",
-    showLoading: true,
   });
 };
 
@@ -14,7 +10,6 @@ export const getActivePipelineDetail = () => {
   return request({
     url: "v1/pilot/pipeline/active",
     method: "get",
-    showLoading: true,
   });
 };
 
@@ -33,7 +28,6 @@ export const requestResultsMetrics = (
     url: `/v1/pilot/pipeline/${pipelineId}/results/metrics`,
     method: "patch",
     data,
-    showLoading: true,
   });
 };
 
@@ -48,13 +42,12 @@ export const getMetricsByPipelineId = (pipelineId: Number) => {
   return request({
     url: `v1/pilot/pipeline/${pipelineId}/results/metrics`,
     method: "get",
-    showLoading: true,
   });
 };
 
-export const requestPipelineRun = () => {
+export const requestPipelineRun = (pipelineId: Number) => {
   return request({
-    url: "v1/pilot/pipeline/active/run",
+    url: `v1/pilot/pipeline/${pipelineId}/run`,
     method: "post",
   });
 };
@@ -116,7 +109,6 @@ export const getPrompById = (pipelineId: number) => {
   return request({
     url: `v1/pilot/pipeline/${pipelineId}/prompt`,
     method: "get",
-    showLoading: true,
   });
 };
 
@@ -139,10 +131,10 @@ export const requestPromptActive = (data: Object) => {
   });
 };
 
-export const requestTopnUpdate = (top_n: String) => {
+export const requestPipelineActive = (pipelineId: Number) => {
   return request({
-    url: `v1/pilot/pipeline/active/top_n/${top_n}`,
-    method: "patch",
+    url: `v1/pilot/pipeline/${pipelineId}/active`,
+    method: "post",
   });
 };
 export const requestStageReset = (stage: String) => {
@@ -158,17 +150,7 @@ export const requestPipelineSync = (pipelineId: Number) => {
     method: "post",
     showLoading: true,
     showSuccessMsg: true,
-    successMsg: "Update successful !",
-  });
-};
-export const requestSubmitQueryJson = (data: EmptyArrayType) => {
-  return request({
-    url: "/v1/pilot/ground_truth",
-    method: "post",
-    data,
-    showLoading: true,
-    showSuccessMsg: true,
-    successMsg: "Create successful !",
+    successMsg: "request.updateSucc",
   });
 };
 
@@ -187,14 +169,95 @@ export const getBestPipelineByStage = (stage: String) => {
 };
 export const requestPipelineReset = () => {
   return request({
-    url: "v1/pilot/pipeline/restore",
+    url: "v1/pilot/pipeline/reconcil",
     method: "post",
   });
 };
 
-export const uploadPipelineFileUrl = `${
-  import.meta.env.VITE_API_URL
-}v1/pilot/pipeline/active/import`;
+export const getFileList = () => {
+  return request({
+    url: "v1/pilot/get_available_docs",
+    method: "get",
+  });
+};
+
+export const requestAnnotateSave = (data: EmptyArrayType) => {
+  return request({
+    url: "v1/pilot/ground_truth",
+    method: "post",
+    data,
+    showLoading: true,
+  });
+};
+
+export const getAnnotateGroundTruth = () => {
+  return request({
+    url: "/v1/pilot/ground_truth",
+    method: "get",
+  });
+};
+
+export const requestAnnotationReset = () => {
+  return request({
+    url: "v1/pilot/ground_truth/clear_cache",
+    method: "post",
+    showLoading: true,
+  });
+};
+
+export const getTunerAllConfiguration = () => {
+  return request({
+    url: "v1/avail_tuners",
+    method: "get",
+  });
+};
+export const getStageTunerConfiguration = (stageName: string) => {
+  return request({
+    url: `v1/tuners/${stageName}`,
+    method: "get",
+  });
+};
+export const getTunerEffectiveConfiguration = () => {
+  return request({
+    url: "v1/tuners",
+    method: "get",
+  });
+};
+export const requestTunerRegister = (data: EmptyObjectType) => {
+  return request({
+    url: "v1/tuners/register",
+    method: "post",
+    data,
+    showLoading: true,
+    showSuccessMsg: true,
+    successMsg: "request.registerSucc",
+  });
+};
+
+export const getRagEndpoint = () => {
+  return request({
+    url: "v1/pilot/settings",
+    method: "get",
+  });
+};
+
+export const requestRagEndpointSet = (data: EmptyObjectType) => {
+  return request({
+    url: "v1/pilot/settings",
+    method: "post",
+    data,
+    showLoading: true,
+    showSuccessMsg: true,
+    successMsg: "request.configSucc",
+  });
+};
+
+export const getPromptlById = (pipelineId: Number) => {
+  return request({
+    url: `/v1/pilot/pipeline/${pipelineId}/prompt`,
+    method: "get",
+  });
+};
 
 export const uploadQueryFileUrl = `${
   import.meta.env.VITE_API_URL
