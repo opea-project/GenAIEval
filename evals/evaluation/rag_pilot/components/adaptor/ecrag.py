@@ -369,17 +369,6 @@ class ECRAGAdaptor(AdaptorBase):
             print(f"Failed to get available documents: HTTP {res.status_code}")
             return {"total_documents": 0, "documents": []}
 
-    def get_prompt(self):
-        path = "/v1/chatqna/prompt"
-        res = requests.get(f"{self.server_addr}{path}", proxies={"http": None})
-
-        if res.status_code == 200:
-            return res.json()
-        else:
-            error_detail = res.text if hasattr(res, 'text') else "Unknown error"
-            print(f"Failed to get prompt: {error_detail}")
-            return False
-
 #
 # Implementation of convert ecrag config to pipeline node object
 # (ECRAG->Pipeline)
