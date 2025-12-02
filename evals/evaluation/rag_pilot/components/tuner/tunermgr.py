@@ -1,13 +1,14 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-import uuid
-from typing import Any, Dict, List, Optional, Tuple
-
+from typing import Dict, List, Optional, Tuple, Any
 import yaml
-from api_schema import RAGStage, RunningStatus, TunerOut, TunerUpdateOut
-from components.tuner.base import Tuner
+
 from pydantic import BaseModel
+
+from components.tuner.base import Tuner
+from api_schema import RAGStage, TunerOut, TunerUpdateOut, RunningStatus
+import uuid
 
 
 class TunerRecord(BaseModel):
@@ -63,7 +64,7 @@ class TunerMgr:
                 stage=stage.value if hasattr(stage, "value") else str(stage),
                 name=name,
                 targets=targets_str,
-                status=tuner.get_status().value,
+                status=tuner.get_status().value
             )
         else:
             tunerOut = None
@@ -171,8 +172,9 @@ class TunerMgr:
 
         return pl_list
 
-    def parse_tuner_config(self, config_path: str) -> Tuple[List[Tuple[str, str]], dict]:
-        """Parse YAML configuration file and return stage and tuner name pairs.
+    def parse_tuner_config(self, config_path: str) -> (Tuple[List[Tuple[str, str]], dict]):
+        """
+        Parse YAML configuration file and return stage and tuner name pairs.
 
         Args:
             config_path (str): Path to the YAML configuration file
@@ -183,7 +185,7 @@ class TunerMgr:
         """
         config = {}
         # Read the YAML file
-        with open(config_path, "r") as file:
+        with open(config_path, 'r') as file:
             for doc in yaml.safe_load_all(file):
                 config.update(doc)
 
@@ -191,17 +193,18 @@ class TunerMgr:
         stage_tuner_list = []
         tuner_dict = {}
 
-        for stage_name, tuners in config["stage"].items():
+        for stage_name, tuners in config['stage'].items():
             for tuner_name in tuners:
                 stage_tuner_list.append((stage_name, tuner_name))
 
-        for tuner in config["tuner"]:
+        for tuner in config['tuner']:
             tuner_dict[tuner["params"]["name"]] = tuner
 
         return stage_tuner_list, tuner_dict
 
     def init_tuner_from_file(self, config_path: str) -> None:
-        """Initialize tuners by parsing config file and registering them with tuner manager.
+        """
+        Initialize tuners by parsing config file and registering them with tuner manager.
 
         Args:
             config_path (str): Path to the YAML configuration file

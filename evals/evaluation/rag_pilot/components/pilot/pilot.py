@@ -3,20 +3,20 @@
 
 import csv
 import os
-import threading
 from datetime import datetime
+import threading
 from typing import List, Optional, Tuple
 
-from api_schema import GroundTruth, GroundTruthContextSuggestion, MatchSettings, PilotSettings, RAGStage
+from components.pilot.pipeline import Pipeline
+from components.pilot.base import ContextItem, ContextType, ContextGT
+from components.pilot.result import RAGResults, Metrics
+from components.tuner.tunermgr import TunerMgr
 from components.adaptor.adaptor import AdaptorBase
+
+from api_schema import RAGStage, GroundTruth, GroundTruthContextSuggestion, MatchSettings,PilotSettings
 from components.annotation.annotator import annotator
 from components.annotation.schemas import AnnotationRequest
-from components.pilot.base import ContextGT, ContextItem, ContextType
-from components.pilot.pipeline import Pipeline
-from components.pilot.result import Metrics, RAGResults
-from components.tuner.tunermgr import TunerMgr
 from components.utils import load_rag_results_from_gt_match_results
-
 
 class Pilot:
     rag_pipeline_dict: dict[int, Pipeline] = {}
@@ -59,13 +59,13 @@ class Pilot:
         return True
 
     def set_pilot_settings(self, settings: PilotSettings):
-        endpoint = getattr(settings, "target_endpoint", None)
+        endpoint = getattr(settings, 'target_endpoint', None)
         if not endpoint or not isinstance(endpoint, str):
             raise ValueError("target_endpoint must be a non-empty string.")
 
-        parts = endpoint.split(":", 1)
+        parts = endpoint.split(':', 1)
         host = parts[0].strip()
-        port = parts[1].strip() if len(parts) > 1 and parts[1].strip() else "16010"
+        port = parts[1].strip() if len(parts) > 1 and parts[1].strip() else '16010'
 
         if not host:
             raise ValueError("target_endpoint must include a valid host.")
@@ -108,7 +108,7 @@ class Pilot:
             if incoming.answer is not None:
                 existing.answer = incoming.answer
 
-        print("[Pilot] Updated GT annotation infos in pilot.")
+        print(f"[Pilot] Updated GT annotation infos in pilot.")
         return True
 
     def get_suggested_query_ids(self) -> List[int]:
@@ -117,13 +117,11 @@ class Pilot:
         suggested_ids = [
             gt.query_id
             for gt in self.gt_annotate_infos
-            if gt.contexts and any(getattr(ctx, "suggestions", None) for ctx in gt.contexts)
+            if gt.contexts and any(getattr(ctx, 'suggestions', None) for ctx in gt.contexts)
         ]
         return suggested_ids
 
-    def process_annotation_batch(
-        self, new_gt_annotate_infos: List[GroundTruth], clear_cache: bool = False
-    ) -> RAGResults:
+    def process_annotation_batch(self, new_gt_annotate_infos: List[GroundTruth], clear_cache: bool = False ) -> RAGResults:
         if clear_cache:
             annotator.clear_caches()
 
@@ -133,7 +131,7 @@ class Pilot:
             contexts = gt_data.contexts
 
             if not query_id or not query or not contexts:
-                raise ValueError("Missing required fields in gt_data")
+                raise ValueError(f"Missing required fields in gt_data")
 
             if not isinstance(contexts, list) or not contexts:
                 raise ValueError(f"GT contexts must be a non-empty list for query_id {query_id}")
@@ -142,8 +140,7 @@ class Pilot:
                 # Validate context fields
                 if not context.filename or not context.text:
                     raise ValueError(
-                        f"Missing required field 'filename' or 'text' in GT context for query_id {query_id}"
-                    )
+                        f"Missing required field 'filename' or 'text' in GT context for query_id {query_id}")
 
                 # Create annotation request
                 annotation_request = AnnotationRequest(
@@ -154,10 +151,10 @@ class Pilot:
                     gt_text_content=context.text,
                     gt_section=context.section,
                     gt_pages=context.pages,
-                    gt_metadata=getattr(context, "metadata", None),
+                    gt_metadata=getattr(context, 'metadata', None),
                     similarity_threshold=self.hit_threshold,
                     enable_fuzzy=self.enable_fuzzy,
-                    confidence_topn=self.confidence_topn,
+                    confidence_topn=self.confidence_topn
                 )
 
                 # Process annotation
@@ -181,7 +178,8 @@ class Pilot:
                     suggestions = annotation_response.suggestion_items
                     if suggestions and target_ctx_entry is not None:
                         target_ctx_entry.suggestions = [
-                            GroundTruthContextSuggestion(**s.model_dump(exclude_unset=True)) for s in suggestions
+                            GroundTruthContextSuggestion(**s.model_dump(exclude_unset=True))
+                            for s in suggestions
                         ]
 
         # Get all matched results and convert to RAG results
@@ -199,13 +197,14 @@ class Pilot:
             return rag_results
 
         try:
-            print(f"[Pilot] Starting re-annotation for {len(self.gt_annotate_infos)} queries")
+            print(
+                f"[Pilot] Starting re-annotation for {len(self.gt_annotate_infos)} queries")
 
             # Use the shared annotation processing method
             annotated_rag_results = self.process_annotation_batch(self.gt_annotate_infos, clear_cache=True)
 
             if annotated_rag_results and annotated_rag_results.results:
-                print("[Pilot] Re-annotation completed.")
+                print(f"[Pilot] Re-annotation completed.")
                 return annotated_rag_results
             else:
                 print("[Pilot] No results from re-annotation, returning original")
@@ -254,7 +253,7 @@ class Pilot:
         for key, nodes in ragqna.contexts.items():
             for node in nodes:
                 node_node = node.get("node", {})
-                node_id = node_node.get("id_")
+                node_id = node_node.get('id_')
                 metadata = node_node.get("metadata", {})
                 possible_file_keys = ["file_name", "filename", "docnm_kwd"]
                 file_name = next(
@@ -384,7 +383,9 @@ class Pilot:
 
     def get_match_settings(self):
         return MatchSettings(
-            hit_threshold=self.hit_threshold, enable_fuzzy=self.enable_fuzzy, confidence_topn=self.confidence_topn
+            hit_threshold=self.hit_threshold,
+            enable_fuzzy=self.enable_fuzzy,
+            confidence_topn=self.confidence_topn
         )
 
     def get_curr_pl_id(self):
@@ -435,12 +436,13 @@ class Pilot:
                 recall_rate = float("-inf")
 
             total_score = sum(
-                v
-                for k, v in rag_results.get_metrics().items()
+                v for k, v in rag_results.get_metrics().items()
                 if k in {metric.value for metric in Metrics} and isinstance(v, (int, float))
             )
 
-            if recall_rate > best_avg_recall or (recall_rate == best_avg_recall and total_score > best_total_score):
+            if recall_rate > best_avg_recall or (
+                recall_rate == best_avg_recall and total_score > best_total_score
+            ):
                 best_avg_recall = recall_rate
                 best_total_score = total_score
                 best_pl_id = pl_id
@@ -449,7 +451,7 @@ class Pilot:
             self.set_curr_pl_by_id(best_pl_id)
 
         print(f"Stage {stage}: Pipeline is set to {self.get_curr_pl_id()}")
-        # self.get_curr_results().check_metadata()
+        #self.get_curr_results().check_metadata()
         # Check and update metadata consistency
         curr_results = self.get_curr_results()
         if curr_results is not None:
@@ -539,6 +541,5 @@ class Pilot:
             return prompt
         prompt = self.adaptor.get_default_prompt()
         return prompt
-
 
 pilot = Pilot()

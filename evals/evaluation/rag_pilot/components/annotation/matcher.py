@@ -1,14 +1,13 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-import logging
 import re
+from typing import List, Optional, Tuple, Dict, Any
 from difflib import SequenceMatcher
-from typing import Any, Dict, List, Optional, Tuple
+import logging
 
+from .schemas import GTMatchResult, AnnotationRequest, SuggestionItem
 from llama_index.core.schema import TextNode
-
-from .schemas import AnnotationRequest, GTMatchResult, SuggestionItem
 
 logger = logging.getLogger(__name__)
 
@@ -71,16 +70,14 @@ class Matcher:
                     suggestion_items.append(
                         SuggestionItem(
                             node_id=nid,
-                            node_page_label=n.metadata.get("page_label", ""),
+                            node_page_label=n.metadata.get('page_label', ''),
                             node_context=n.text,
                             confidence_score=score,
                             best_match_context=seg,
                             best_match_score=seg_score,
                         )
                     )
-            logger.info(
-                f"[Matcher] Matching completed for query_id: {request.query_id} , context_id: {request.context_id}"
-            )
+            logger.info(f"[Matcher] Matching completed for query_id: {request.query_id} , context_id: {request.context_id}")
 
             return GTMatchResult(
                 context_id=request.context_id,
@@ -102,7 +99,8 @@ class Matcher:
         relevant_nodes = nodes
         # Filter by pages if specified
         if request.gt_pages:
-            relevant_nodes = self._filter_nodes_by_pages(relevant_nodes, request.gt_pages)
+            relevant_nodes = self._filter_nodes_by_pages(
+                relevant_nodes, request.gt_pages)
 
         # Future: Add more filtering criteria here
         # if request.gt_section:
@@ -117,16 +115,17 @@ class Matcher:
             return nodes
 
         # Check if any nodes have page_label information
-        has_page_info = any(node.metadata.get("page_label") for node in nodes)
+        has_page_info = any(node.metadata.get('page_label') for node in nodes)
 
         # If no nodes have page information, return all nodes (cannot filter)
         if not has_page_info:
-            logger.warning(f"[Matcher] No page_label information found in nodes, returning all {len(nodes)} nodes")
+            logger.warning(
+                f"[Matcher] No page_label information found in nodes, returning all {len(nodes)} nodes")
             return nodes
 
         relevant_nodes = []
         for node in nodes:
-            page_label = node.metadata.get("page_label", "")
+            page_label = node.metadata.get('page_label', '')
             if page_label and page_label in target_pages:
                 relevant_nodes.append(node)
         # If we have page info but no matches, return empty list (strict filtering)
@@ -176,26 +175,27 @@ class Matcher:
         normalized = filename.lower()
 
         # Remove common version patterns: v1, v2, _v12, etc.
-        normalized = re.sub(r"[_\-\s]*v\d+[._\d]*", "", normalized)
+        normalized = re.sub(r'[_\-\s]*v\d+[._\d]*', '', normalized)
 
         # Remove numeric suffixes: e.g. "1", "2", etc.
-        normalized = re.sub(r"[_\-\s]*\d+$", "", normalized)
+        normalized = re.sub(r'[_\-\s]*\d+$', '', normalized)
 
         # Unify separators: replace - _ spaces with single separator
-        normalized = re.sub(r"[-_\s]+", "_", normalized)
+        normalized = re.sub(r'[-_\s]+', '_', normalized)
 
         # Remove leading and trailing separators
-        normalized = normalized.strip("_")
+        normalized = normalized.strip('_')
 
         return normalized
 
     def _extract_keywords(self, filename: str) -> set:
         # Split filename
-        words = re.split(r"[-_\s]+", filename.lower())
+        words = re.split(r'[-_\s]+', filename.lower())
 
         # Filter out short words, numbers and common meaningless words
         meaningful_words = set()
-        stopwords = {"v", "ver", "version", "doc", "pdf", "docx", "manual", "guide", "bkm"}
+        stopwords = {'v', 'ver', 'version', 'doc',
+                     'pdf', 'docx', 'manual', 'guide', 'bkm'}
 
         for word in words:
             # Keep words longer than 2 characters that are not pure numbers and not in stopwords
@@ -206,7 +206,6 @@ class Matcher:
 
     def _extract_base_filename(self, filename: str) -> str:
         import os
-
         base = os.path.basename(filename)
         # Remove extension
         base = os.path.splitext(base)[0]
@@ -245,19 +244,16 @@ class Matcher:
             return True
 
         # 3. More lenient matching: compare after removing all spaces
-        text1_no_space = re.sub(r"\s+", "", normalized_text1)
-        text2_no_space = re.sub(r"\s+", "", normalized_text2)
+        text1_no_space = re.sub(r'\s+', '', normalized_text1)
+        text2_no_space = re.sub(r'\s+', '', normalized_text2)
 
         if text1_no_space in text2_no_space or text2_no_space in text1_no_space:
             return True
 
         # 4. Keyword matching: extract key parts for matching
         # For title-like texts (e.g. "14.14 How to clean nozzle/pedestal/OT camera/Asymetk setup tray")
-        shorter, longer = (
-            (normalized_text1, normalized_text2)
-            if len(normalized_text1) < len(normalized_text2)
-            else (normalized_text2, normalized_text1)
-        )
+        shorter, longer = (normalized_text1, normalized_text2) if len(
+            normalized_text1) < len(normalized_text2) else (normalized_text2, normalized_text1)
 
         # Break down into keywords for matching
         shorter_keywords = self._extract_matching_keywords(shorter)
@@ -275,10 +271,10 @@ class Matcher:
 
     def _normalize_text_for_match(self, text: str) -> str:
         # Remove excess whitespace and line breaks
-        normalized = re.sub(r"\s+", " ", text.strip())
+        normalized = re.sub(r'\s+', ' ', text.strip())
 
         # Remove special Unicode characters like zero-width spaces
-        normalized = re.sub(r"[\u200b\u200c\u200d\ufeff]", "", normalized)
+        normalized = re.sub(r'[\u200b\u200c\u200d\ufeff]', '', normalized)
 
         return normalized
 
@@ -286,15 +282,15 @@ class Matcher:
         keywords = set()
 
         # 1. Extract number identifiers (like 14.14)
-        number_patterns = re.findall(r"\d+\.?\d*", text)
+        number_patterns = re.findall(r'\d+\.?\d*', text)
         keywords.update(number_patterns)
 
         # 2. Extract English words
-        english_words = re.findall(r"[a-zA-Z]+", text.lower())
+        english_words = re.findall(r'[a-zA-Z]+', text.lower())
         keywords.update([word for word in english_words if len(word) > 2])
 
         # 3. Extract Chinese words (simple segmentation)
-        chinese_chars = re.findall(r"[\u4e00-\u9fff]+", text)
+        chinese_chars = re.findall(r'[\u4e00-\u9fff]+', text)
         for segment in chinese_chars:
             if len(segment) >= 2:
                 # Add entire Chinese segment
@@ -303,10 +299,10 @@ class Matcher:
                 for i in range(len(segment)):
                     for length in [4, 3, 2]:
                         if i + length <= len(segment):
-                            keywords.add(segment[i : i + length])
+                            keywords.add(segment[i:i+length])
 
         # 4. Extract special symbol-separated terms
-        special_terms = re.findall(r"[a-zA-Z]+/[a-zA-Z]+", text.lower())
+        special_terms = re.findall(r'[a-zA-Z]+/[a-zA-Z]+', text.lower())
         keywords.update(special_terms)
 
         return keywords
@@ -341,17 +337,18 @@ class Matcher:
         tokens = []
 
         # 1. Extract English words (including numbers and hyphens)
-        english_pattern = r"[a-zA-Z]+(?:[-_][a-zA-Z0-9]+)*"
+        english_pattern = r'[a-zA-Z]+(?:[-_][a-zA-Z0-9]+)*'
         english_words = re.findall(english_pattern, text)
-        tokens.extend([word.lower() for word in english_words if len(word) > 1])
+        tokens.extend([word.lower()
+                      for word in english_words if len(word) > 1])
 
         # 2. Extract numbers (if meaningful)
-        number_pattern = r"\d+\.?\d*"
+        number_pattern = r'\d+\.?\d*'
         numbers = re.findall(number_pattern, text)
         tokens.extend([num for num in numbers if len(num) > 0])
 
         # 3. Simple character-level tokenization for Chinese (can be improved with tools like jieba)
-        chinese_pattern = r"[\u4e00-\u9fff]+"
+        chinese_pattern = r'[\u4e00-\u9fff]+'
         chinese_segments = re.findall(chinese_pattern, text)
         for segment in chinese_segments:
             # For Chinese, can split by characters or use advanced tokenization tools
@@ -360,15 +357,16 @@ class Matcher:
                 for i in range(len(segment)):
                     for length in [3, 2, 1]:  # Prefer 3-character words, then 2-character words
                         if i + length <= len(segment):
-                            token = segment[i : i + length]
+                            token = segment[i:i+length]
                             tokens.append(token)
             else:
                 tokens.append(segment)
 
         # 4. Extract special technical terms (containing combinations of letters and numbers)
-        technical_pattern = r"[a-zA-Z]*\d+[a-zA-Z]*|\d+[a-zA-Z]+[0-9]*"
+        technical_pattern = r'[a-zA-Z]*\d+[a-zA-Z]*|\d+[a-zA-Z]+[0-9]*'
         technical_terms = re.findall(technical_pattern, text)
-        tokens.extend([term.lower() for term in technical_terms if len(term) > 1])
+        tokens.extend([term.lower()
+                      for term in technical_terms if len(term) > 1])
 
         # Deduplicate and filter
         unique_tokens = []
@@ -379,26 +377,25 @@ class Matcher:
                 seen.add(token)
 
         return unique_tokens
-
+    
     def _deduplicate_chunks(self, chunks: List[TextNode]) -> List[TextNode]:
         seen_contents = set()
         unique_chunks = []
-
+        
         for chunk in chunks:
             # Create a signature based on text content and key metadata
             # Use file_path and page info to distinguish legitimate duplicates
-            content_signature = chunk.text.strip()
+            content_signature = (chunk.text.strip())
             if content_signature not in seen_contents:
                 seen_contents.add(content_signature)
                 unique_chunks.append(chunk)
             else:
-                logger.warning(
-                    f"[Matcher] Duplicate chunk detected and removed: node_id={chunk.node_id}, "
-                    f"file={chunk.metadata.get('file_name', 'unknown')}, "
-                    f"page={chunk.metadata.get('page_label', 'unknown')},"
-                    f"start_char_ids={chunk.metadata.get('start_char_ids', 'unknown')}, "
-                    f"end_char_ids={chunk.metadata.get('end_char_ids', 'unknown')} "
-                )
+                logger.warning(f"[Matcher] Duplicate chunk detected and removed: node_id={chunk.node_id}, "
+                               f"file={chunk.metadata.get('file_name', 'unknown')}, "
+                               f"page={chunk.metadata.get('page_label', 'unknown')},"
+                               f"start_char_ids={chunk.metadata.get('start_char_ids', 'unknown')}, "
+                               f"end_char_ids={chunk.metadata.get('end_char_ids', 'unknown')} "
+                               )
 
         logger.info(f"[Matcher] Deduplication: {len(chunks)} -> {len(unique_chunks)} chunks")
         return unique_chunks
@@ -406,8 +403,7 @@ class Matcher:
     def _tokenize(self, text: str) -> List[str]:
         return self._tokenize_mixed_language(text)
 
-    def update_settings(
-        self,
+    def update_settings(self,
         similarity_threshold: Optional[float] = None,
         enable_fuzzy: Optional[bool] = None,
         confidence_topn: Optional[int] = None,
@@ -448,6 +444,5 @@ class Matcher:
         if best_segment is None:
             return None, None
         return best_segment, best_score
-
 
 default_matcher = Matcher(similarity_threshold=0.8, enable_fuzzy=False, confidence_topn=5)

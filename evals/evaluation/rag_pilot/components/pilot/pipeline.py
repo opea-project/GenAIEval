@@ -1,11 +1,11 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-import uuid
 from abc import ABC
-from typing import Any, Dict, List
-
+from typing import Dict, List, Any
 import yaml
+import uuid
+
 from components.pilot.base import Node
 
 
@@ -46,10 +46,10 @@ class RAGPipelineTemplate(Pipeline):
         ragnodes = []
         if config_file:
             """Load a complete pipeline from YAML file."""
-            with open(config_file, "r") as file:
+            with open(config_file, 'r') as file:
                 config = yaml.safe_load(file)
 
-            nodes_config = config.get("nodes", [])
+            nodes_config = config.get('nodes', [])
             if not nodes_config:
                 raise ValueError("No nodes found in the YAML file")
             for n in nodes_config:
@@ -62,7 +62,7 @@ class RAGPipelineTemplate(Pipeline):
                 Node(type="indexer"),
                 Node(type="retriever"),
                 Node(type="postprocessor"),
-                Node(type="generator"),
+                Node(type="generator")
             ]
 
         super().__init__("RAG", ragnodes)
