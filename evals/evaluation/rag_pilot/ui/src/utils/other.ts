@@ -1,6 +1,3 @@
-// Copyright (C) 2025 Intel Corporation
-// SPDX-License-Identifier: Apache-2.0
-
 import serviceManager from "@/utils/serviceManager";
 import { ConfigProvider, notification } from "ant-design-vue";
 import type { App } from "vue";

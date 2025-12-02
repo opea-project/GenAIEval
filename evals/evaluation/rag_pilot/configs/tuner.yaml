@@ -1,0 +1,113 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+stage:
+  retrieval:
+    - "ObserverTuner"
+#    - "EmbeddingModelTuner"
+    - "SimpleNodeParserTuner"
+#    - "NodeParserTuner"
+#    - "SimpleNodeParserChunkTuner"
+#    - "RetrievalTopkTuner"
+  postprocessing:
+#    - "ObserverTuner"
+    - "RerankerTopnTuner"
+  generation:
+    - "PromptTuner"
+
+---
+tuner:
+  - type: "node_parser"
+    params:
+      name: "SimpleNodeParserTuner"
+      description: "A simple node parser tuner"
+      version: "1.0.0"
+    modules:
+      - type: "direct"
+        attributes:
+          - type: "chunk_size"
+            params:
+              values:
+                - 200
+                - 300
+                  # - 400
+                  # - 500
+  - type: "node_parser"
+    params:
+      name: "NodeParserTuner"
+      description: "A general node parser tuner"
+      version: "1.0.0"
+    modules:
+      - type: "direct"
+        attributes:
+          - type: "chunk_size"
+            params:
+              values:
+                - 100
+                - 200
+                - 300
+          - type: "chunk_overlap"
+            params:
+              values:
+                - 30
+                - 40
+                - 50
+  - type: "all"
+    params:
+      name: "ObserverTuner"
+  - type: "indexer"
+    params:
+      name: "EmbeddingModelTuner"
+      description: "An Embedding Model tuner"
+      version: "1.0.0"
+    modules:
+      - type: "embedding_model"
+        attributes:
+          - type: "model_name"
+            params:
+              values:
+                - BAAI/bge-m3
+#                - BAAI/bge-small-en-v1.5
+#                - BAAI/bge-large-zh-v1.5
+                - BAAI/bge-large-en-v1.5
+  - type: "retriever"
+    params:
+      name: "RetrievalTopkTuner"
+      description: "A Retriever tuner"
+      version: "1.0.0"
+    modules:
+      - type: "vectorsimilarity"
+        attributes:
+          - type: "top_k"
+            params:
+              values:
+                - 10
+                - 50
+                - 100
+  - type: "postprocessor"
+    params:
+      name: "RerankerTopnTuner"
+      description: "A reranker tuner"
+      version: "1.0.0"
+    modules:
+      - type: "reranker"
+        attributes:
+          - type: "top_n"
+            params:
+              values:
+                # - 5
+                # - 10
+                - 40
+
+  - type: "generator"
+    params:
+      name: "PromptTuner"
+      description: "A Prompt tuner"
+      version: "1.0.0"
+    modules:
+      - type: "prompt"
+        attributes:
+          - type: "content"
+            params:
+              values:
+                - "<|im_start|>System: You are an AI assistant. Your task is to learn from the following context. Then answer the user's question based on what you learned from the context but not your own knowledge.<|im_end|>\n\n<|im_start|>{context}<|im_end|>\n\n<|im_start|>System: Pay attention to your formatting of response. If you need to reference content from context, try to keep the formatting.<|im_end|>\n<|im_start|>System: Try to summarize from the context, do some reasoning before response, then response. Make sure your response is logically sound and self-consistent.<|im_end|>\n\n<|im_start|>{input}"

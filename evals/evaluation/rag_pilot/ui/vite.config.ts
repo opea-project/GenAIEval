@@ -1,6 +1,3 @@
-// Copyright (C) 2025 Intel Corporation
-// SPDX-License-Identifier: Apache-2.0
-
 import vue from "@vitejs/plugin-vue";
 import path, { resolve } from "path";
 import AutoImport from "unplugin-auto-import/vite";

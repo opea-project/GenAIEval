@@ -1,6 +1,3 @@
-// Copyright (C) 2025 Intel Corporation
-// SPDX-License-Identifier: Apache-2.0
-
 import Retrieve from "./Retrieve.vue";
 import Rating from "./Rating.vue";
 import Postprocess from "./Postprocess.vue";
@@ -11,6 +8,7 @@ import TunerLoading from "./TunerLoading.vue";
 import QueryMenu from "./QueryMenu.vue";
 import GenerationResults from "./GenerationResults.vue";
 import Prompt from "./Prompt.vue";
+import TunerConfigure from "./TunerConfigure.vue";
 
 export {
   DetailDrawer,
@@ -23,4 +21,5 @@ export {
   QueryMenu,
   GenerationResults,
   Prompt,
+  TunerConfigure,
 };

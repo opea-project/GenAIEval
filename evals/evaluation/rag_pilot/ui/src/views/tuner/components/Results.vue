@@ -38,11 +38,15 @@
             <span class="icon-style" @click="handleSync(item.id)">
               <SvgIcon name="icon-sync" /> </span
           ></a-tooltip>
+
           <a-tooltip placement="top" :title="$t('results.detail')">
             <span class="icon-style" @click="handleView(item)">
               <EyeFilled /></span
           ></a-tooltip>
-          <a-tooltip placement="top" :title="$t('results.download')"
+          <a-tooltip
+            v-if="false"
+            placement="top"
+            :title="$t('results.download')"
             ><span class="icon-style" @click="handleDownload(item.id)">
               <SvgIcon name="icon-download" inherit /></span
           ></a-tooltip>
@@ -85,6 +89,7 @@ import {
   getResultsByPipelineId,
   getPipelineDetailById,
   getResultsByStage,
+  getActivePipeline,
 } from "@/api/ragPilot";
 import {
   LegendComponent,
@@ -105,7 +110,6 @@ import SvgIcon from "@/components/SvgIcon.vue";
 import router from "@/router";
 import { Modal } from "ant-design-vue";
 import { ResultOut } from "../type";
-import { Local } from "@/utils/storage";
 import { pipelineAppStore } from "@/store/pipeline";
 import { useI18n } from "vue-i18n";
 
@@ -140,6 +144,7 @@ const barChartOption = computed(() => {
     {
       name: t("common.original"),
       type: "bar",
+      barMaxWidth: 40,
       data: baseResults.value?.map(
         (item) => item?.metadata?.answer_relevancy ?? 0
       ),
@@ -154,6 +159,7 @@ const barChartOption = computed(() => {
     seriesData.push({
       name: handleLegend(index),
       type: "bar",
+      barMaxWidth: 40,
       data: chatMap[key].results.map(
         (item: any) => item?.metadata.answer_relevancy ?? 0
       ),
@@ -230,9 +236,9 @@ const handleReset = async () => {
   }
 };
 const queryResultsByStage = async () => {
-  basePipeline.value = Local.get("pipelineInfo")?.basePipeline ?? "";
+  basePipeline.value = pipelineStore.basePipeline;
   const baseData: any = await getResultsByPipelineId(basePipeline.value!);
-  baseResults.value = [].concat(baseData.results);
+  baseResults.value = [].concat(baseData?.results);
 
   const data: any = await getResultsByStage("generation");
   Object.assign(chatMap, data, {});
@@ -251,6 +257,10 @@ const queryPipelinesDetail = async () => {
     console.log(err);
   }
 };
+const queryActivePipeline = async () => {
+  const pipeline_id: any = await getActivePipeline();
+  pipelineStore.setPipeline(pipeline_id);
+};
 const handleRetry = () => {
   Modal.confirm({
     title: t("common.prompt"),
@@ -258,6 +268,7 @@ const handleRetry = () => {
     okText: t("common.confirm"),
     async onOk() {
       await handleReset();
+      await queryActivePipeline();
       router.push({ name: "Rating" });
     },
   });
