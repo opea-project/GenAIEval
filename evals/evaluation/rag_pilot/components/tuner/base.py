@@ -1,18 +1,16 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+import copy
+import itertools
+from collections import defaultdict
 from enum import Enum, auto
 from typing import List, Optional, Union
 
-from pydantic import BaseModel, validator
-from api_schema import RunningStatus
-from components.pilot.base import Node, Module, Attribute
+from api_schema import RunningStatus, TunerUpdateOut
+from components.pilot.base import Attribute, Module, Node
 from components.pilot.pipeline import Pipeline
-from api_schema import TunerUpdateOut
-
-from collections import defaultdict
-import itertools
-import copy
+from pydantic import BaseModel, validator
 
 
 class ContentType(Enum):
@@ -241,7 +239,7 @@ def generate_node_suggestion(attr_candidates: []):
     return results
 
 
-# TODO: Move to Node impelmentation
+# TODO: Move to Node implementation
 def get_node_from_pipeline(pl: Pipeline, node_type: str):
     for n in pl.nodes:
         if n.type == node_type:

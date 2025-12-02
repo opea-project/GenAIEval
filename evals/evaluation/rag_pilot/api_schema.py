@@ -1,11 +1,11 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-from pydantic import BaseModel, Field
-
-from typing import Optional, Dict, List, Union
-from enum import Enum
 import uuid
+from enum import Enum
+from typing import Dict, List, Optional, Union
+
+from pydantic import BaseModel, Field
 
 
 class RunningStatus(str, Enum):
