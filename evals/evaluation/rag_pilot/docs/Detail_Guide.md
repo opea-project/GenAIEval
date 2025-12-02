@@ -82,7 +82,7 @@ After clicking `Run Tuners`, these tuners will experiment with various parameter
 
   ![retrieva lpipelines](../pics/retrieved_pipelines.png)
 
-- Once the seleted tuners have completed their tasks, the page will display the results, including the `ground truth hits` and the `retrieved chunks`.
+- Once the selected tuners have completed their tasks, the page will display the results, including the `ground truth hits` and the `retrieved chunks`.
 
 - Users can search text via the search box in the upper-right corner to observe which parts of the context match the ground truth context. Text entered into the search box will be highlighted.
 
