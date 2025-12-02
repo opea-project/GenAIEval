@@ -363,6 +363,7 @@ class ECRAGAdaptor(AdaptorBase):
             print(f"Failed to get available documents: HTTP {res.status_code}")
             return {"total_documents": 0, "documents": []}
 
+
 #
 # Implementation of convert ecrag config to pipeline node object
 # (ECRAG->Pipeline)
