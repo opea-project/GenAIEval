@@ -20,3 +20,6 @@ requests
 rouge_score
 sseclient-py
 transformers
+fsspec==2023.12.2
+pyext==0.5
+langchain-core
