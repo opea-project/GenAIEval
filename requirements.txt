@@ -5,7 +5,7 @@ deepeval==1.4.0
 docker
 evaluate
 flask
-fsspec==2023.12.2
+fsspec>=2023.12.2
 jieba
 kubernetes
 langchain-core
