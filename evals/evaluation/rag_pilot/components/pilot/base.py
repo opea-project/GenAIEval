@@ -2,15 +2,17 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from __future__ import annotations
+
 import hashlib
 import json
 import re
+from copy import deepcopy
 from difflib import SequenceMatcher
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Union
-from pydantic import BaseModel, Field, field_validator
-from copy import deepcopy
+
 import yaml
+from pydantic import BaseModel, Field, field_validator
 
 
 def dynamically_find_function(key: str, target_dict: Dict) -> Callable:
@@ -84,10 +86,7 @@ class Attribute(ModuleBase):
         return cls(type=type_, params=params)
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
-            "type": self.type,
-            "params": self.params
-        }
+        return {"type": self.type, "params": self.params}
 
 
 class Module(ModuleBase):
@@ -108,17 +107,13 @@ class Module(ModuleBase):
         type_ = _module_dict.pop("type")
         params = _module_dict.pop("params", {})
         attributes_list = _module_dict.pop("attributes", [])
-        atrributes = []
+        attributes = []
         if attributes_list is not None:
             attributes = [Attribute.from_dict(value) for value in attributes_list]
         return cls(type=type_, params=params, attributes=attributes)
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
-            "type": self.type,
-            "params": self.params,
-            "attributes": [a.to_dict() for a in self.attributes]
-        }
+        return {"type": self.type, "params": self.params, "attributes": [a.to_dict() for a in self.attributes]}
 
 
 class Node(ModuleBase):
@@ -157,11 +152,7 @@ class Node(ModuleBase):
         return None
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
-            "type": self.type,
-            "params": self.params,
-            "modules": [m.to_dict() for m in self.modules]
-        }
+        return {"type": self.type, "params": self.params, "modules": [m.to_dict() for m in self.modules]}
 
     def to_yaml(self, yaml_path: str) -> None:
         with open(yaml_path, "w") as f:

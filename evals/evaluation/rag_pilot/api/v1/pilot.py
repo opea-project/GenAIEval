@@ -1,18 +1,26 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-from io import StringIO
 import json
-import uuid
 import os
-from fastapi import FastAPI, File, HTTPException, UploadFile, Body
-from fastapi.responses import StreamingResponse
-from io import BytesIO
+import uuid
+from io import BytesIO, StringIO
 from typing import List
+
+from api_schema import (
+    AnnotationOutput,
+    GroundTruth,
+    GroundTruthContext,
+    MatchSettings,
+    PilotSettings,
+    RAGStage,
+    ResultOut,
+)
 from components.adaptor.ecrag import DataIn
-from components.utils import load_rag_results_from_csv, load_rag_results_from_gt
 from components.pilot.pilot import pilot
-from api_schema import ResultOut, RAGStage, GroundTruth, GroundTruthContext, MatchSettings, AnnotationOutput, PilotSettings
+from components.utils import load_rag_results_from_csv, load_rag_results_from_gt
+from fastapi import Body, FastAPI, File, HTTPException, UploadFile
+from fastapi.responses import StreamingResponse
 
 pilot_app = FastAPI()
 
@@ -32,7 +40,6 @@ async def get_pilot_settings():
         return pilot.pilot_settings
     else:
         return PilotSettings()
-
 
 
 # @pilot_app.post(path="/v1/pilot/pipeline/active/import")
@@ -82,17 +89,11 @@ async def activate_pipeline_by_id(id: uuid.UUID):
         if pilot.set_curr_pl_by_id(id):
             return "Done"
         else:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Error: Pipeline {id} does not exist"
-            )
+            raise HTTPException(status_code=404, detail=f"Error: Pipeline {id} does not exist")
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error activating pipeline: {e}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error activating pipeline: {e}")
 
 
 @pilot_app.post(path="/v1/pilot/pipeline/{id}/run")
@@ -135,10 +136,7 @@ async def get_pipeline_by_id_results(id: uuid.UUID):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error retrieving pipeline results: {e}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error retrieving pipeline results: {e}")
 
 
 @pilot_app.get(path="/v1/pilot/pipeline/{id}/results/metrics")
@@ -148,10 +146,7 @@ async def get_pipeline_metrics(id: uuid.UUID):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error retrieving pipeline metrics: {e}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error retrieving pipeline metrics: {e}")
 
 
 @pilot_app.patch(path="/v1/pilot/pipeline/{id}/results/metrics")
@@ -159,10 +154,7 @@ async def update_pipeline_metrics(id: uuid.UUID, request: list[ResultOut] = Body
     update_results = []
     for result in request:
         success = pilot.update_result_metrics(id, result.query_id, result.metadata)
-        update_results.append({
-            "query_id": result.query_id,
-            "updated": success
-        })
+        update_results.append({"query_id": result.query_id, "updated": success})
 
     return update_results
 
@@ -188,9 +180,7 @@ async def export_pipeline_by_id(id: uuid.UUID):
         return StreamingResponse(
             BytesIO(json_bytes),
             media_type="application/json",
-            headers={
-                "Content-Disposition": "attachment; filename=active_pipeline.json"
-            }
+            headers={"Content-Disposition": "attachment; filename=active_pipeline.json"},
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to export pipeline: {e}")
@@ -207,8 +197,7 @@ async def reconcil_pipeline():
         }
     else:
         raise HTTPException(
-            status_code=404,
-            detail="Failed to restore pipeline: No active pipeline found or restore operation failed"
+            status_code=404, detail="Failed to restore pipeline: No active pipeline found or restore operation failed"
         )
 
 
@@ -217,10 +206,7 @@ async def add_files(request: DataIn):
     ret = pilot.adaptor.upload_files(request)
 
     if ret.status_code != 200:
-        raise HTTPException(
-            status_code=ret.status_code,
-            detail=f"Failed to upload files: {ret.text}"
-        )
+        raise HTTPException(status_code=ret.status_code, detail=f"Failed to upload files: {ret.text}")
 
     try:
         return ret.json()
@@ -229,7 +215,7 @@ async def add_files(request: DataIn):
 
 
 def load_rag_results_from_uploaded_file(uploaded_file: UploadFile, filetype: str):
-    content = uploaded_file.file.read().decode('utf-8')
+    content = uploaded_file.file.read().decode("utf-8")
     if filetype == "csv":
         csv_buffer = StringIO(content)
         return load_rag_results_from_csv(csv_buffer)
@@ -284,8 +270,7 @@ async def update_rag_ground_truth(gts: List[GroundTruth]):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Internal server error: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
 
 
 @pilot_app.get(path="/v1/pilot/ground_truth/suggestions/collect")
@@ -299,12 +284,11 @@ async def update_gt_wi_suggestion():
             if not gt.contexts:
                 continue
             for ctx in gt.contexts:
-                sug_list = getattr(ctx, 'suggestions', None)
+                sug_list = getattr(ctx, "suggestions", None)
                 if not sug_list:
                     continue
                 best_item = max(
-                    sug_list,
-                    key=lambda s: (s.best_match_score if s.best_match_score is not None else -1.0)
+                    sug_list, key=lambda s: (s.best_match_score if s.best_match_score is not None else -1.0)
                 )
                 new_text = best_item.best_match_context or best_item.node_context or ctx.text
                 new_ctx = GroundTruthContext(
@@ -313,14 +297,11 @@ async def update_gt_wi_suggestion():
                     context_id=ctx.context_id,
                     pages=ctx.pages,
                     section=ctx.section,
-                    suggestions=[]
+                    suggestions=[],
                 )
                 if gt.query_id not in new_gt_map:
                     new_gt_map[gt.query_id] = GroundTruth(
-                        query_id=gt.query_id,
-                        query=gt.query,
-                        contexts=[new_ctx],
-                        answer=gt.answer
+                        query_id=gt.query_id, query=gt.query, contexts=[new_ctx], answer=gt.answer
                     )
                 else:
                     new_gt_map[gt.query_id].contexts.append(new_ctx)
@@ -332,9 +313,9 @@ async def update_gt_wi_suggestion():
 @pilot_app.post(path="/v1/pilot/ground_truth/file")
 async def update_rag_ground_truth_file(file: UploadFile = File(...)):
     filetype = ""
-    if file.filename.endswith('.csv'):
+    if file.filename.endswith(".csv"):
         filetype = "csv"
-    elif file.filename.endswith('.json'):
+    elif file.filename.endswith(".json"):
         filetype = "json"
     else:
         raise HTTPException(status_code=400, detail="Only CSV and JSON files are supported.")
@@ -372,8 +353,7 @@ async def get_available_docs():
         documents_info = pilot.adaptor.get_available_documents()
         return documents_info
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to retrieve available documents: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve available documents: {str(e)}")
 
 
 @pilot_app.post(path="/v1/pilot/match/setting")
@@ -395,5 +375,4 @@ async def update_match_settings(settings: MatchSettings):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to update match settings: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to update match settings: {e}")
