@@ -5,17 +5,14 @@ deepeval==1.4.0
 docker
 evaluate
 flask
-fsspec>=2023.12.2
 jieba
 kubernetes
-langchain-core
 langchain_community
 langchain_huggingface
 lm-eval==0.4.3
 locust
 numpy < 2.0
 prometheus_client
-pyext==0.5
 pytest
 pyyaml
 ragas==v0.1.19
