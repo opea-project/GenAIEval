@@ -47,9 +47,6 @@ jobs:
             ref: ${{ matrix.test_branch }}
             fetch-tags: true
 
-        - name: Add safe git directory
-          run: git config --global --add safe.directory /GenAIEval
-
         - name: Docker Build
           run: |
             docker build -f ${{ github.workspace }}/.github/workflows/docker/common.dockerfile -t ${{ env.DOCKER_NAME }}:${{ env.DOCKER_TAG }} .

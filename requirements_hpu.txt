@@ -11,7 +11,7 @@ langchain_community
 langchain_huggingface
 lm-eval==0.4.3
 locust
-numpy==1.23.5
+numpy < 2.0
 optimum-habana
 prometheus_client
 pytest
