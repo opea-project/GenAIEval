@@ -1,4 +1,5 @@
 bigcode-eval@git+https://github.com/bigcode-project/bigcode-evaluation-harness.git@e5c2f31625223431d7987f43b70b75b9d26ba118
+fsspec>=2023.12.2
 intel-ai-safety-model-card-gen@git+https://github.com/intel/intel-xai-tools.git#subdirectory=model_card_gen
 jieba
 jsonlines
@@ -8,4 +9,3 @@ lm-eval==0.4.3
 openai
 ragas==0.1.19   
 sentence-transformers
-fsspec>=2023.12.2
