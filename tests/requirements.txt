@@ -2,6 +2,8 @@ bigcode-eval@git+https://github.com/bigcode-project/bigcode-evaluation-harness.g
 intel-ai-safety-model-card-gen@git+https://github.com/intel/intel-xai-tools.git#subdirectory=model_card_gen
 jieba
 jsonlines
+langchain
+langchain_core
 langchain_community
 langchain_huggingface
 lm-eval==0.4.3
