@@ -2,21 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import uuid
-from typing import Dict, List, Optional, Type
+from typing import Any, Dict, List, Optional, Tuple
 
+import yaml
 from api_schema import RAGStage, RunningStatus, TunerOut, TunerUpdateOut
-from components.tuner.adaptor import Adaptor
-from components.tuner.base import TargetUpdate
-from components.tuner.tuner import (
-    EmbeddingTuner,
-    NodeParserTuner,
-    PromptTuner,
-    RerankerTopnTuner,
-    RetrievalTopkTuner,
-    SimpleNodeParserChunkTuner,
-    Tuner,
-)
-from components.utils import read_yaml
+from components.tuner.base import Tuner
 from pydantic import BaseModel
 
 
@@ -24,7 +14,8 @@ class TunerRecord(BaseModel):
     base_pipeline_id: Optional[uuid.UUID] = None
     best_pipeline_id: Optional[uuid.UUID] = None
     all_pipeline_ids: List[uuid.UUID] = []
-    targets: List[Dict[str, TargetUpdate]] = []
+    # TODO: Change Any type
+    targets: Dict[uuid.UUID, Any] = {}
 
 
 class TunerMgr:
@@ -32,20 +23,26 @@ class TunerMgr:
         self._tuners_by_name: Dict[str, Tuner] = {}
         self._tuners_by_stage: Dict[RAGStage, List[str]] = {}
         self._records: Dict[str, TunerRecord] = {}
-        self.adaptor: Adaptor = None
 
-    def init_adaptor(self, rag_module_yaml):
-        self.adaptor = Adaptor(rag_module_yaml)
+    def clear_stage(self, stage: RAGStage):
+        names = self._tuners_by_stage.get(stage, [])
+        for name in names:
+            self._tuners_by_name.pop(name, None)
+            self._records.pop(name, None)
+        self._tuners_by_stage.pop(stage, None)
 
-    def update_adaptor(self, pl):
-        self.adaptor.update_all_module_functions(pl)
-
-    def register_tuner(self, stage: RAGStage, tuner_cls: Type[Tuner]):
-        tuner = tuner_cls(self.adaptor)
+    def _register_tuner(self, stage: RAGStage, tuner_dict: dict):
+        tuner = Tuner(tuner_dict)
         name = tuner.name
         self._tuners_by_name[name] = tuner
         self._tuners_by_stage.setdefault(stage, []).append(name)
         self._records[name] = TunerRecord()
+
+    def get_stages(self) -> List[RAGStage]:
+        return self._tuners_by_stage.keys()
+
+    def get_stage_and_tuner_name_list(self) -> Dict[RAGStage, List[str]]:
+        return self._tuners_by_stage
 
     def get_tuner_stage(self, name: str) -> Optional[RAGStage]:
         for stage, tuner_names in self._tuners_by_stage.items():
@@ -73,28 +70,8 @@ class TunerMgr:
         return tunerOut
 
     def get_tuner_update_outs_by_name(self, name: str) -> TunerUpdateOut:
-        record = self.get_tuner_record(name)
-        if record is None:
-            return []
-        tunerUpdateOuts = []
-        for pl_id, params in zip(record.all_pipeline_ids, record.targets):
-            targets = {}
-            for attr, update in params.items():
-                parts = [update.node_type]
-                if update.module_type:
-                    parts.append(update.module_type)
-                parts.append(update.attribute)
-                target_key = ".".join(parts)  # e.g., "postprocessor.reranker.top_n"
-                targets[target_key] = update.val
-            tunerUpdateOuts.append(
-                TunerUpdateOut(
-                    tuner_name=name,
-                    base_pipeline_id=record.base_pipeline_id,
-                    pipeline_id=pl_id,
-                    targets=targets,
-                )
-            )
-        return tunerUpdateOuts
+        tuner = self._tuners_by_name[name]
+        return tuner.tunerUpdateOuts
 
     def get_stage_status(self, stage):
         tuner_names = self.get_tuners_by_stage(stage)
@@ -125,9 +102,12 @@ class TunerMgr:
             tuner.set_status(status)
 
     def reset_tuners_by_stage(self, stage):
-        tuner_names = tunerMgr.get_tuners_by_stage(stage)
+        tuner_names = self.get_tuners_by_stage(stage)
         for tuner_name in tuner_names:
-            tunerMgr.set_tuner_status(tuner_name, RunningStatus.NOT_STARTED)
+            tuner = self.get_tuner(tuner_name)
+            if tuner:
+                tuner.reset()
+            self.clear_tuner_record(tuner_name)
 
     def complete_tuner(self, tuner_name: str, best_pipeline_id: int = None):
         tuner = self.get_tuner(tuner_name)
@@ -156,15 +136,24 @@ class TunerMgr:
     def get_tuner(self, name):
         return self._tuners_by_name[name] if name in self._records else None
 
+    def get_tuners(self):
+        tuners = []
+        for v in self._tuners_by_name.values():
+            tuners.append(v)
+        return tuners
+
     def get_tuner_record(self, name) -> Optional[TunerRecord]:
         return self._records[name] if name in self._records else None
 
     def set_tuner_record(self, name, tunerRecord):
         self._records[name] = tunerRecord
 
+    def clear_tuner_record(self, name):
+        self._records[name] = TunerRecord()
+
     def run_tuner(self, name: str, pl):
         tuner = self.get_tuner(name)
-        pl_list, params_candidates = tuner.run(pl)
+        pl_list = tuner.run(pl)
 
         if tuner.get_status() is not RunningStatus.INACTIVE:
             tunerRecord = TunerRecord(
@@ -172,27 +161,73 @@ class TunerMgr:
                 base_pipeline_id=pl.get_id(),
                 best_pipeline_id=None,
                 all_pipeline_ids=[],
-                targets=[],
+                targets={},
             )
             self.set_tuner_record(name, tunerRecord)
 
-            for pl, params in zip(pl_list, params_candidates):
-                tunerRecord.all_pipeline_ids.append(pl.get_id())
-                tunerRecord.targets.append(params)
+            for p in pl_list:
+                tunerRecord.all_pipeline_ids.append(p.get_id())
+                tunerRecord.targets[p.get_id()] = p
 
-        return pl_list, params_candidates
+        return pl_list
 
+    def parse_tuner_config(self, config_path: str) -> Tuple[List[Tuple[str, str]], dict]:
+        """Parse YAML configuration file and return stage and tuner name pairs.
 
-tunerMgr = TunerMgr()
+        Args:
+            config_path (str): Path to the YAML configuration file
 
+        Returns:
+            List[Tuple[str, str]]: List of (stage_name, tuner_name) tuples
+            dict: {tuner_name:tuner}
+        """
+        config = {}
+        # Read the YAML file
+        with open(config_path, "r") as file:
+            for doc in yaml.safe_load_all(file):
+                config.update(doc)
 
-def init_tuners(adaptor_yaml="configs/ecrag.yaml"):
-    tunerMgr.init_adaptor(read_yaml(adaptor_yaml))
-    tunerMgr.register_tuner(RAGStage.RETRIEVAL, EmbeddingTuner)
-    tunerMgr.register_tuner(RAGStage.RETRIEVAL, NodeParserTuner)
-    tunerMgr.register_tuner(RAGStage.RETRIEVAL, SimpleNodeParserChunkTuner)
-    tunerMgr.register_tuner(RAGStage.RETRIEVAL, RetrievalTopkTuner)
+        # Collect stage and tuner pairs
+        stage_tuner_list = []
+        tuner_dict = {}
 
-    tunerMgr.register_tuner(RAGStage.POSTPROCESSING, RerankerTopnTuner)
+        for stage_name, tuners in config["stage"].items():
+            for tuner_name in tuners:
+                stage_tuner_list.append((stage_name, tuner_name))
 
-    tunerMgr.register_tuner(RAGStage.GENERATION, PromptTuner)
+        for tuner in config["tuner"]:
+            tuner_dict[tuner["params"]["name"]] = tuner
+
+        return stage_tuner_list, tuner_dict
+
+    def init_tuner_from_file(self, config_path: str) -> None:
+        """Initialize tuners by parsing config file and registering them with tuner manager.
+
+        Args:
+            config_path (str): Path to the YAML configuration file
+        """
+        # Parse the configuration file
+        stage_tuner_list, tuner_dict = self.parse_tuner_config(config_path)
+        self.init_tuner(stage_tuner_list, tuner_dict)
+
+    def init_tuner(self, stage_tuner_list, tuner_dict):
+        # Register each tuner with the tuner manager
+        # (stage_name, tuner_name)
+        for s_t_pair in stage_tuner_list:
+
+            # Map string stage names to enum values
+            stage_enum = getattr(RAGStage, s_t_pair[0].upper(), None)
+            tuner_name = s_t_pair[1]
+
+            try:
+                # Assuming tuners are imported in the current namespace
+                self._register_tuner(stage_enum, tuner_dict[tuner_name])
+                print(f"Registered tuner {s_t_pair[1]} for stage {s_t_pair[0]}")
+            except KeyError:
+                print(f"Warning: Could not find tuner definition {s_t_pair[1]}")
+                return False
+            except Exception as e:
+                print(f"Error registering tuner {s_t_pair[1]}: {e}")
+                return False
+
+        return True

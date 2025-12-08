@@ -34,7 +34,7 @@
           <div class="query-wrap">
             <div class="query-title">
               <div class="left-wrap">
-                <div class="id-wrap">#{{ item.query_id }}</div>
+                <div class="id-wrap">#{{ index + 1 }}</div>
                 <div class="title-wrap">{{ item.query }}</div>
               </div>
               <div class="right-wrap">
@@ -79,7 +79,7 @@
                   ></span
                 ></template>
                 <div v-else class="loading-wrap">
-                  <a-spin tip="Loading"> </a-spin>
+                  <a-spin :tip="$t('common.loading')"> </a-spin>
                 </div>
               </div>
             </div>
@@ -91,10 +91,16 @@
         <ArrowLeftOutlined />
         {{ $t("common.back") }}</a-button
       >
-      <a-button type="primary" @click="handleNext" :disabled="!allRated">
-        {{ $t("common.next") }}
-        <ArrowRightOutlined />
-      </a-button>
+      <div>
+        <a-button type="primary" ghost @click="handleExit">
+          {{ $t("common.exit") }}
+          <LogoutOutlined />
+        </a-button>
+        <a-button type="primary" @click="handleNext" :disabled="!allRated">
+          {{ $t("common.next") }}
+          <ArrowRightOutlined />
+        </a-button>
+      </div>
     </div>
   </div>
 </template>
@@ -108,6 +114,7 @@ import {
   StarFilled,
   ArrowRightOutlined,
   ArrowLeftOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons-vue";
 import { debounce } from "lodash-es";
 import { marked } from "marked";
@@ -139,7 +146,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["back"]);
+const emit = defineEmits(["back", "exit"]);
 
 const promptList = ref<EmptyArrayType>(props.pipelines);
 const activeIdMap = ref<EmptyArrayType>([]);
@@ -177,7 +184,7 @@ const formatResults = async (results: any[]) => {
   const prevScrollTop = scrollContainer.scrollTop;
   const { baseResult = [], pipelines = [] } = props;
 
-  if (!resultsData.value.length) {
+  if (baseResult.length) {
     resultsData.value = [...baseResult];
   }
 
@@ -292,6 +299,10 @@ const initResizeObserver = () => {
     }
   }
 };
+
+const handleExit = () => {
+  emit("exit");
+};
 watch(
   () => props.baseResult,
   (value) => {
@@ -300,7 +311,7 @@ watch(
       activeIdMap.value = value.map(() => props.pipelines[0] ?? "") || [];
     }
   },
-  { immediate: true }
+  { immediate: true, deep: true }
 );
 watch(
   () => props.results,
@@ -314,6 +325,16 @@ watch(
   { immediate: true, deep: true }
 );
 
+watch(
+  () => props.pipelines,
+  (value) => {
+    if (value.length) {
+      promptList.value = value;
+      activeIdMap.value = resultsData.value?.map(() => value[0] ?? "") || [];
+    }
+  },
+  { immediate: true, deep: true }
+);
 onMounted(() => {
   scrollContainer = document.querySelector(".layout-main");
   if (scrollContainer) {

@@ -124,3 +124,7 @@ declare interface DialogType<T = any> {
   visible: boolean;
   [key: string]: T;
 }
+
+declare interface FormRules {
+  [key: string]: RuleObject | RuleObject[];
+}

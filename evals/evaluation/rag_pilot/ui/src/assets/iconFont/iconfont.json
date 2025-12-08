@@ -6,6 +6,55 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "15838538",
+      "name": "skip",
+      "font_class": "skip1",
+      "unicode": "e67f",
+      "unicode_decimal": 59007
+    },
+    {
+      "icon_id": "12753474",
+      "name": "annotation",
+      "font_class": "annotation",
+      "unicode": "e62e",
+      "unicode_decimal": 58926
+    },
+    {
+      "icon_id": "33279726",
+      "name": "groundtruth",
+      "font_class": "groundtruth",
+      "unicode": "e9b7",
+      "unicode_decimal": 59831
+    },
+    {
+      "icon_id": "687788",
+      "name": "知识库",
+      "font_class": "kb",
+      "unicode": "e639",
+      "unicode_decimal": 58937
+    },
+    {
+      "icon_id": "5299955",
+      "name": "experience",
+      "font_class": "experience",
+      "unicode": "e68e",
+      "unicode_decimal": 59022
+    },
+    {
+      "icon_id": "44419262",
+      "name": "deep-think",
+      "font_class": "deep-think",
+      "unicode": "e772",
+      "unicode_decimal": 59250
+    },
+    {
+      "icon_id": "17523064",
+      "name": "配置-分区配置",
+      "font_class": "collocation",
+      "unicode": "e61c",
+      "unicode_decimal": 58908
+    },
+    {
       "icon_id": "929936",
       "name": "upload",
       "font_class": "upload1",

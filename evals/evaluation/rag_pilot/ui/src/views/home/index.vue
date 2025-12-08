@@ -1,7 +1,6 @@
 <template>
   <div class="home-container">
     <div class="upload-container">
-      <h1 class="title-wrap">{{ $t("home.title") }}</h1>
       <div class="des-wrap">
         {{ $t("home.des") }}
       </div>
@@ -23,7 +22,7 @@
                 @change="handleUploadQeryChange"
               >
                 <div class="top-wrap">
-                  <template v-if="queryUploaded">
+                  <template v-if="isUpload">
                     <div class="icon-wrap is-success">
                       <SvgIcon
                         name="icon-results"
@@ -50,13 +49,11 @@
                 <div class="bottom-wrap">
                   <a-button
                     type="primary"
-                    :icon="
-                      h(queryUploaded ? FileSyncOutlined : CloudUploadOutlined)
-                    "
+                    :icon="h(isUpload ? FileSyncOutlined : CloudUploadOutlined)"
                     class="button-wrap"
                   >
                     {{
-                      $t(queryUploaded ? "common.reUpload" : "common.upload")
+                      $t(isUpload ? "common.reUpload" : "common.upload")
                     }}</a-button
                   >
                   <p class="text-wrap">{{ $t("home.sizeFormat") }}</p>
@@ -90,7 +87,7 @@
                   <h2>{{ $t("home.manual") }}</h2>
                 </template>
                 <p>
-                  {{ $t("home.createdText") }}
+                  {{ $t("home.annotationDes") }}
                 </p>
               </div>
               <div class="bottom-wrap">
@@ -116,9 +113,9 @@
                   type="primary"
                   :icon="h(PlusOutlined)"
                   class="button-wrap"
-                  @click="handleCreate"
+                  @click="handleCreateAnnotation"
                 >
-                  {{ $t("home.create") }}</a-button
+                  {{ $t("home.annotationAdd") }}</a-button
                 >
                 <p class="text-wrap">{{ $t("home.createdTip") }}</p>
               </div>
@@ -143,7 +140,7 @@
           <a-button
             class="next-btn"
             type="primary"
-            :disabled="!(btnDisabled || isCreated)"
+            :disabled="!(activatedPipeline && (isUpload || isCreated))"
             @click="handleNextStep"
             >{{ $t("common.next") }} <ArrowRightOutlined
           /></a-button>
@@ -153,6 +150,7 @@
     <!-- EnterDrawer -->
     <EnterDrawer
       v-if="enterDrawer.visible"
+      :drawer-type="enterDrawer.type"
       :form-data="enterDrawer.data"
       @update="handleUpdate"
       @close="enterDrawer.visible = false"
@@ -162,14 +160,17 @@
 
 <script lang="ts" setup name="UploadFile">
 import {
-  getActivePipelineDetail,
+  getActivePipeline,
   uploadQueryFileUrl,
   requestPipelineReset,
+  getAnnotateGroundTruth,
+  requestAnnotationReset,
+  getRagEndpoint,
 } from "@/api/ragPilot";
 import router from "@/router";
 import { useNotification, downloadJson } from "@/utils/common";
 import { NextLoading } from "@/utils/loading";
-import EnterDrawer from "./components/EnterDrawer.vue";
+import { EnterDrawer } from "./components";
 import {
   RedoOutlined,
   ArrowRightOutlined,
@@ -181,33 +182,40 @@ import {
   FileSyncOutlined,
   CloudUploadOutlined,
 } from "@ant-design/icons-vue";
-import { message, UploadProps } from "ant-design-vue";
+import { UploadProps } from "ant-design-vue";
 import { h, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { pipelineAppStore } from "@/store/pipeline";
+import { FormType, QueryType } from "./components/type";
+import { ragAppStore } from "@/store/rag";
+import { log } from "console";
 
+const ragStore = ragAppStore();
 const { t } = useI18n();
 const { antNotification } = useNotification();
+const pipelineStore = pipelineAppStore();
 const queryFile = ref([]);
-const queryUploaded = ref<boolean>(false);
+const isUpload = ref<boolean>(false);
 const activatedPipeline = ref<boolean>(true);
-const groundTruthData = reactive<EmptyObjectType>({});
+const annotationData = reactive<FormType>({
+  annotation: [],
+});
 
 const enterDrawer = reactive<DialogType>({
+  type: "create",
   data: {},
   visible: false,
 });
+
 const isCreated = computed(() => {
-  return !!groundTruthData.groundtruths?.length;
-});
-const btnDisabled = computed(() => {
-  return queryUploaded.value && activatedPipeline.value;
+  return !!annotationData.annotation?.length;
 });
 
 const handleBeforeUploadQery = (file: UploadProps["fileList"][number]) => {
   const isFileSize = file.size / 1024 / 1024 < 200;
 
   if (!isFileSize) {
-    message.error(t("home.validSizeErr"));
+    antNotification("error", t("common.error"), t("home.validSizeErr"));
   }
 
   return isFileSize;
@@ -220,7 +228,7 @@ const handleUploadQeryChange = (info: any) => {
 
     if (status === "done") {
       NextLoading.done();
-      queryUploaded.value = true;
+      isUpload.value = true;
     } else if (status === "error") {
       NextLoading.done();
       antNotification("error", t("common.error"), response.detail);
@@ -231,40 +239,82 @@ const handleUploadQeryChange = (info: any) => {
   }
 };
 const queryActivePipeline = async () => {
-  const data: any = await getActivePipelineDetail();
+  const pipelineId: any = await getActivePipeline();
 
-  activatedPipeline.value = !!data;
+  pipelineStore.setPipeline(pipelineId);
 };
+const queryAnnotationJson = async () => {
+  const data: any = await getAnnotateGroundTruth();
+  annotationData.annotation = formatFormParam(data);
+};
+
 const handlePipelineReset = async () => {
-  await requestPipelineReset();
+  try {
+    const data: any = await requestPipelineReset();
+
+    activatedPipeline.value = !!data?.pipeline_id;
+  } catch (err) {
+    console.error(err);
+  }
 };
-const handleReset = () => {
+const handleReset = async () => {
   queryFile.value = [];
-  queryUploaded.value = false;
+  isUpload.value = false;
+  await requestAnnotationReset();
+  annotationData.annotation = [];
 };
-const handleNextStep = () => {
+const handleNextStep = async () => {
+  await queryActivePipeline();
   router.push({ name: "Tuner" });
 };
 
-const handleCreate = () => {
+const handleUpdate = (data: FormType) => {
+  annotationData.annotation = formatFormParam(data.annotation);
+};
+
+const handleCreateAnnotation = () => {
+  enterDrawer.type = "create";
   enterDrawer.visible = true;
   enterDrawer.data = {};
 };
 
 const handleEdit = () => {
+  enterDrawer.type = "edit";
   enterDrawer.visible = true;
-  enterDrawer.data = groundTruthData;
-};
-const handleDownload = () => {
-  downloadJson(groundTruthData?.groundtruths);
+  enterDrawer.data = annotationData;
 };
 
-const handleUpdate = (data: EmptyObjectType) => {
-  Object.assign(groundTruthData, data);
+const formatFormParam = (data: QueryType[]) => {
+  return data.map(({ isSubmit, isPass, contexts, ...item }) => ({
+    ...item,
+    contexts: contexts.filter(
+      (context) => !context.suggestions || !context.suggestions?.length
+    ),
+  }));
 };
+const handleDownload = () => {
+  downloadJson(annotationData.annotation);
+};
+const queryRagEndpoint = async () => {
+  console.log(2342424);
+  try {
+    const data: any = await getRagEndpoint();
+    if (data?.target_endpoint) handlePipelineReset();
+  } catch (error) {
+    console.error(error);
+  }
+};
+watch(
+  () => ragStore.ragEndpoint,
+  (endpoint) => {
+    if (endpoint) {
+      handlePipelineReset();
+    }
+  }
+);
 onMounted(() => {
-  handlePipelineReset();
-  queryActivePipeline();
+  queryAnnotationJson();
+  queryRagEndpoint();
 });
 </script>
 
@@ -289,10 +339,12 @@ onMounted(() => {
     text-align: center;
   }
   .des-wrap {
-    font-size: 16px;
+    font-size: 18px;
     line-height: 24px;
     width: 100%;
     text-align: center;
+    color: var(--font-main-color);
+    font-weight: 600;
     padding-bottom: 32px;
   }
   .tip-wrap {

@@ -104,7 +104,45 @@ export const downloadJson = (
   document.body.appendChild(a);
   a.click();
 
-  // 清理
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+};
+
+let counter = 0;
+
+export const generateUniqueId = (): number => {
+  const timestamp = Date.now();
+  const random = Math.floor(Math.random() * 1000);
+  const count = counter++ % 1000;
+  return timestamp * 1_000_000 + random * 1000 + count;
+};
+
+export const validateIpPort = (ipPortStr: string) => {
+  if (typeof ipPortStr !== "string" || !ipPortStr.includes(":")) {
+    return false;
+  }
+
+  const [ip, portStr] = ipPortStr.split(":");
+
+  const ipRegex =
+    /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+  if (!ipRegex.test(ip)) {
+    return false;
+  }
+
+  const port = parseInt(portStr, 10);
+  if (isNaN(port)) {
+    return false;
+  }
+  if (port < 1 || port > 65535) {
+    return false;
+  }
+
+  return true;
+};
+export const validateServiceAddress = (url: string): boolean => {
+  const regex =
+    /^(http:\/\/)(([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}|localhost|[0-9]{1,3}(\.[0-9]{1,3}){3})(:[0-9]+)?$/;
+
+  return regex.test(url);
 };

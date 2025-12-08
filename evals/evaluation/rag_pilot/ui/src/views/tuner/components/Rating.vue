@@ -32,7 +32,7 @@
           <div class="query-wrap">
             <div class="query-title">
               <div class="left-wrap">
-                <div class="id-wrap">#{{ item?.query_id }}</div>
+                <div class="id-wrap">#{{ index + 1 }}</div>
                 <div class="title-wrap">{{ item.query }}</div>
               </div>
               <div class="right-wrap">
@@ -42,10 +42,21 @@
             <div class="response-wrap" v-html="marked(item.response!)"></div>
           </div></div
       ></template>
+      <a-empty class="no-data" v-if="showNoData">
+        <template #description>
+          <p class="empty-title">
+            {{ $t("common.noData") }}
+          </p>
+          <p class="empty-text">
+            {{ $t("common.runTip") }}
+          </p>
+        </template>
+      </a-empty>
       <TunerLoading
         :visible="loading.visible"
         :size="loading.size"
         :show-des="loading.showDes"
+        :describe="$t('common.loadingTip')"
       />
     </div>
     <div class="footer-container">
@@ -55,13 +66,28 @@
         </template>
         {{ $t("common.exit") }}</a-button
       >
-      <a-button
-        type="primary"
-        :disabled="!allRated || loading.visible"
-        @click="handleNext"
-        >{{ $t("common.next") }}
-        <ArrowRightOutlined />
-      </a-button>
+      <div>
+        <a-button
+          v-if="!loading.visible"
+          type="primary"
+          ghost
+          @click="handleSkip"
+          >{{ $t("common.skip") }}
+          <SvgIcon name="icon-skip1" :size="16" inherit class="ml-8" />
+        </a-button>
+        <a-button
+          v-if="isCompleted"
+          type="primary"
+          :disabled="!allRated || loading.visible"
+          @click="handleNext"
+          >{{ $t("common.next") }}
+          <ArrowRightOutlined />
+        </a-button>
+        <a-button v-if="!loading.visible" type="primary" @click="handleRun">
+          {{ $t("common.start") }}
+          <PlayCircleOutlined />
+        </a-button>
+      </div>
     </div>
   </div>
 </template>
@@ -70,14 +96,17 @@
 import { ref, computed, onMounted } from "vue";
 import { QueryMenu, TunerLoading } from "./index";
 import {
-  getActivePipeline,
   requestResultsMetrics,
   getResultsByPipelineId,
   requestPipelineRun,
   requestStageReset,
 } from "@/api/ragPilot";
 import { ResultOut } from "../type";
-import { StarFilled, ArrowRightOutlined } from "@ant-design/icons-vue";
+import {
+  StarFilled,
+  ArrowRightOutlined,
+  PlayCircleOutlined,
+} from "@ant-design/icons-vue";
 import SvgIcon from "@/components/SvgIcon.vue";
 import { debounce } from "lodash-es";
 import { marked } from "marked";
@@ -100,17 +129,18 @@ marked.setOptions({
 const intervalId = ref<any>(null);
 const timers = reactive<any>({});
 const loading = reactive<EmptyObjectType>({
-  visible: true,
+  visible: false,
   size: "large",
   showDes: true,
 });
-const pipelineId = ref<number>();
+const pipelineId = ref<number | null>();
 const resultsData = ref<ResultOut[]>([]);
 const headerHeight = 46;
 const sectionRefs = ref<HTMLElement[]>([]);
 let scrollContainer: HTMLElement | null = null;
 const activeSection = ref<number>();
 const stageList = ref<string[]>(["retrieval", "postprocessing", "generation"]);
+const isCompleted = ref<boolean>(false);
 
 const rated = computed(() => {
   return (
@@ -121,16 +151,17 @@ const rated = computed(() => {
 const allRated = computed(() => {
   return resultsData.value.every((result) => result.metadata?.answer_relevancy);
 });
+const showNoData = computed(() => {
+  return !loading.visible && !resultsData.value?.length;
+});
 const maxRated = computed(() => {
   return resultsData.value?.length || 0;
 });
 const handleUpdateId = (value: number) => {
   if (value) handleScrollTo(value!);
 };
-const getPipelineId = async () => {
-  const pipeline_id: any = await getActivePipeline();
-  pipelineId.value = pipeline_id;
-  pipelineStore.setPipeline(pipelineId.value);
+const handleQueryResult = async () => {
+  loading.visible = true;
   getQueryResult();
 
   intervalId.value = setInterval(getQueryResult, 5000);
@@ -138,7 +169,6 @@ const getPipelineId = async () => {
 const getQueryResult = async () => {
   if (!scrollContainer) return;
   const prevScrollTop = scrollContainer.scrollTop;
-
   const data: any = (await getResultsByPipelineId(pipelineId.value!)) || [];
   if (data?.results?.length) {
     let newItems: any = [];
@@ -163,6 +193,7 @@ const getQueryResult = async () => {
   if (data?.finished) {
     clearInterval(intervalId.value);
     loading.visible = false;
+    isCompleted.value = true;
   }
 };
 
@@ -200,10 +231,20 @@ const handleExit = async () => {
     },
   });
 };
+const handleSkip = () => {
+  if (intervalId.value) clearInterval(intervalId.value);
+  router.push({ name: "Retrieve" });
+};
 const handlePipelineRun = async () => {
   loading.visible = true;
-  await requestPipelineRun();
-  getPipelineId();
+  pipelineId.value = pipelineStore.basePipeline;
+  try {
+    await requestPipelineRun(pipelineId.value!);
+    handleQueryResult();
+  } catch (err) {
+    console.error(err);
+    loading.visible = false;
+  }
 };
 const handleScrollTo = (id: number) => {
   const element = document.getElementById(id.toString());
@@ -235,9 +276,11 @@ const handleScroll = debounce(() => {
     }
   }
 }, 100);
+const handleRun = () => {
+  handlePipelineRun();
+};
 
 onMounted(async () => {
-  await handlePipelineRun();
   scrollContainer = document.querySelector(".layout-main");
   if (scrollContainer) {
     scrollContainer.addEventListener("scroll", handleScroll);
@@ -314,6 +357,20 @@ onUnmounted(() => {
       }
       .right-wrap {
         height: max-content;
+      }
+    }
+    .no-data {
+      margin: auto;
+      .empty-title {
+        font-size: 18px;
+        line-height: 28px;
+        font-weight: 600;
+        color: var(--font-main-color);
+        margin: 8px auto;
+      }
+      .empty-text {
+        line-height: 20px;
+        color: var(--font-text-color);
       }
     }
   }

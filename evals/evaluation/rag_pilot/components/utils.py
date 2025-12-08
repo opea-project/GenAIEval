@@ -8,7 +8,8 @@ from typing import List, TextIO, Union
 import pandas as pd
 import yaml
 from api_schema import GroundTruth
-from components.pilot.base import ContextItem, ContextType, RAGResult, RAGResults
+from components.pilot.base import ContextGT, ContextType, GTType
+from components.pilot.result import RAGResult, RAGResults
 
 
 def load_rag_results_from_csv(file_obj: Union[str, TextIO]):
@@ -46,7 +47,9 @@ def load_rag_results_from_csv(file_obj: Union[str, TextIO]):
             file_name = "" if pd.isna(file_name) else str(file_name)
 
             if gt_context:
-                rag_results_dict[query_id]["gt_contexts"].append(ContextItem(text=gt_context, file_name=file_name))
+                rag_results_dict[query_id]["gt_contexts"].append(
+                    ContextGT(gt_type=GTType.TRADITIONAL, text=gt_context, file_name=file_name)
+                )
 
         rag_results = RAGResults()
         for query_id, data in rag_results_dict.items():
@@ -76,7 +79,7 @@ def load_rag_results_from_gt(gts: List[GroundTruth]):
                 ground_truth=gt.answer,
             )
             for ctx in gt.contexts:
-                result.gt_contexts.append(ContextItem(text=ctx.text, file_name=ctx.filename))
+                result.gt_contexts.append(ContextGT(gt_type=GTType.TRADITIONAL, text=ctx.text, file_name=ctx.filename))
             result.init_context_idx(ContextType.GT)
             rag_results.add_result(result)
 
@@ -84,6 +87,39 @@ def load_rag_results_from_gt(gts: List[GroundTruth]):
 
     except Exception as e:
         raise ValueError(f"Error processing RAG results from GroundTruth: {e}")
+
+
+def load_rag_results_from_gt_match_results(gt_match_results: List):
+    try:
+        rag_results = RAGResults()
+        for gt_match_result in gt_match_results:
+            gt_contexts = []
+            for context_id, context_match_res in gt_match_result.context_map.items():
+                chunk = context_match_res.matched_chunk if context_match_res.matched_chunk else None
+                if not chunk:
+                    continue
+                gt_context_item = ContextGT(
+                    gt_type=GTType.ANNOTATION,
+                    node_id=chunk.node_id,
+                    node_text=chunk.text,
+                    text=context_match_res.context_text,
+                    file_name=chunk.metadata.get("file_name", "unknown"),
+                    page_label=chunk.metadata.get("page_label", ""),
+                )
+                gt_contexts.append(gt_context_item)
+
+            result = RAGResult(
+                query_id=gt_match_result.query_id,
+                query=gt_match_result.query,
+                gt_contexts=gt_contexts,
+                ground_truth="",  # Can be set later if available
+            )
+            result.init_context_idx(ContextType.GT)
+            rag_results.add_result(result)
+        return rag_results
+
+    except Exception as e:
+        raise ValueError(f"Error processing RAG results from GTMatchResult: {e}")
 
 
 def read_yaml(file_path):

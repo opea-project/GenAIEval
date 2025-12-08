@@ -3,17 +3,17 @@
 
 import { defineStore } from "pinia";
 
-export const userAppStore = defineStore("user", {
+export const ragAppStore = defineStore("rag", {
   state: () => ({
-    userGuide: false,
+    ragEndpoint: "",
   }),
   persist: {
-    key: "userInfo",
+    key: "rcrag",
     storage: localStorage,
   },
   actions: {
-    setUserGuideState(state: boolean) {
-      this.userGuide = state;
+    setEndpointState(endpoint: string) {
+      this.ragEndpoint = endpoint;
     },
   },
 });

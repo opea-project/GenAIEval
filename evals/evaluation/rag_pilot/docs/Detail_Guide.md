@@ -8,9 +8,8 @@ RAG Pilot provides a set of tuners to optimize various parameters in a retrieval
 
 | Tuner | Stage | Function | Configuration |
 |---|---|---|---|
-| **EmbeddingTuner** | Retrieval | Tune embedding model and related parameters | Allows selection and configuration of the embedding model used for vectorization, including model name and optional parameters like dimension or backend. |
-| **NodeParserTuner** | Retrieval | Tune node parser parameters | General tuner for configuring node parsers, possibly extending to custom strategies or pre-processing logic. |
-| **SimpleNodeParserChunkTuner** | Retrieval | Tune `SentenceSplitter`'s `chunk_size` and `chunk_overlap` | Configures chunking behavior for document parsing by adjusting the size of individual text chunks and their overlap to ensure context retention. |
+| **EmbeddingModelTuner** | Retrieval | Tune embedding model and related parameters | Allows selection and configuration of the embedding model used for vectorization, including model name and optional parameters like dimension or backend. |
+| **NodeParserTuner** | Retrieval | Tune `SentenceSplitter`'s `chunk_size` and `chunk_overlap` | Configures chunking behavior for document parsing by adjusting the size of individual text chunks and their overlap to ensure context retention. |
 | **RetrievalTopkTuner** | Retrieval | Tune `top_k` for retriever | Adjusts how many documents are retrieved before reranking, balancing recall and performance. |
 | **RerankerTopnTuner** | Postprocessing | Tune `top_n` for reranking | Adjusts the number of top-ranked documents returned after reranking, optimizing relevance and conciseness. |
 | **PromptTuner** | Generator | Tune `prompt` for generator |Generate multiple responses using different prompts for users. |
@@ -20,84 +19,149 @@ These tuners help in optimizing document parsing, chunking strategies, reranking
 
 ## 🚦 How to use RAG Pilot
 
-To launch RAG Pilot, create the following *required files* before running the command:
-
-### 🔹Input file: QA List File (`your_queries.csv`)
-
-The input CSV file should contain queries and associated ground truth data (optional) used for evaluation or tuning. Each row corresponds to a specific query and context file. The CSV must include the following **columns**:
-
-| Column | Required | Description |
-|--------|----------|-------------|
-| `query_id` | ✅ Yes | Unique identifier for the query. Can be used to group multiple context entries under the same query. |
-| `query` | ✅ Yes (at least one per `query_id`) | The actual query string. If left empty for some rows sharing the same `query_id`, the query from the first row with a non-empty value will be used. |
-| `file_name` | ✅ Yes | The name of the file or document where the context (for retrieval or grounding) is drawn from. |
-| `gt_context` | ✅ Yes | The ground truth context string that should be retrieved or matched against. |
-| `ground_truth` | ❌ Optional | The ideal answer or response for the query, used for optional answer-level evaluation. |
-
-#### 📌 CSV File Example
-
-```csv
-query_id,query,file_name,gt_context,ground_truth
-53,故障来源有哪些？,故障处理记录表.txt,故障来源：用户投诉、日志系统、例行维护中发现、其它来源。,故障来源：用户投诉、日志系统、例行维护中发现、其它来源。
-93,uMAC网元VNFC有哪几种备份方式,index.txt,ZUF-76-04-005 VNFC支持1+1主备冗余,uMAC网元VFNC有3中备份方式: 支持1+1主备冗余，支持N+M负荷分担冗余， 支持1+1互备冗余。
-93,,index.txt,ZUF-76-04-006 VNFC支持N+M负荷分担冗余,
-93,,index.txt,ZUF-76-04-008 VNFC支持1+1互备冗余,
-```
-
 ### ▶️ Use RAG Pilot with UI
 
 RAG Pilot provides an interactive UI interface to assist with usage, including the following stages：
-#### 1. Ground Truth Uploading
-Upload the QA List File mentioned above by click the `Upload` button:
+#### 1. Set EC-RAG endpoint
+Click the gear button to set EC-RAG endpoint:
+![Set ecrag endpoint](../pics/set_ecragendpoint.png)
+#### 2. Ground truth upload
+We provide two ways to upload Ground truth:
+`Upload File` and `Create New`
+First time you use Rag Pilot you can start with `Create Now`.
+##### 2.1 Create Now
 
-![Ground truth upload](../pics/upload_ground_truth.png)
-Or you can also create your own ground truth by click the `Create Ground Truth` button, use `+` and `-` button to add or delete ground truth.
+  ![Ground truth upload](../pics/creat_gt1.png)
+- Available options and  meanings:
+  | Item | usage |
+  |---|---|
+  | **Query** | The query you want to ask. |
+  | **File name** | File name which containing the context, select from the drop-down menu. |
+  | **Context** | Context ground truth which related to the query. |
+  | **Section** | Node with context in the file. |
+  | **Pages** | The page number of the context in the file.  |
 
-![Create ground truth](../pics/create_ground_truth.png)
+- `Add Context`: Add context of the same query.
+- `Add Query` : Add other queries infornation.
+- `Save`: Save single query ground truth information.
+- `Batch Save`: Save all queries ground truth information.
+- Once the user click `Save` or `Batch Save` button ,RAG Pilot will search matched nodes based on the ground truth information you entered as ground truth. If no matched node, RAG Pilot will will return the top few nodes with the highest match scores for the user to select:
+  ![select ground truth](../pics/gt_select.png)
+- After create gt, you can click `download` button to download ground truth file for `Upload Files`.
+![download gt](../pics/download.png)
+##### 2.2 Upload files
+After create gt, you can use downloaded json file as upload file.
 
-#### 2. Response Rating
+#### 3. Response Rating
 After groud truth loading, RAG Pilot wii generate response bases on EC-RAG current pipeline.
-You can rating each result after the responses generated.
-![Rating](../pics/rating.png)
+- Click `Run` to get rating results.
+- Click  `Skip` to skip rating.
 
-#### 3. Retrieve Context Tuning
-During this stage, RAG Pilot will execute four tuners: EmbeddingTuner, NodeParserTuner, SimpleNodeParserChunkTuner, and RerankerTopnTuner.
+  ![Rating](../pics/rating1.png)
 
-These tuners will experiment with various parameter combinations to construct corresponding pipelines, ultimately selecting the most effective pipeline as the operational one.
+After clicking `Run`:
+- You can rating each result after the responses generated.
+- Click numbers on the left to switch between responses of different queries.
+- Click `Next` to the next stage.
 
-![Retrieval](../pics/retrieved_pipelines.png)
-Once all four tuners have completed their tasks, the page will display the results, including the `ground truth hits` and the `retrieved chunks`.
+  ![Rating2](../pics/rating2.png)
+#### 4. Retrieve Context Tuning
+During this stage, RAG Pilot will execute four tuners:`ObserberTuner`, `EmbeddingModelTuner`, `NodeParserTuner` and `RetrievalTopKTuner`.
 
-![retrieved chunks](../pics/retrieved_chunks.png)
+##### 4.1 Retrieve Context Tuning Configure
+You can configure the specific content for each tuners.
+- Click `Run Tuners` will start retrieval stage tuning.
+- Click `Cancel` then click `Skip` to skip the Retrieve Context Tuning stage.
+- Support exporting and importing tuners configure with `Export` and `Import` buttons.
 
-#### 4. Postprocess Context Tuning
-This stage adjusts the number of top-ranked documents returned after reranking, optimizing relevance and conciseness.
-After this tuner finished, the page will show recall plots of different `topn`
+  ![retrieval config](../pics/retrieval_config.png)
+##### 4.2 Retrieve Context Tuning Run & Results
+After clicking `Run Tuners`, these tuners will experiment with various parameter combinations to construct corresponding pipelines, ultimately selecting the most effective pipeline as the operational one.
+
+- Click numbers on the left to switch between different queries.
+
+  ![retrieva lpipelines](../pics/retrieved_pipelines.png)
+
+- Once the selected tuners have completed their tasks, the page will display the results, including the `ground truth hits` and the `retrieved chunks`.
+
+- Users can search text via the search box in the upper-right corner to observe which parts of the context match the ground truth context. Text entered into the search box will be highlighted.
+
+  ![retrieved chunks](../pics/retrieved_chunks.png)
+
+- Click `Next` to the Postprocess Context Tuning stage.
+
+
+#### 5. Postprocess Context Tuning
+This stage includes one tuner:`RerankerTopnTuner` which adjusts the number of top-ranked documents returned after reranking, optimizing relevance and conciseness.
+##### 5.1 Postprocess Context Tuning Configure
+Users can configure `RerankerTopnTuner` with UI.
+- Click `Run Tuners` will start retrieval stage tuning.
+- Click `Cancel` then click `Skip` to skip the Postprocess Context Tuning.
+- Support exporting and importing tuners configure with `Export` and `Import` buttons.
+
+  ![postprocess config](../pics/postprocessing_config.png)
+
+##### 5.2 Postprocess Context Tuning Run & Results
+
+After the tuning finished, the page will show recall plots of different `topn`.
 
 ![recall plot](../pics/recall_plot.png)
 
-You can select the desired `Top n` value. The page will display the `ground truth hits` from both the postprocessing and retrieval stages, as well as the `retrieved chunks` from the postprocessing stage.
+- You can select the desired `Top n` value.
 
-![postprocess chunks](../pics/postprocess_chunks.png)
+- The page will display the `ground truth hits` from both the postprocessing and retrieval stages, as well as the `retrieved chunks` from the postprocessing stage.
 
-#### 5. Generation tuning
+- Click numbers on the left to switch between different queries.
 
-This page will displays the activated prompts sourced from text files located in the `./prompt_templates` folder, along with detailed prompt contents specified in the `prompt_contents` section of the ecrag.yaml file.
+- Users can search text via the search box in the upper-right corner to observe which parts of the context match the ground truth context. Text entered into the search box will be highlighted.
 
-![activated prompts](../pics/activated_prompt.png)
 
-After clicking the Next button, RAG Pilot will utilize these prompts to generate answers. You can then evaluate and rate the responses generated from different prompts.
+
+  ![postprocess chunks](../pics/postprocess_chunks.png)
+
+- Click `Next` to the generation tuning stage.
+
+#### 6. Generation tuning
+This stage includes one tuner: `PromptTuner`, you can add your own prompts to generate different responses. 
+##### 6.1 Generation Tuning Configure
+Users can configure `PromptTuner` with UI:
+- Click `Cancel` then click `Skip` to skip the Generation Tuning.
+- Support exporting and importing tuners configure with `Export` and `Import` buttons.
+
+  ![prompt configs](../pics/prompt_config.png)
+
+- Click `Run tuners` will display all activated prompts:
+
+  ![activated prompts](../pics/activated_prompt.png)
+
+- Click `Next` to utilize these prompts to generate answers.
+
+##### 6.2 Generation Tuning Run & Results
+
+
+Once the response is generated, you can then evaluate and rate the responses generated from different prompts.
+
+Click numbers on the left to switch between different queries.
 
 ![different promp answers](../pics/answer_wi_diff_prompts.png)
 
-#### 6. View Results
-After `Generation tuning` stage, you can see the overall user rating of different prompts. For each pipeline, you can view configuration details, download the specific pipeline configurations, and update them to EC-RAG.
+Click `Next` to the next stage.
+
+#### 7. View Results
+After `Generation tuning` stage, you can see the overall rating of different prompts. For each pipeline, you can view configuration details and update them to EC-RAG.
 
 ![different prompts results](../pics/diff_prompt_res.png)
+
 
 Note that once you run `retrieval`,`postprocessing` or `generation` stage , the EC-RAG active pipeline will be changed, you have to reset EC-RAG pipeline in EC-RAG server if needed.
 
 ### ▶️ Use RAG Pilot with RESTful API
+#### Set EC-RAG endpoint
+```bash
+ curl -X POST http://localhost:16030/v1/pilot/settings   
+      -H 'Content-Type: application/json'
+      -d '{"target_endpoint": "10.67.106.189:16010","target_type":"ecrag"}'| jq '.'
+```
 #### Upload ground truth
 ```bash
 curl -X POST http://localhost:16030/v1/pilot/ground_truth/file \
@@ -144,11 +208,6 @@ curl -X GET http://localhost:16030/v1/tuners/stage/{stage}/pipelines/best/id | j
 ```
 
 #### Reset
-##### Restore EC-RAG current active pipeline
-Once you change EC-RAG pipeline ,you can restore RAG Pilot active pipeline to the new EC-RAG pipeline by:
-```bash
-curl -X POST http://localhost:16030/v1/pilot/pipeline/restore | jq '.'
-```
 ##### Reset stage
 ```bash
 curl -X POST http://localhost:16030/v1/tuners/stage/{stage}/reset | jq '.'
@@ -158,7 +217,7 @@ Note that once you run `retrieval`,`postprocessing` or `generation` stage , the 
 
 ### 🧩 What's Nodes and Modules
 
-RAG Pilot represents each stage of the RAG pipeline as a **node**, such as `node_parser`, `indexer`, `retriever`, etc. Each node can have different **modules** that define its type and configuration. The nodes and modules are specified in a YAML file, allowing users to switch between different implementations easily.
+RAG Pilot represents each stage of the RAG pipeline as a **node**, such as `node_parser`, `indexer`, `retriever`, etc. Each node can have different **modules** that define its type and configuration. The nodes and modules are specified in a YAML file, allowing user to switch between different implementations easily.
 
 Here is an example of nodes and modules for EdgeCraftRAG.
 

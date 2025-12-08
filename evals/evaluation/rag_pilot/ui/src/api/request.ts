@@ -5,8 +5,7 @@ import { NextLoading } from "@/utils/loading";
 import serviceManager from "@/utils/serviceManager";
 import axios, { AxiosInstance } from "axios";
 import qs from "qs";
-
-const antNotification = serviceManager.getService("antNotification");
+import i18n from "@/i18n";
 
 const service: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -38,8 +37,16 @@ service.interceptors.response.use(
     if (NextLoading) NextLoading.done();
     const res = response.data;
     if (config.showSuccessMsg) {
-      if (antNotification)
-        antNotification("success", "Success", config.successMsg);
+      if (config.showSuccessMsg) {
+        const antNotification = serviceManager.getService("antNotification");
+
+        if (antNotification)
+          antNotification(
+            "success",
+            i18n.global.t("common.success"),
+            i18n.global.t(config.successMsg)
+          );
+      }
     }
     return Promise.resolve(res);
   },
@@ -54,7 +61,9 @@ service.interceptors.response.use(
     } else {
       errorMessage = error.message;
     }
-    if (antNotification) antNotification("error", "Error", errorMessage);
+    const antNotification = serviceManager.getService("antNotification");
+    if (antNotification)
+      antNotification("error", i18n.global.t("common.error"), errorMessage);
 
     return Promise.reject(error);
   }

@@ -1,0 +1,55 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+nodes:
+  - type: "node_parser"
+    params:
+      name: "Node Parser Node"
+      description: "An example node for demonstration"
+      version: "1.0.0"
+    modules:
+      - type: "direct"
+        attributes:
+          - type: "chunk_size"
+          - type: "chunk_overlap"
+      - type: "hierarchical"
+        attributes:
+          - type: "chunk_size"
+
+  - type: "indexer"
+    params:
+      name: "Indexer Node"
+      description: "An example node for demonstration"
+      version: "1.0.0"
+    modules:
+      - type: "embedding_model"
+        attributes:
+          - type: "model_name"
+
+  - type: "retriever"
+    params:
+      name: "Retriever Node"
+    modules:
+      - type: "vectorsimilarity"
+        attributes:
+          - type: "top_k"
+
+  - type: "postprocessor"
+    params:
+      name: "Postprocessor Node"
+    modules:
+      - type: "reranker"
+        attributes:
+          - type: "top_n"
+          - type: "model_name"
+
+  - type: "generator"
+    params:
+      name: "Generator Node"
+    modules:
+      - type: "prompt"
+        attributes:
+          - type: "content"
+      - type: "llm_model"
+        attributes:
+          - type: "model_name"

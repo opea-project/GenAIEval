@@ -1,6 +1,11 @@
-fastapi>=0.115.0
-pandas>=2.3.0
-python-multipart>=0.0.20
-PyYAML>=6.0.2
-requests>=2.32.4
-uvicorn>=0.34.3
+beautifulsoup4==4.12.3
+deprecated==1.2.10
+fastapi==0.115.0
+fsspec==2024.3.1
+llama-index==0.12.37
+llama-index-core==0.12.37
+pandas==2.3.0
+python-multipart==0.0.20
+PyYAML==6.0.2
+requests==2.32.4
+uvicorn==0.34.3

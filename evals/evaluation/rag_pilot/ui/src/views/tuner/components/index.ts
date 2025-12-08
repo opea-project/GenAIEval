@@ -11,6 +11,7 @@ import TunerLoading from "./TunerLoading.vue";
 import QueryMenu from "./QueryMenu.vue";
 import GenerationResults from "./GenerationResults.vue";
 import Prompt from "./Prompt.vue";
+import TunerConfigure from "./TunerConfigure.vue";
 
 export {
   DetailDrawer,
@@ -23,4 +24,5 @@ export {
   QueryMenu,
   GenerationResults,
   Prompt,
+  TunerConfigure,
 };

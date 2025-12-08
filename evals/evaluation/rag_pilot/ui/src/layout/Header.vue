@@ -4,7 +4,17 @@
     <div class="header-title">
       <h1>{{ $t("headerTitle") }}</h1>
     </div>
+
     <div class="setting-wrap">
+      <span v-if="isConfigured" class="tag-wrap">
+        <span class="label-wrap">EC RAG :</span>
+        <span>{{ form.target_endpoint }}</span>
+        <SvgIcon name="icon-edit" :size="14" @click="handleSetRag" />
+      </span>
+      <span v-else class="error tag-wrap">
+        <span>{{ $t("common.endpointTip") }}</span>
+        <SvgIcon name="icon-setting" :size="14" @click="handleSetRag" />
+      </span>
       <a-dropdown arrow>
         <div @click.prevent>
           <div class="lang-icon">
@@ -36,6 +46,47 @@
       </div>
     </div>
   </div>
+  <a-modal
+    v-model:open="modelVisible"
+    width="500px"
+    centered
+    destroyOnClose
+    :title="$t('home.ragEndpoint')"
+    :keyboard="false"
+    :maskClosable="false"
+    @cancel="handleClose"
+    @ok="handleSubmit"
+  >
+    <a-form
+      :model="form"
+      :rules="rules"
+      name="generator"
+      layout="vertical"
+      ref="formRef"
+      autocomplete="off"
+    >
+      <a-form-item
+        name="target_endpoint"
+        label=""
+        :rules="rules.target_endpoint"
+      >
+        <a-input
+          v-model:value="form.target_endpoint"
+          :placeholder="$t('home.urlValid1')"
+        >
+          <template #addonBefore>
+            <a-select v-model:value="protocol">
+              <a-select-option value="http://">Http://</a-select-option>
+              <a-select-option value="https://">Https://</a-select-option>
+            </a-select>
+          </template>
+        </a-input>
+        <div class="tip-wrap">
+          <InfoCircleOutlined />{{ $t("home.urlTip") }}
+        </div>
+      </a-form-item>
+    </a-form>
+  </a-modal>
 </template>
 
 <script lang="ts" setup name="Header">
@@ -46,12 +97,47 @@ import SvgIcon from "@/components/SvgIcon.vue";
 import { themeAppStore } from "@/store/theme";
 import { useI18n } from "vue-i18n";
 import router from "@/router";
+import { getRagEndpoint, requestRagEndpointSet } from "@/api/ragPilot";
+import { FormInstance } from "ant-design-vue";
+import { validateServiceAddress } from "@/utils/common";
+import { InfoCircleOutlined } from "@ant-design/icons-vue";
+import { ragAppStore } from "@/store/rag";
 
-const { locale } = useI18n();
+const ragStore = ragAppStore();
+const { locale, t } = useI18n();
 const themeStore = themeAppStore();
 const emit = defineEmits(["change-theme"]);
-const isDark = ref<boolean>(false);
+const validateUnique = async (rule: any, value: string) => {
+  if (!value) {
+    return Promise.reject(t("home.urlValid1"));
+  }
+  const serverUrl = protocol.value + value;
+  if (!validateServiceAddress(serverUrl)) {
+    return Promise.reject(t("home.urlValid2"));
+  }
 
+  return Promise.resolve();
+};
+
+const isDark = ref<boolean>(false);
+const modelVisible = ref<boolean>(false);
+const protocol = ref<string>("http://");
+const formRef = ref<FormInstance>();
+const isConfigured = ref<boolean>(false);
+const host = window.location.hostname;
+const form = reactive<EmptyObjectType>({
+  target_endpoint: "",
+  target_type: "ecrag",
+});
+const rules: FormRules = reactive({
+  target_endpoint: [
+    {
+      required: true,
+      validator: validateUnique,
+      trigger: "blur",
+    },
+  ],
+});
 const currentLanguage = computed(() => locale.value);
 const handleLanguageChange = ({ key }: { key: string }) => {
   locale.value = key;
@@ -67,7 +153,33 @@ const handleThemeChange = () => {
 const goHome = async () => {
   router.push({ name: "Home" });
 };
+const queryRagEndpoint = async () => {
+  try {
+    const data: any = await getRagEndpoint();
+    if (data?.target_endpoint) isConfigured.value = true;
+
+    form.target_endpoint = data?.target_endpoint || `${host}:16010`;
+    ragStore.setEndpointState(data?.target_endpoint || "");
+  } catch (error) {
+    console.error(error);
+  }
+};
+const handleSetRag = () => {
+  modelVisible.value = true;
+};
+const handleSubmit = () => {
+  formRef.value?.validate().then(async () => {
+    await requestRagEndpointSet(form);
+    queryRagEndpoint();
+    handleClose();
+  });
+};
+const handleClose = () => {
+  modelVisible.value = false;
+};
 onMounted(() => {
+  queryRagEndpoint();
+
   isDark.value = themeStore.theme === "dark";
 });
 </script>
@@ -132,6 +244,9 @@ onMounted(() => {
 .setting-wrap {
   .flex-end;
   gap: 12px;
+  .label-wrap {
+    color: var(--font-info-color);
+  }
   .lang-icon {
     cursor: pointer;
     position: relative;
@@ -144,5 +259,36 @@ onMounted(() => {
       animation: logoAnimation 0.3s ease-in-out;
     }
   }
+}
+.tag-wrap {
+  height: 24px;
+  border-radius: 6px;
+  padding: 0 8px;
+  font-size: 12px;
+  .flex-left;
+  .text-ellipsis;
+  gap: 4px;
+  background-color: var(--color-deep-primaryBg);
+  border-color: var(--color-primary);
+  color: var(--color-primary-second);
+  .icon-intel {
+    cursor: pointer;
+    color: var(--color-primary) !important;
+    &:hover {
+      color: var(--color-primary-hover) !important;
+    }
+  }
+  &.error {
+    background-color: var(--color-errorBg);
+    border-color: var(--color-error);
+    color: var(--color-error);
+  }
+}
+.tip-wrap {
+  .mt-8;
+  .flex-left;
+  gap: 4px;
+  font-size: 14px;
+  color: var(--font-tip-color);
 }
 </style>
