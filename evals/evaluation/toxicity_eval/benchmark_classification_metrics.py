@@ -158,10 +158,8 @@ def read_test_surge_split(csv_path):
 
         return texts, labels
     except:
-        print(
-            "Error loading test dataset for SurgeAI Toxicity. Please ensure the CSV file path is correct \
-             and the file contains the required columns: 'text' and 'is_toxic'."
-        )
+        print("Error loading test dataset for SurgeAI Toxicity. Please ensure the CSV file path is correct \
+             and the file contains the required columns: 'text' and 'is_toxic'.")
 
 
 def read_test_openaimod_split(json_path):
