@@ -120,7 +120,7 @@ class Bleu(evaluate.Metric):
         score = compute_bleu(
             reference_corpus=references, translation_corpus=predictions, max_order=max_order, smooth=smooth
         )
-        (bleu, precisions, bp, ratio, translation_length, reference_length) = score
+        bleu, precisions, bp, ratio, translation_length, reference_length = score
         return {
             "bleu": bleu,
             "precisions": precisions,

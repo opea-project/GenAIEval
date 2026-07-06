@@ -52,9 +52,7 @@ class Prompt:
 
 
 if __name__ == "__main__":
-
     """Here, we test implementation of Prompt class."""
-
     # step 0 - user input
     metrics = ["factualness", "relevance", "correctness", "readability"]
     input_fields = ["question", "answer", "context"]
