@@ -213,7 +213,6 @@ def generate_metrics_by_threshold(
     Return:
     metric_by_threshold (Dataframe): Dataframe with performance metrics at a variable threshold, ranging from 0 to 1.
     """
-
     if isinstance(labels[0], str) and label_index_map != {}:
         index_label_map = {v.strip() if isinstance(v, str) else v: k for k, v in label_index_map.items()}
 

@@ -543,7 +543,6 @@ def main():
 
         update_and_apply_kubernetes_manifest(strategy_file, args.manifest_dir, timeout=200)
         """
-
         logging.info(f"{strategy_file} evaluation......")
 
         bash_script = "scripts/eval_crud.sh"

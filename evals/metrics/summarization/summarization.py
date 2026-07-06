@@ -40,7 +40,6 @@ class SummarizationMetric:
             model: your LLMs endpoint (application) to generate summaries
             llm_judge: LLMs endpoint for judge summaries
         """
-
         self.model = model
         self.headers = {"Content-Type": "application/json"}
         self.llm_judge = llm_judge
