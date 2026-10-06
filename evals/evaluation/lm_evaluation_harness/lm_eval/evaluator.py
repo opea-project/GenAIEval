@@ -117,7 +117,6 @@ def simple_evaluate(
     :return
         Dictionary of results
     """
-
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
     start_date = time.time()
 
@@ -333,7 +332,6 @@ def evaluate(
     :return
         Dictionary of results
     """
-
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
 
     # tracks all Instances/requests a model must generate output on.

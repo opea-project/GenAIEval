@@ -100,13 +100,10 @@ def rag_evaluate(
         print("The score for faithfulness is {}".format(faithfulness))
         print("The score for context_recall is {}".format(context_recall))
         print("The score for context_precision is {}".format(context_precision))
-        print(
-            """The current group of parameters is:
+        print("""The current group of parameters is:
                 search_type: %s, k: %d, fetch_k: %d, score_threshold: %f, top_n: %d, temperature: %f, \
                 top_k: %d, top_p: %d, repetition_penalty: %f.
-              """
-            % (search_type, k, fetch_k, score_threshold, top_n, temperature, top_k, top_p, repetition_penalty)
-        )
+              """ % (search_type, k, fetch_k, score_threshold, top_n, temperature, top_k, top_p, repetition_penalty))
         return answer_relevancy_average, faithfulness_average, context_recall_average, context_precision_average
     else:
         try:
@@ -145,13 +142,10 @@ def rag_evaluate(
         faithfulness_average = df["faithfulness"][:].mean()
         print("The score for answer_relevancy is {}".format(answer_relevancy_average))
         print("The score for faithfulness is {}".format(faithfulness))
-        print(
-            """The current group of parameters is:
+        print("""The current group of parameters is:
                 search_type: %s, k: %d, fetch_k: %d, score_threshold: %f, top_n: %d, temperature: %f, \
                 top_k: %d, top_p: %d, repetition_penalty: %f.
-              """
-            % (search_type, k, fetch_k, score_threshold, top_n, temperature, top_k, top_p, repetition_penalty)
-        )
+              """ % (search_type, k, fetch_k, score_threshold, top_n, temperature, top_k, top_p, repetition_penalty))
         return answer_relevancy_average, faithfulness_average
 
 

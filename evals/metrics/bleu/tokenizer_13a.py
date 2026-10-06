@@ -86,7 +86,6 @@ class Tokenizer13a(BaseTokenizer):
         :param line: a segment to tokenize
         :return: the tokenized line
         """
-
         # language-independent part:
         line = line.replace("<skipped>", "")
         line = line.replace("-\n", "")
