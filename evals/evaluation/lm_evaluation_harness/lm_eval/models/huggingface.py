@@ -60,8 +60,9 @@ def _get_accelerate_args(
 
 
 class HFLM(TemplateLM):
-    """An abstracted Huggingface model class. Enables usage with both models of
-    `transformers.AutoModelForCausalLM` and `transformers.AutoModelForSeq2SeqLM` classes.
+    """An abstracted Huggingface model class.
+
+    Enables usage with both models of `transformers.AutoModelForCausalLM` and `transformers.AutoModelForSeq2SeqLM` classes.
 
     Supports data-parallel multi-GPU with HF Accelerate.
     """
@@ -474,7 +475,6 @@ class HFLM(TemplateLM):
         HF's public interface relied on in this HFLM class)
         please consider subclassing HFLM and overriding this and other methods as needed.
         """
-
         model_kwargs = kwargs if kwargs else {}
 
         if parallelize:
@@ -576,7 +576,6 @@ class HFLM(TemplateLM):
         Create a tokenizer object corresponding to the correct
         tokenizer for value of `pretrained`, or use the pre-initialized tokenizer passed.
         """
-
         if tokenizer:
             if isinstance(tokenizer, str):
                 self.tokenizer = transformers.AutoTokenizer.from_pretrained(
@@ -1177,6 +1176,7 @@ class GaudiHFModelAdapter(HFLM):
             self.static_shapes = False
 
         # TODO
+        \
         """
         if self.static_shapes:
             print("use hpu graphs.")

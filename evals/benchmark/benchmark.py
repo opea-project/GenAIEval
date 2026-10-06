@@ -74,7 +74,6 @@ def extract_test_case_data(content):
 
 def create_run_yaml_content(service, base_url, bench_target, test_phase, num_queries, test_params):
     """Create content for the run.yaml file."""
-
     # If a load shape includes the parameter concurrent_level,
     # the parameter will be passed to Locust to launch fixed
     # number of simulated users.
@@ -311,7 +310,6 @@ def check_test_suite_config(test_suite_config):
         ValueError
             If incorrect configuration detects
     """
-
     # User must specify either run_time or user_queries.
     if test_suite_config["run_time"] is None and len(test_suite_config["user_queries"]) == 0:
         raise ValueError("Must specify either run_time or user_queries.")
